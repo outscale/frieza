@@ -74,7 +74,7 @@ func destroy(customConfigPath string, snapshotName *string, plan bool, autoAppro
 		objectsCount += count
 		if count > 0 {
 			fmt.Printf("Newly created object to delete in profile %s (%s):\n", profile.Name, provider.Name())
-			ObjectsPrint(&diff.Created)
+			fmt.Printf(ObjectsPrint(&diff.Created))
 		} else {
 			fmt.Printf("No new object to delete in profile %s (%s)\n", profile.Name, provider.Name())
 		}
