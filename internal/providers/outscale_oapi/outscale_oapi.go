@@ -127,6 +127,9 @@ func (provider *OutscaleOAPI) getVms() []Object {
 }
 
 func (provider *OutscaleOAPI) deleteVms(vms []Object) {
+	if len(vms) == 0 {
+		return
+	}
 	fmt.Printf("Deleting virtual machines: %s ... ", vms)
 	deletionOpts := osc.DeleteVmsRequest{VmIds: vms}
 	_, httpRes, err := provider.client.VmApi.DeleteVms(provider.context).
