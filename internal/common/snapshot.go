@@ -95,12 +95,13 @@ func ObjectsCount(objects *Objects) int {
 func ObjectsPrint(objects *Objects) string {
 	out := ""
 	for objectType, objectIds := range *objects {
+
 		if len(objectIds) == 0 {
 			continue
 		}
-		out += fmt.Sprintf("    - %s:\n", objectType)
+		out += fmt.Sprintf("%s:\n", objectType)
 		for _, objectId := range objectIds {
-			out += fmt.Sprintf("      - %s\n", objectId)
+			out += fmt.Sprintf("  - %s\n", objectId)
 		}
 	}
 	return out
