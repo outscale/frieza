@@ -13,6 +13,7 @@ import (
 
 const Name = "outscale_oapi"
 const typeVm = "vm"
+const typeSecurityGroup = "security_group"
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -95,14 +96,13 @@ func newObjects() Objects {
 func (provider *OutscaleOAPI) Objects() Objects {
 	objects := newObjects()
 	objects[typeVm] = provider.getVms()
+	objects[typeSecurityGroup] = provider.getSecurityGroups()
 	return objects
 }
 
 func (provider *OutscaleOAPI) Delete(objects Objects) {
-	vms := objects[typeVm]
-	if vms != nil {
-		provider.deleteVms(vms)
-	}
+	provider.deleteVms(objects[typeVm])
+	provider.deleteSecurityGroups(objects[typeSecurityGroup])
 }
 
 func (provider *OutscaleOAPI) getVms() []Object {
@@ -142,5 +142,46 @@ func (provider *OutscaleOAPI) deleteVms(vms []Object) {
 		}
 	} else {
 		fmt.Println("OK")
+	}
+}
+
+func (provider *OutscaleOAPI) getSecurityGroups() []Object {
+	securityGroups := make([]Object, 0)
+	read, httpRes, err := provider.client.SecurityGroupApi.
+		ReadSecurityGroups(provider.context).
+		ReadSecurityGroupsRequest(osc.ReadSecurityGroupsRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error while reading security groups")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return securityGroups
+	}
+	for _, sg := range *read.SecurityGroups {
+		securityGroups = append(securityGroups, *sg.SecurityGroupId)
+	}
+	return securityGroups
+}
+
+func (provider *OutscaleOAPI) deleteSecurityGroups(securityGroups []Object) {
+	if len(securityGroups) == 0 {
+		return
+	}
+	for _, sg := range securityGroups {
+		fmt.Printf("Deleting security group %s... ", sg)
+		deletionOpts := osc.DeleteSecurityGroupRequest{SecurityGroupId: &sg}
+		_, httpRes, err := provider.client.SecurityGroupApi.
+			DeleteSecurityGroup(provider.context).
+			DeleteSecurityGroupRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting security groups")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
 	}
 }
