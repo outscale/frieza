@@ -91,10 +91,10 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 		return
 	}
 
-	message := fmt.Sprintf("Do you really want to destroy newly created resources?\n" +
-		"  Frieza will destroy all resources listed in Created, as shown above.")
+	message := fmt.Sprintf("Do you really want to delete newly created resources?\n" +
+		"  Frieza will delete all resources shown above.")
 	if !confirmAction(&message, autoApprove) {
-		log.Fatal("Reset canceled")
+		log.Fatal("Clean canceled")
 	}
 	for i, provider := range providers {
 		provider.Delete(diffs[i].Created)
@@ -155,10 +155,10 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 		return
 	}
 
-	message := fmt.Sprintf("Do you really want to destroy ALL created resources?\n" +
-		"  Frieza will destroy all resources listed as shown above.")
+	message := fmt.Sprintf("Do you really want to delete ALL resources?\n" +
+		"  Frieza will delete all resources shown above.")
 	if !confirmAction(&message, autoApprove) {
-		log.Fatal("Reset canceled")
+		log.Fatal("Nuke canceled")
 	}
 	for i, provider := range providers {
 		provider.Delete(objectsToDelete[i])
