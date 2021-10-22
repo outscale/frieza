@@ -77,6 +77,8 @@ You can overide those behavior with `--auto-approve` option.
 >
 > BSD-3-Clause
 
-This `LICENSE` contain raw licenses terms following spdx naming.
+`LICENSE` folder contain raw licenses terms following spdx naming.
+
 You can check which license apply to which copyright owner through `.reuse/dep5` specification.
+
 You can test [reuse](https://reuse.software/.) compliance by running `make test-reuse`.
