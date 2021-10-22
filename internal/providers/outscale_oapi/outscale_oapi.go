@@ -166,6 +166,9 @@ func (provider *OutscaleOAPI) getSecurityGroups() []Object {
 		return securityGroups
 	}
 	for _, sg := range *read.SecurityGroups {
+		if *sg.SecurityGroupName == "default" {
+			continue
+		}
 		securityGroups = append(securityGroups, *sg.SecurityGroupId)
 	}
 	return securityGroups
