@@ -11,8 +11,8 @@ import (
 	"github.com/teris-io/cli"
 )
 
-func cliDestroy() cli.Command {
-	return cli.NewCommand("destroy", "delete created resources since a specific snapshot").
+func cliClean() cli.Command {
+	return cli.NewCommand("clean", "delete created resources since a specific snapshot").
 		WithOption(cli.NewOption("plan", "Only show what resource would be deleted").WithType(cli.TypeBool)).
 		WithOption(cli.NewOption("auto-approve", "Approve resource deletion without confirmation").WithType(cli.TypeBool)).
 		WithArg(cli.NewArg("snapshot_name", "snapshot")).
@@ -20,13 +20,13 @@ func cliDestroy() cli.Command {
 		WithOption(cliDebug()).
 		WithAction(func(args []string, options map[string]string) int {
 			setupDebug(options)
-			destroy(options["config"], &args[0], options["plan"] == "true", options["auto-approve"] == "true")
+			clean(options["config"], &args[0], options["plan"] == "true", options["auto-approve"] == "true")
 			return 0
 		})
 }
 
-func cliDestroyAll() cli.Command {
-	return cli.NewCommand("destroy-all", "delete ALL resources of specified profiles").
+func cliNuke() cli.Command {
+	return cli.NewCommand("nuke", "delete ALL resources of specified profiles").
 		WithOption(cli.NewOption("plan", "Only show what resource would be deleted").WithType(cli.TypeBool)).
 		WithOption(cli.NewOption("auto-approve", "Approve resource deletion without confirmation").WithType(cli.TypeBool)).
 		WithOption(cliConfigPath()).
@@ -34,12 +34,12 @@ func cliDestroyAll() cli.Command {
 		WithArg(cli.NewArg("profile", "one or more profile").AsOptional()).
 		WithAction(func(args []string, options map[string]string) int {
 			setupDebug(options)
-			destroyAll(options["config"], args, options["plan"] == "true", options["auto-approve"] == "true")
+			nuke(options["config"], args, options["plan"] == "true", options["auto-approve"] == "true")
 			return 0
 		})
 }
 
-func destroy(customConfigPath string, snapshotName *string, plan bool, autoApprove bool) {
+func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove bool) {
 	var configPath *string
 	if len(customConfigPath) > 0 {
 		configPath = &customConfigPath
@@ -101,7 +101,7 @@ func destroy(customConfigPath string, snapshotName *string, plan bool, autoAppro
 	}
 }
 
-func destroyAll(customConfigPath string, profiles []string, plan bool, autoApprove bool) {
+func nuke(customConfigPath string, profiles []string, plan bool, autoApprove bool) {
 	var configPath *string
 	if len(customConfigPath) > 0 {
 		configPath = &customConfigPath

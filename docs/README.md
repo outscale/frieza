@@ -56,16 +56,16 @@ frieza snapshot describe myFristSnap
 frieza snapshot rm myFristSnap
 ```
 
-## Delete resources 
-
-To delete ALL resources of a profile:
-```
-frieza destroy-all myDevAccount
-```
+## Delete resources
 
 To delete all newly created resources since myFristSnap:
 ```
-frieza destroy myFristSnap
+frieza clean myFristSnap
+```
+
+To delete ALL resources of a profile:
+```
+frieza nuke myDevAccount
 ```
 
 Note that plan is show before any action and confirmation is asked by default.

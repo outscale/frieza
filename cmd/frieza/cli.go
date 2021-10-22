@@ -26,8 +26,8 @@ func cliRoot() cli.App {
 	return cli.New(ShortDescription()).
 		WithCommand(cliProfile()).
 		WithCommand(cliSnapshot()).
-		WithCommand(cliDestroy()).
-		WithCommand(cliDestroyAll()).
+		WithCommand(cliClean()).
+		WithCommand(cliNuke()).
 		WithCommand(cliProvider()).
 		WithCommand(cliVersion())
 }
