@@ -14,6 +14,7 @@ import (
 const Name = "outscale_oapi"
 const typeVm = "vm"
 const typeSecurityGroup = "security_group"
+const typePublicIp = "public_ip"
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -53,7 +54,11 @@ func New(config ProviderConfig) (*OutscaleOAPI, error) {
 }
 
 func Types() []ObjectType {
-	object_types := []ObjectType{typeVm}
+	object_types := []ObjectType{
+		typeVm,
+		typeSecurityGroup,
+		typePublicIp,
+	}
 	return object_types
 }
 
@@ -97,12 +102,14 @@ func (provider *OutscaleOAPI) Objects() Objects {
 	objects := newObjects()
 	objects[typeVm] = provider.getVms()
 	objects[typeSecurityGroup] = provider.getSecurityGroups()
+	objects[typePublicIp] = provider.getPublicIps()
 	return objects
 }
 
 func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteVms(objects[typeVm])
 	provider.deleteSecurityGroups(objects[typeSecurityGroup])
+	provider.deletePublicIps(objects[typePublicIp])
 }
 
 func (provider *OutscaleOAPI) getVms() []Object {
@@ -177,6 +184,47 @@ func (provider *OutscaleOAPI) deleteSecurityGroups(securityGroups []Object) {
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting security groups")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) getPublicIps() []Object {
+	publicIps := make([]Object, 0)
+	read, httpRes, err := provider.client.PublicIpApi.
+		ReadPublicIps(provider.context).
+		ReadPublicIpsRequest(osc.ReadPublicIpsRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error while reading public ips")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return publicIps
+	}
+	for _, pip := range *read.PublicIps {
+		publicIps = append(publicIps, *pip.PublicIpId)
+	}
+	return publicIps
+}
+
+func (provider *OutscaleOAPI) deletePublicIps(publicIps []Object) {
+	if len(publicIps) == 0 {
+		return
+	}
+	for _, pip := range publicIps {
+		fmt.Printf("Deleting public ip %s... ", pip)
+		deletionOpts := osc.DeletePublicIpRequest{PublicIpId: &pip}
+		_, httpRes, err := provider.client.PublicIpApi.
+			DeletePublicIp(provider.context).
+			DeletePublicIpRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting public ips")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
