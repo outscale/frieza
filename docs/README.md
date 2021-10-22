@@ -11,7 +11,14 @@ Frieza can remove all resources from a cloud account or resources which are not 
 
 # Installation
 
-You can go to release page and download the latest frieza binary or build it yourself.
+You can go to release page and download the latest frieza binary.
+
+Alternatively, you can also install frieza from sources:
+```
+git clone https://github.com/outscale-dev/frieza.git
+cd frieza
+make install
+```
 
 # Building
 

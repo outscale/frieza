@@ -4,6 +4,7 @@ all: help
 help:
 	@echo "help:"
 	@echo "- build     : build frieza"
+	@echo "- install   : install frieza"
 	@echo "- make test : run all tests"
 	@echo "- release   : will generate artefacts locally"
 
@@ -25,6 +26,11 @@ test-go-fmt:
 build:
 	@echo building:
 	cd cmd/frieza && go build -ldflags "-X main.version=`cat version` -X main.commit=`git rev-list -1 HEAD`"
+
+.PHONY: install
+install:
+	@echo installing:
+	cd cmd/frieza && go install -ldflags "-X main.version=`cat version` -X main.commit=`git rev-list -1 HEAD`"
 
 .PHONY: release
 release:
