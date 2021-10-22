@@ -68,8 +68,9 @@ To delete ALL resources of a profile:
 frieza nuke myDevAccount
 ```
 
-Note that plan is show before any action and confirmation is asked by default.
-You can overide those behavior with `--auto-approve` option.
+Note that a listing of deleted resources is show before any action.
+
+Confirmation is asked by default but you can overide this behavior with `--auto-approve` option.
 
 # License
 
