@@ -15,6 +15,7 @@ const Name = "outscale_oapi"
 const typeVm = "vm"
 const typeSecurityGroup = "security_group"
 const typePublicIp = "public_ip"
+const typeVolume = "volume"
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -58,6 +59,7 @@ func Types() []ObjectType {
 		typeVm,
 		typeSecurityGroup,
 		typePublicIp,
+		typeVolume,
 	}
 	return object_types
 }
@@ -103,6 +105,7 @@ func (provider *OutscaleOAPI) Objects() Objects {
 	objects[typeVm] = provider.getVms()
 	objects[typeSecurityGroup] = provider.getSecurityGroups()
 	objects[typePublicIp] = provider.getPublicIps()
+	objects[typeVolume] = provider.getVolumes()
 	return objects
 }
 
@@ -110,6 +113,7 @@ func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteVms(objects[typeVm])
 	provider.deleteSecurityGroups(objects[typeSecurityGroup])
 	provider.deletePublicIps(objects[typePublicIp])
+	provider.deleteVolumes(objects[typeVolume])
 }
 
 func (provider *OutscaleOAPI) getVms() []Object {
@@ -228,6 +232,47 @@ func (provider *OutscaleOAPI) deletePublicIps(publicIps []Object) {
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting public ips")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) getVolumes() []Object {
+	volumes := make([]Object, 0)
+	read, httpRes, err := provider.client.VolumeApi.
+		ReadVolumes(provider.context).
+		ReadVolumesRequest(osc.ReadVolumesRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error while reading volumes")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return volumes
+	}
+	for _, volume := range *read.Volumes {
+		volumes = append(volumes, *volume.VolumeId)
+	}
+	return volumes
+}
+
+func (provider *OutscaleOAPI) deleteVolumes(volumes []Object) {
+	if len(volumes) == 0 {
+		return
+	}
+	for _, volume := range volumes {
+		fmt.Printf("Deleting public ip %s... ", volume)
+		deletionOpts := osc.DeleteVolumeRequest{VolumeId: volume}
+		_, httpRes, err := provider.client.VolumeApi.
+			DeleteVolume(provider.context).
+			DeleteVolumeRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting volume")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
