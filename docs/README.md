@@ -2,11 +2,19 @@
 
 Cleanup your cloud ressources!
 
-Frieza can remove all resources from a cloud account or resources which are not part of a "snapshot".
+# Usecases
+
+The main usecase is to free all resources inside a cloud account (e.g. `frieza nuke regionEu2`)
+
+An other usecase is to use Frieza for cleaning additional resources since a know state:
+1. You want to keep important resources on your account (virtual machines, volumes, etc)
+2. Make a "snapshot" (e.g. `frieza snap new cleanAccountState regionEu2`
+3. Run some experiment which create a number of resources
+4. Once done, cleanup those additional resources with `frieza clean cleanAccountState`
 
 # Features
 
-- Ready to support multiple providers
+- Support multiple providers
 - Can store resources from multiple profiles in one snapshot
 
 # Installation
