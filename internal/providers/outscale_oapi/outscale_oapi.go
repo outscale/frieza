@@ -16,6 +16,7 @@ const typeVm = "vm"
 const typeSecurityGroup = "security_group"
 const typePublicIp = "public_ip"
 const typeVolume = "volume"
+const typeKeypair = "keypair"
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -60,6 +61,7 @@ func Types() []ObjectType {
 		typeSecurityGroup,
 		typePublicIp,
 		typeVolume,
+		typeKeypair,
 	}
 	return object_types
 }
@@ -106,6 +108,7 @@ func (provider *OutscaleOAPI) Objects() Objects {
 	objects[typeSecurityGroup] = provider.getSecurityGroups()
 	objects[typePublicIp] = provider.getPublicIps()
 	objects[typeVolume] = provider.getVolumes()
+	objects[typeKeypair] = provider.getKeypairs()
 	return objects
 }
 
@@ -114,6 +117,7 @@ func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteSecurityGroups(objects[typeSecurityGroup])
 	provider.deletePublicIps(objects[typePublicIp])
 	provider.deleteVolumes(objects[typeVolume])
+	provider.deleteKeypairs(objects[typeKeypair])
 }
 
 func (provider *OutscaleOAPI) getVms() []Object {
@@ -273,6 +277,46 @@ func (provider *OutscaleOAPI) deleteVolumes(volumes []Object) {
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting volume")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) getKeypairs() []Object {
+	keypairs := make([]Object, 0)
+	read, httpRes, err := provider.client.KeypairApi.ReadKeypairs(provider.context).
+		ReadKeypairsRequest(osc.ReadKeypairsRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error while reading keypairs ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return keypairs
+	}
+	for _, keypair := range *read.Keypairs {
+		keypairs = append(keypairs, *keypair.KeypairName)
+	}
+	return keypairs
+}
+
+func (provider *OutscaleOAPI) deleteKeypairs(keypairs []Object) {
+	if len(keypairs) == 0 {
+		return
+	}
+	for _, keypair := range keypairs {
+		fmt.Printf("Deleting keypair %s... ", keypair)
+		deletionOpts := osc.DeleteKeypairRequest{KeypairName: keypair}
+		_, httpRes, err := provider.client.KeypairApi.
+			DeleteKeypair(provider.context).
+			DeleteKeypairRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting keypair")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
