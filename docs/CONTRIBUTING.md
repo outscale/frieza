@@ -25,6 +25,10 @@ Please provide `frieza version` output and steps to reproduce the bug.
 - Complete README.md file
 - Test and Pull Request :)
 
+Note about resource implementation:
+- Try to minimize API calls by reading all resources at once when possible
+- If some resource cannot be deleted (like a default resource), filter them on read
+
 # How to release
 
 1. Edit `cmd/frieza/version` following [semantic versioning rules](https://semver.org/).
