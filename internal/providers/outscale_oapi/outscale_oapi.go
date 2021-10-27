@@ -147,7 +147,7 @@ func (provider *OutscaleOAPI) getVms() []Object {
 		ReadVmsRequest(osc.ReadVmsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error while reading vms ")
+		fmt.Fprint(os.Stderr, "Error while reading vms: ")
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
@@ -172,7 +172,7 @@ func (provider *OutscaleOAPI) deleteVms(vms []Object) {
 		DeleteVmsRequest(deletionOpts).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while deleting vms:")
+		fmt.Fprint(os.Stderr, "Error while deleting vms: ")
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
@@ -187,7 +187,7 @@ func (provider *OutscaleOAPI) getLoadBalancers() []Object {
 		ReadLoadBalancersRequest(osc.ReadLoadBalancersRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error while reading load balancers ")
+		fmt.Fprint(os.Stderr, "Error while reading load balancers: ")
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
@@ -211,7 +211,7 @@ func (provider *OutscaleOAPI) deleteLoadBalancers(loadBalancers []Object) {
 			DeleteLoadBalancerRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting load balancer")
+			fmt.Fprint(os.Stderr, "Error while deleting load balancer: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
@@ -228,7 +228,7 @@ func (provider *OutscaleOAPI) getSecurityGroups() []Object {
 		ReadSecurityGroupsRequest(osc.ReadSecurityGroupsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error while reading security groups")
+		fmt.Fprint(os.Stderr, "Error while reading security groups: ")
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
@@ -255,7 +255,7 @@ func (provider *OutscaleOAPI) deleteSecurityGroups(securityGroups []Object) {
 			DeleteSecurityGroupRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting security groups")
+			fmt.Fprint(os.Stderr, "Error while deleting security groups: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
@@ -272,7 +272,7 @@ func (provider *OutscaleOAPI) getPublicIps() []Object {
 		ReadPublicIpsRequest(osc.ReadPublicIpsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error while reading public ips")
+		fmt.Fprint(os.Stderr, "Error while reading public ips: ")
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
@@ -296,7 +296,7 @@ func (provider *OutscaleOAPI) deletePublicIps(publicIps []Object) {
 			DeletePublicIpRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting public ips")
+			fmt.Fprint(os.Stderr, "Error while deleting public ip: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
@@ -313,7 +313,7 @@ func (provider *OutscaleOAPI) getVolumes() []Object {
 		ReadVolumesRequest(osc.ReadVolumesRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error while reading volumes")
+		fmt.Fprint(os.Stderr, "Error while reading volumes: ")
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
@@ -337,7 +337,7 @@ func (provider *OutscaleOAPI) deleteVolumes(volumes []Object) {
 			DeleteVolumeRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting volume")
+			fmt.Fprint(os.Stderr, "Error while deleting volume: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
@@ -353,7 +353,7 @@ func (provider *OutscaleOAPI) getKeypairs() []Object {
 		ReadKeypairsRequest(osc.ReadKeypairsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error while reading keypairs ")
+		fmt.Fprint(os.Stderr, "Error while reading keypairs: ")
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
@@ -377,7 +377,7 @@ func (provider *OutscaleOAPI) deleteKeypairs(keypairs []Object) {
 			DeleteKeypairRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting keypair")
+			fmt.Fprint(os.Stderr, "Error while deleting keypair: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
@@ -393,7 +393,7 @@ func (provider *OutscaleOAPI) getRouteTables() []Object {
 		ReadRouteTablesRequest(osc.ReadRouteTablesRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error while reading route tables ")
+		fmt.Fprint(os.Stderr, "Error while reading route tables: ")
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
@@ -417,7 +417,7 @@ func (provider *OutscaleOAPI) deleteRouteTables(routeTables []Object) {
 			DeleteRouteTableRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting route table")
+			fmt.Fprint(os.Stderr, "Error while deleting route table: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
@@ -433,7 +433,7 @@ func (provider *OutscaleOAPI) getInternetServices() []Object {
 		ReadInternetServicesRequest(osc.ReadInternetServicesRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error while reading internet services ")
+		fmt.Fprint(os.Stderr, "Error while reading internet services: ")
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
@@ -457,7 +457,7 @@ func (provider *OutscaleOAPI) deleteInternetServices(internetServices []Object) 
 			DeleteInternetServiceRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting internet service")
+			fmt.Fprint(os.Stderr, "Error while deleting internet service: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
@@ -473,7 +473,7 @@ func (provider *OutscaleOAPI) getSubnets() []Object {
 		ReadSubnetsRequest(osc.ReadSubnetsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error while reading subnets ")
+		fmt.Fprint(os.Stderr, "Error while reading subnets: ")
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
@@ -497,7 +497,7 @@ func (provider *OutscaleOAPI) deleteSubnets(subnets []Object) {
 			DeleteSubnetRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting subnet")
+			fmt.Fprint(os.Stderr, "Error while deleting subnet: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
@@ -513,7 +513,7 @@ func (provider *OutscaleOAPI) getNets() []Object {
 		ReadNetsRequest(osc.ReadNetsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error while reading nets ")
+		fmt.Fprint(os.Stderr, "Error while reading nets: ")
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
@@ -537,7 +537,7 @@ func (provider *OutscaleOAPI) deleteNets(nets []Object) {
 			DeleteNetRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting net")
+			fmt.Fprint(os.Stderr, "Error while deleting net: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
@@ -553,7 +553,7 @@ func (provider *OutscaleOAPI) getAccountId() (error, *string) {
 			ReadAccountsRequest(osc.ReadAccountsRequest{}).
 			Execute()
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error while reading account")
+			fmt.Fprint(os.Stderr, "Error while reading account: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
@@ -583,7 +583,7 @@ func (provider *OutscaleOAPI) getImages() []Object {
 			}}).
 		Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error while reading images ")
+		fmt.Fprint(os.Stderr, "Error while reading images: ")
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
@@ -607,7 +607,7 @@ func (provider *OutscaleOAPI) deleteImages(images []Object) {
 			DeleteImageRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting image")
+			fmt.Fprint(os.Stderr, "Error while deleting image: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
@@ -633,7 +633,7 @@ func (provider *OutscaleOAPI) getSnapshots() []Object {
 		}).
 		Execute()
 	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error while reading snapshots ")
+		fmt.Fprint(os.Stderr, "Error while reading snapshots: ")
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
@@ -657,7 +657,7 @@ func (provider *OutscaleOAPI) deleteSnapshots(snapshots []Object) {
 			DeleteSnapshotRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting snapshot")
+			fmt.Fprint(os.Stderr, "Error while deleting snapshot: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
