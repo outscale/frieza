@@ -20,6 +20,7 @@ const typeKeypair = "keypair"
 const typeRouteTable = "route_table"
 const typeInternetService = "internet_service"
 const typeSubnet = "subnet"
+const typeNet = "net"
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -68,6 +69,7 @@ func Types() []ObjectType {
 		typeRouteTable,
 		typeInternetService,
 		typeSubnet,
+		typeNet,
 	}
 	return object_types
 }
@@ -118,6 +120,7 @@ func (provider *OutscaleOAPI) Objects() Objects {
 	objects[typeRouteTable] = provider.getRouteTables()
 	objects[typeInternetService] = provider.getInternetServices()
 	objects[typeSubnet] = provider.getSubnets()
+	objects[typeNet] = provider.getNets()
 	return objects
 }
 
@@ -130,6 +133,7 @@ func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteRouteTables(objects[typeRouteTable])
 	provider.deleteInternetServices(objects[typeInternetService])
 	provider.deleteSubnets(objects[typeSubnet])
+	provider.deleteNets(objects[typeNet])
 }
 
 func (provider *OutscaleOAPI) getVms() []Object {
@@ -449,6 +453,46 @@ func (provider *OutscaleOAPI) deleteSubnets(subnets []Object) {
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting subnet")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) getNets() []Object {
+	nets := make([]Object, 0)
+	read, httpRes, err := provider.client.NetApi.ReadNets(provider.context).
+		ReadNetsRequest(osc.ReadNetsRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error while reading nets ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return nets
+	}
+	for _, net := range *read.Nets {
+		nets = append(nets, *net.NetId)
+	}
+	return nets
+}
+
+func (provider *OutscaleOAPI) deleteNets(nets []Object) {
+	if len(nets) == 0 {
+		return
+	}
+	for _, net := range nets {
+		fmt.Printf("Deleting net %s... ", net)
+		deletionOpts := osc.DeleteNetRequest{NetId: net}
+		_, httpRes, err := provider.client.NetApi.
+			DeleteNet(provider.context).
+			DeleteNetRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting net")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
