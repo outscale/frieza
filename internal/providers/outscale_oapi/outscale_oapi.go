@@ -13,6 +13,7 @@ import (
 
 const Name = "outscale_oapi"
 const typeVm = "vm"
+const typeLoadBalancer = "load_balancer"
 const typeSecurityGroup = "security_group"
 const typePublicIp = "public_ip"
 const typeVolume = "volume"
@@ -65,6 +66,7 @@ func New(config ProviderConfig) (*OutscaleOAPI, error) {
 func Types() []ObjectType {
 	object_types := []ObjectType{
 		typeVm,
+		typeLoadBalancer,
 		typeSecurityGroup,
 		typePublicIp,
 		typeVolume,
@@ -110,6 +112,7 @@ func newObjects() Objects {
 func (provider *OutscaleOAPI) Objects() Objects {
 	objects := newObjects()
 	objects[typeVm] = provider.getVms()
+	objects[typeLoadBalancer] = provider.getLoadBalancers()
 	objects[typeSecurityGroup] = provider.getSecurityGroups()
 	objects[typePublicIp] = provider.getPublicIps()
 	objects[typeVolume] = provider.getVolumes()
@@ -125,6 +128,7 @@ func (provider *OutscaleOAPI) Objects() Objects {
 
 func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteVms(objects[typeVm])
+	provider.deleteLoadBalancers(objects[typeLoadBalancer])
 	provider.deleteSecurityGroups(objects[typeSecurityGroup])
 	provider.deletePublicIps(objects[typePublicIp])
 	provider.deleteVolumes(objects[typeVolume])
@@ -174,6 +178,46 @@ func (provider *OutscaleOAPI) deleteVms(vms []Object) {
 		}
 	} else {
 		fmt.Println("OK")
+	}
+}
+
+func (provider *OutscaleOAPI) getLoadBalancers() []Object {
+	loadBalancers := make([]Object, 0)
+	read, httpRes, err := provider.client.LoadBalancerApi.ReadLoadBalancers(provider.context).
+		ReadLoadBalancersRequest(osc.ReadLoadBalancersRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error while reading load balancers ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return loadBalancers
+	}
+	for _, loadBalancer := range *read.LoadBalancers {
+		loadBalancers = append(loadBalancers, *loadBalancer.LoadBalancerName)
+	}
+	return loadBalancers
+}
+
+func (provider *OutscaleOAPI) deleteLoadBalancers(loadBalancers []Object) {
+	if len(loadBalancers) == 0 {
+		return
+	}
+	for _, loadBalancer := range loadBalancers {
+		fmt.Printf("Deleting load balancer %s... ", loadBalancer)
+		deletionOpts := osc.DeleteLoadBalancerRequest{LoadBalancerName: loadBalancer}
+		_, httpRes, err := provider.client.LoadBalancerApi.
+			DeleteLoadBalancer(provider.context).
+			DeleteLoadBalancerRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting load balancer")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
 	}
 }
 
