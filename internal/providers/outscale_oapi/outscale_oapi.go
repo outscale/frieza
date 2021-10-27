@@ -17,6 +17,7 @@ const typeSecurityGroup = "security_group"
 const typePublicIp = "public_ip"
 const typeVolume = "volume"
 const typeKeypair = "keypair"
+const typeRouteTable = "route_table"
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -62,6 +63,7 @@ func Types() []ObjectType {
 		typePublicIp,
 		typeVolume,
 		typeKeypair,
+		typeRouteTable,
 	}
 	return object_types
 }
@@ -109,6 +111,7 @@ func (provider *OutscaleOAPI) Objects() Objects {
 	objects[typePublicIp] = provider.getPublicIps()
 	objects[typeVolume] = provider.getVolumes()
 	objects[typeKeypair] = provider.getKeypairs()
+	objects[typeRouteTable] = provider.getRouteTables()
 	return objects
 }
 
@@ -118,6 +121,7 @@ func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deletePublicIps(objects[typePublicIp])
 	provider.deleteVolumes(objects[typeVolume])
 	provider.deleteKeypairs(objects[typeKeypair])
+	provider.deleteRouteTables(objects[typeRouteTable])
 }
 
 func (provider *OutscaleOAPI) getVms() []Object {
@@ -317,6 +321,46 @@ func (provider *OutscaleOAPI) deleteKeypairs(keypairs []Object) {
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting keypair")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) getRouteTables() []Object {
+	routeTables := make([]Object, 0)
+	read, httpRes, err := provider.client.RouteTableApi.ReadRouteTables(provider.context).
+		ReadRouteTablesRequest(osc.ReadRouteTablesRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error while reading route tables ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return routeTables
+	}
+	for _, routeTable := range *read.RouteTables {
+		routeTables = append(routeTables, *routeTable.RouteTableId)
+	}
+	return routeTables
+}
+
+func (provider *OutscaleOAPI) deleteRouteTables(routeTables []Object) {
+	if len(routeTables) == 0 {
+		return
+	}
+	for _, routeTable := range routeTables {
+		fmt.Printf("Deleting route table %s... ", routeTable)
+		deletionOpts := osc.DeleteRouteTableRequest{RouteTableId: routeTable}
+		_, httpRes, err := provider.client.RouteTableApi.
+			DeleteRouteTable(provider.context).
+			DeleteRouteTableRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting route table")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
