@@ -21,10 +21,12 @@ const typeRouteTable = "route_table"
 const typeInternetService = "internet_service"
 const typeSubnet = "subnet"
 const typeNet = "net"
+const typeImage = "image"
 
 type OutscaleOAPI struct {
-	client  *osc.APIClient
-	context context.Context
+	client    *osc.APIClient
+	context   context.Context
+	accountId *string
 }
 
 func checkConfig(config ProviderConfig) error {
@@ -70,6 +72,7 @@ func Types() []ObjectType {
 		typeInternetService,
 		typeSubnet,
 		typeNet,
+		typeImage,
 	}
 	return object_types
 }
@@ -121,6 +124,7 @@ func (provider *OutscaleOAPI) Objects() Objects {
 	objects[typeInternetService] = provider.getInternetServices()
 	objects[typeSubnet] = provider.getSubnets()
 	objects[typeNet] = provider.getNets()
+	objects[typeImage] = provider.getImages()
 	return objects
 }
 
@@ -134,6 +138,7 @@ func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteInternetServices(objects[typeInternetService])
 	provider.deleteSubnets(objects[typeSubnet])
 	provider.deleteNets(objects[typeNet])
+	provider.deleteImages(objects[typeImage])
 }
 
 func (provider *OutscaleOAPI) getVms() []Object {
@@ -493,6 +498,76 @@ func (provider *OutscaleOAPI) deleteNets(nets []Object) {
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting net")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) getAccountId() (error, *string) {
+	if provider.accountId == nil {
+		read, httpRes, err := provider.client.AccountApi.ReadAccounts(provider.context).
+			ReadAccountsRequest(osc.ReadAccountsRequest{}).
+			Execute()
+		if err != nil {
+			fmt.Fprintln(os.Stderr, "Error while reading account")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+			return err, nil
+		}
+		if len(*read.Accounts) == 0 {
+			fmt.Fprintln(os.Stderr, "Error while reading account: no account listed")
+			return err, nil
+		}
+		provider.accountId = (*read.Accounts)[0].AccountId
+	}
+	return nil, provider.accountId
+}
+
+func (provider *OutscaleOAPI) getImages() []Object {
+	images := make([]Object, 0)
+	err, accountId := provider.getAccountId()
+	if err != nil {
+		return images
+	}
+	var accountIds []string
+	accountIds = append(accountIds, *accountId)
+	read, httpRes, err := provider.client.ImageApi.ReadImages(provider.context).
+		ReadImagesRequest(osc.ReadImagesRequest{
+			Filters: &osc.FiltersImage{
+				AccountIds: &accountIds,
+			}}).
+		Execute()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error while reading images ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return images
+	}
+	for _, image := range *read.Images {
+		images = append(images, *image.ImageId)
+	}
+	return images
+}
+
+func (provider *OutscaleOAPI) deleteImages(images []Object) {
+	if len(images) == 0 {
+		return
+	}
+	for _, image := range images {
+		fmt.Printf("Deleting image %s... ", image)
+		deletionOpts := osc.DeleteImageRequest{ImageId: image}
+		_, httpRes, err := provider.client.ImageApi.
+			DeleteImage(provider.context).
+			DeleteImageRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting image")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
