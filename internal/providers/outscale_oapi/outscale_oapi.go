@@ -22,6 +22,7 @@ const typeInternetService = "internet_service"
 const typeSubnet = "subnet"
 const typeNet = "net"
 const typeImage = "image"
+const typeSnapshot = "snapshot"
 
 type OutscaleOAPI struct {
 	client    *osc.APIClient
@@ -73,6 +74,7 @@ func Types() []ObjectType {
 		typeSubnet,
 		typeNet,
 		typeImage,
+		typeSnapshot,
 	}
 	return object_types
 }
@@ -117,6 +119,7 @@ func (provider *OutscaleOAPI) Objects() Objects {
 	objects[typeSubnet] = provider.getSubnets()
 	objects[typeNet] = provider.getNets()
 	objects[typeImage] = provider.getImages()
+	objects[typeSnapshot] = provider.getSnapshots()
 	return objects
 }
 
@@ -131,6 +134,7 @@ func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteSubnets(objects[typeSubnet])
 	provider.deleteNets(objects[typeNet])
 	provider.deleteImages(objects[typeImage])
+	provider.deleteSnapshots(objects[typeSnapshot])
 }
 
 func (provider *OutscaleOAPI) getVms() []Object {
@@ -560,6 +564,56 @@ func (provider *OutscaleOAPI) deleteImages(images []Object) {
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting image")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) getSnapshots() []Object {
+	snapshots := make([]Object, 0)
+	err, accountId := provider.getAccountId()
+	if err != nil {
+		return snapshots
+	}
+	var accountIds []string
+	accountIds = append(accountIds, *accountId)
+	read, httpRes, err := provider.client.SnapshotApi.ReadSnapshots(provider.context).
+		ReadSnapshotsRequest(osc.ReadSnapshotsRequest{
+			Filters: &osc.FiltersSnapshot{
+				AccountIds: &accountIds,
+			},
+		}).
+		Execute()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error while reading snapshots ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return snapshots
+	}
+	for _, snapshot := range *read.Snapshots {
+		snapshots = append(snapshots, *snapshot.SnapshotId)
+	}
+	return snapshots
+}
+
+func (provider *OutscaleOAPI) deleteSnapshots(snapshots []Object) {
+	if len(snapshots) == 0 {
+		return
+	}
+	for _, snapshot := range snapshots {
+		fmt.Printf("Deleting snapshot %s... ", snapshot)
+		deletionOpts := osc.DeleteSnapshotRequest{SnapshotId: snapshot}
+		_, httpRes, err := provider.client.SnapshotApi.
+			DeleteSnapshot(provider.context).
+			DeleteSnapshotRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting snapshot")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
