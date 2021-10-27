@@ -93,16 +93,8 @@ func (provider *OutscaleOAPI) Types() []ObjectType {
 }
 
 func (provider *OutscaleOAPI) AuthTest() error {
-	_, httpRes, err := provider.client.AccountApi.ReadAccounts(provider.context).
-		ReadAccountsRequest(osc.ReadAccountsRequest{}).
-		Execute()
-	if err != nil {
-		fmt.Fprintln(os.Stderr, "Error:")
-		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
-		}
-	}
-	return nil
+	err, _ := provider.getAccountId()
+	return err
 }
 
 func newObjects() Objects {
