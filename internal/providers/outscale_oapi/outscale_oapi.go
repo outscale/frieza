@@ -19,6 +19,7 @@ const typeVolume = "volume"
 const typeKeypair = "keypair"
 const typeRouteTable = "route_table"
 const typeInternetService = "internet_service"
+const typeSubnet = "subnet"
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -66,6 +67,7 @@ func Types() []ObjectType {
 		typeKeypair,
 		typeRouteTable,
 		typeInternetService,
+		typeSubnet,
 	}
 	return object_types
 }
@@ -115,6 +117,7 @@ func (provider *OutscaleOAPI) Objects() Objects {
 	objects[typeKeypair] = provider.getKeypairs()
 	objects[typeRouteTable] = provider.getRouteTables()
 	objects[typeInternetService] = provider.getInternetServices()
+	objects[typeSubnet] = provider.getSubnets()
 	return objects
 }
 
@@ -126,6 +129,7 @@ func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteKeypairs(objects[typeKeypair])
 	provider.deleteRouteTables(objects[typeRouteTable])
 	provider.deleteInternetServices(objects[typeInternetService])
+	provider.deleteSubnets(objects[typeSubnet])
 }
 
 func (provider *OutscaleOAPI) getVms() []Object {
@@ -405,6 +409,46 @@ func (provider *OutscaleOAPI) deleteInternetServices(internetServices []Object) 
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting internet service")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) getSubnets() []Object {
+	subnets := make([]Object, 0)
+	read, httpRes, err := provider.client.SubnetApi.ReadSubnets(provider.context).
+		ReadSubnetsRequest(osc.ReadSubnetsRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error while reading subnets ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return subnets
+	}
+	for _, subnet := range *read.Subnets {
+		subnets = append(subnets, *subnet.SubnetId)
+	}
+	return subnets
+}
+
+func (provider *OutscaleOAPI) deleteSubnets(subnets []Object) {
+	if len(subnets) == 0 {
+		return
+	}
+	for _, subnet := range subnets {
+		fmt.Printf("Deleting subnet %s... ", subnet)
+		deletionOpts := osc.DeleteSubnetRequest{SubnetId: subnet}
+		_, httpRes, err := provider.client.SubnetApi.
+			DeleteSubnet(provider.context).
+			DeleteSubnetRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting subnet")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
