@@ -14,6 +14,7 @@ import (
 const Name = "outscale_oapi"
 const typeVm = "vm"
 const typeLoadBalancer = "load_balancer"
+const typeNatService = "nat_service"
 const typeSecurityGroup = "security_group"
 const typePublicIp = "public_ip"
 const typeVolume = "volume"
@@ -67,6 +68,7 @@ func Types() []ObjectType {
 	object_types := []ObjectType{
 		typeVm,
 		typeLoadBalancer,
+		typeNatService,
 		typeSecurityGroup,
 		typePublicIp,
 		typeVolume,
@@ -113,6 +115,7 @@ func (provider *OutscaleOAPI) Objects() Objects {
 	objects := newObjects()
 	objects[typeVm] = provider.getVms()
 	objects[typeLoadBalancer] = provider.getLoadBalancers()
+	objects[typeNatService] = provider.getNatServices()
 	objects[typeSecurityGroup] = provider.getSecurityGroups()
 	objects[typePublicIp] = provider.getPublicIps()
 	objects[typeVolume] = provider.getVolumes()
@@ -129,6 +132,7 @@ func (provider *OutscaleOAPI) Objects() Objects {
 func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteVms(objects[typeVm])
 	provider.deleteLoadBalancers(objects[typeLoadBalancer])
+	provider.deleteNatServices(objects[typeNatService])
 	provider.deleteSecurityGroups(objects[typeSecurityGroup])
 	provider.deletePublicIps(objects[typePublicIp])
 	provider.deleteVolumes(objects[typeVolume])
@@ -212,6 +216,46 @@ func (provider *OutscaleOAPI) deleteLoadBalancers(loadBalancers []Object) {
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting load balancer: ")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) getNatServices() []Object {
+	natServices := make([]Object, 0)
+	read, httpRes, err := provider.client.NatServiceApi.ReadNatServices(provider.context).
+		ReadNatServicesRequest(osc.ReadNatServicesRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprint(os.Stderr, "Error while reading nat services: ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return natServices
+	}
+	for _, natService := range *read.NatServices {
+		natServices = append(natServices, *natService.NatServiceId)
+	}
+	return natServices
+}
+
+func (provider *OutscaleOAPI) deleteNatServices(natServices []Object) {
+	if len(natServices) == 0 {
+		return
+	}
+	for _, natService := range natServices {
+		fmt.Printf("Deleting nat service %s... ", natService)
+		deletionOpts := osc.DeleteNatServiceRequest{NatServiceId: natService}
+		_, httpRes, err := provider.client.NatServiceApi.
+			DeleteNatService(provider.context).
+			DeleteNatServiceRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting nat service: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
