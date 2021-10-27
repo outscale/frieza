@@ -18,6 +18,7 @@ const typePublicIp = "public_ip"
 const typeVolume = "volume"
 const typeKeypair = "keypair"
 const typeRouteTable = "route_table"
+const typeInternetService = "internet_service"
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -64,6 +65,7 @@ func Types() []ObjectType {
 		typeVolume,
 		typeKeypair,
 		typeRouteTable,
+		typeInternetService,
 	}
 	return object_types
 }
@@ -112,6 +114,7 @@ func (provider *OutscaleOAPI) Objects() Objects {
 	objects[typeVolume] = provider.getVolumes()
 	objects[typeKeypair] = provider.getKeypairs()
 	objects[typeRouteTable] = provider.getRouteTables()
+	objects[typeInternetService] = provider.getInternetServices()
 	return objects
 }
 
@@ -122,6 +125,7 @@ func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteVolumes(objects[typeVolume])
 	provider.deleteKeypairs(objects[typeKeypair])
 	provider.deleteRouteTables(objects[typeRouteTable])
+	provider.deleteInternetServices(objects[typeInternetService])
 }
 
 func (provider *OutscaleOAPI) getVms() []Object {
@@ -361,6 +365,46 @@ func (provider *OutscaleOAPI) deleteRouteTables(routeTables []Object) {
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting route table")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) getInternetServices() []Object {
+	internetServices := make([]Object, 0)
+	read, httpRes, err := provider.client.InternetServiceApi.ReadInternetServices(provider.context).
+		ReadInternetServicesRequest(osc.ReadInternetServicesRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprintln(os.Stderr, "Error while reading internet services ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return internetServices
+	}
+	for _, internetService := range *read.InternetServices {
+		internetServices = append(internetServices, *internetService.InternetServiceId)
+	}
+	return internetServices
+}
+
+func (provider *OutscaleOAPI) deleteInternetServices(internetServices []Object) {
+	if len(internetServices) == 0 {
+		return
+	}
+	for _, internetService := range internetServices {
+		fmt.Printf("Deleting internet service %s... ", internetService)
+		deletionOpts := osc.DeleteInternetServiceRequest{InternetServiceId: internetService}
+		_, httpRes, err := provider.client.InternetServiceApi.
+			DeleteInternetService(provider.context).
+			DeleteInternetServiceRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting internet service")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
