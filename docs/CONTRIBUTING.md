@@ -28,6 +28,7 @@ Please provide `frieza version` output and steps to reproduce the bug.
 Note about resource implementation:
 - Try to minimize API calls by reading all resources at once when possible
 - If some resource cannot be deleted (like a default resource), filter them on read
+- Try to store a cache of some objects at reading-time so you can use it at deletion time. This limit the number of API calls.
 
 # How to release
 
