@@ -27,9 +27,14 @@ const typeImage = "image"
 const typeSnapshot = "snapshot"
 
 type OutscaleOAPI struct {
-	client    *osc.APIClient
-	context   context.Context
-	accountId *string
+	client  *osc.APIClient
+	context context.Context
+	cache   apiCache
+}
+
+type apiCache struct {
+	accountId        *string
+	internetServices map[Object]*osc.InternetService
 }
 
 func checkConfig(config ProviderConfig) error {
@@ -61,6 +66,7 @@ func New(config ProviderConfig) (*OutscaleOAPI, error) {
 	return &OutscaleOAPI{
 		client:  client,
 		context: ctx,
+		cache:   newAPICache(),
 	}, nil
 }
 
@@ -143,6 +149,12 @@ func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteNets(objects[typeNet])
 	provider.deleteImages(objects[typeImage])
 	provider.deleteSnapshots(objects[typeSnapshot])
+}
+
+func newAPICache() apiCache {
+	return apiCache{
+		internetServices: make(map[string]*osc.InternetService),
+	}
 }
 
 func (provider *OutscaleOAPI) getVms() []Object {
@@ -485,8 +497,35 @@ func (provider *OutscaleOAPI) getInternetServices() []Object {
 	}
 	for _, internetService := range *read.InternetServices {
 		internetServices = append(internetServices, *internetService.InternetServiceId)
+		provider.cache.internetServices[*internetService.InternetServiceId] = &internetService
 	}
 	return internetServices
+}
+
+func (provider *OutscaleOAPI) unlinkInternetSevice(internetServiceId string) error {
+	internetService := provider.cache.internetServices[internetServiceId]
+	if internetService == nil || internetService.NetId == nil {
+		return nil
+	}
+	fmt.Printf("Unlinking internet service %s... ", internetServiceId)
+	unlinkOps := osc.UnlinkInternetServiceRequest{
+		InternetServiceId: internetServiceId,
+		NetId:             *internetService.NetId,
+	}
+	_, httpRes, err := provider.client.InternetServiceApi.
+		UnlinkInternetService(provider.context).
+		UnlinkInternetServiceRequest(unlinkOps).
+		Execute()
+	if err != nil {
+		fmt.Fprint(os.Stderr, "Error while unlinking internet service: ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return err
+	} else {
+		fmt.Println("OK")
+	}
+	return nil
 }
 
 func (provider *OutscaleOAPI) deleteInternetServices(internetServices []Object) {
@@ -494,6 +533,9 @@ func (provider *OutscaleOAPI) deleteInternetServices(internetServices []Object) 
 		return
 	}
 	for _, internetService := range internetServices {
+		if provider.unlinkInternetSevice(internetService) != nil {
+			continue
+		}
 		fmt.Printf("Deleting internet service %s... ", internetService)
 		deletionOpts := osc.DeleteInternetServiceRequest{InternetServiceId: internetService}
 		_, httpRes, err := provider.client.InternetServiceApi.
@@ -592,7 +634,7 @@ func (provider *OutscaleOAPI) deleteNets(nets []Object) {
 }
 
 func (provider *OutscaleOAPI) getAccountId() (error, *string) {
-	if provider.accountId == nil {
+	if provider.cache.accountId == nil {
 		read, httpRes, err := provider.client.AccountApi.ReadAccounts(provider.context).
 			ReadAccountsRequest(osc.ReadAccountsRequest{}).
 			Execute()
@@ -607,9 +649,9 @@ func (provider *OutscaleOAPI) getAccountId() (error, *string) {
 			fmt.Fprintln(os.Stderr, "Error while reading account: no account listed")
 			return err, nil
 		}
-		provider.accountId = (*read.Accounts)[0].AccountId
+		provider.cache.accountId = (*read.Accounts)[0].AccountId
 	}
-	return nil, provider.accountId
+	return nil, provider.cache.accountId
 }
 
 func (provider *OutscaleOAPI) getImages() []Object {
