@@ -36,6 +36,7 @@ type apiCache struct {
 	accountId        *string
 	internetServices map[Object]*osc.InternetService
 	publicIps        map[Object]*osc.PublicIp
+	Vms              map[Object]*osc.Vm
 }
 
 func checkConfig(config ProviderConfig) error {
@@ -155,6 +156,8 @@ func (provider *OutscaleOAPI) Delete(objects Objects) {
 func newAPICache() apiCache {
 	return apiCache{
 		internetServices: make(map[string]*osc.InternetService),
+		publicIps:        make(map[string]*osc.PublicIp),
+		Vms:              make(map[string]*osc.Vm),
 	}
 }
 
@@ -174,15 +177,49 @@ func (provider *OutscaleOAPI) getVms() []Object {
 		switch *vm.State {
 		case "pending", "running", "stopping", "stopped", "shutting-down", "quarantine":
 			vms = append(vms, *vm.VmId)
+			provider.cache.Vms[*vm.VmId] = &vm
 		}
 	}
 	return vms
+}
+
+func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) error {
+	var vmsToForce []Object
+	for _, vmId := range vms {
+		vm := provider.cache.Vms[vmId]
+		if vm == nil {
+			continue
+		}
+		switch *vm.State {
+		case "pending", "running":
+			vmsToForce = append(vmsToForce, vmId)
+		}
+	}
+	fmt.Printf("Shutting down virtual machines: %s ... ", vmsToForce)
+	forceStop := true
+	stopOpts := osc.StopVmsRequest{
+		VmIds:     vmsToForce,
+		ForceStop: &forceStop,
+	}
+	_, httpRes, err := provider.client.VmApi.StopVms(provider.context).
+		StopVmsRequest(stopOpts).
+		Execute()
+	if err != nil {
+		fmt.Fprint(os.Stderr, "Error while shutting down vms: ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return err
+	}
+	fmt.Println("OK")
+	return nil
 }
 
 func (provider *OutscaleOAPI) deleteVms(vms []Object) {
 	if len(vms) == 0 {
 		return
 	}
+	provider.forceShutdownVms(vms)
 	fmt.Printf("Deleting virtual machines: %s ... ", vms)
 	deletionOpts := osc.DeleteVmsRequest{VmIds: vms}
 	_, httpRes, err := provider.client.VmApi.DeleteVms(provider.context).
