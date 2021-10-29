@@ -138,18 +138,18 @@ func (provider *OutscaleOAPI) Objects() Objects {
 
 func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteVms(objects[typeVm])
-	provider.deleteLoadBalancers(objects[typeLoadBalancer])
-	provider.deleteNatServices(objects[typeNatService])
-	provider.deleteSecurityGroups(objects[typeSecurityGroup])
-	provider.deletePublicIps(objects[typePublicIp])
-	provider.deleteVolumes(objects[typeVolume])
-	provider.deleteKeypairs(objects[typeKeypair])
-	provider.deleteRouteTables(objects[typeRouteTable])
-	provider.deleteInternetServices(objects[typeInternetService])
-	provider.deleteSubnets(objects[typeSubnet])
-	provider.deleteNets(objects[typeNet])
 	provider.deleteImages(objects[typeImage])
 	provider.deleteSnapshots(objects[typeSnapshot])
+	provider.deletePublicIps(objects[typePublicIp])
+	provider.deleteKeypairs(objects[typeKeypair])
+	provider.deleteVolumes(objects[typeVolume])
+	provider.deleteLoadBalancers(objects[typeLoadBalancer])
+	provider.deleteNatServices(objects[typeNatService])
+	provider.deleteInternetServices(objects[typeInternetService])
+	provider.deleteRouteTables(objects[typeRouteTable])
+	provider.deleteSecurityGroups(objects[typeSecurityGroup])
+	provider.deleteSubnets(objects[typeSubnet])
+	provider.deleteNets(objects[typeNet])
 }
 
 func newAPICache() apiCache {
