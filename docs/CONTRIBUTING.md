@@ -18,7 +18,7 @@ Please provide `frieza version` output and steps to reproduce the bug.
   - Provider interface (see `internal/common/provider.go`)
   - On package level:
     - `Name string`
-    - `New(config ProviderConfig) (*OutscaleApi, error)`
+    - `New(config ProviderConfig, debug bool) (*YourProvider, error)`
     - `Types() []ObjectType`
     - `Cli() cli.Command`
 - Add provider to `cmd/frieza/providers.go`

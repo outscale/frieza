@@ -25,7 +25,7 @@ func checkConfig(config ProviderConfig) error {
 	return nil
 }
 
-func New(config ProviderConfig) (*ProviderExample, error) {
+func New(config ProviderConfig, debug bool) (*ProviderExample, error) {
 	if err := checkConfig(config); err != nil {
 		return nil, err
 	}

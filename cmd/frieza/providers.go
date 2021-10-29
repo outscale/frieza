@@ -12,9 +12,9 @@ import (
 func ProviderNew(profile Profile) (Provider, error) {
 	switch profile.Provider {
 	case outscale_oapi.Name:
-		return outscale_oapi.New(profile.Config)
+		return outscale_oapi.New(profile.Config, Debug)
 	case provider_example.Name:
-		return provider_example.New(profile.Config)
+		return provider_example.New(profile.Config, Debug)
 	}
 	return nil, fmt.Errorf("Provider %s not found", profile.Provider)
 }

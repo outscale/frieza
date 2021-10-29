@@ -51,12 +51,12 @@ func checkConfig(config ProviderConfig) error {
 	return nil
 }
 
-func New(config ProviderConfig) (*OutscaleOAPI, error) {
+func New(config ProviderConfig, debug bool) (*OutscaleOAPI, error) {
 	if err := checkConfig(config); err != nil {
 		return nil, err
 	}
 	oscConfig := osc.NewConfiguration()
-	oscConfig.Debug = false
+	oscConfig.Debug = debug
 	client := osc.NewAPIClient(oscConfig)
 	ctx := context.WithValue(context.Background(), osc.ContextAWSv4, osc.AWSv4{
 		AccessKey: config["ak"],
