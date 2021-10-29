@@ -35,6 +35,7 @@ type OutscaleOAPI struct {
 type apiCache struct {
 	accountId        *string
 	internetServices map[Object]*osc.InternetService
+	publicIps        map[Object]*osc.PublicIp
 }
 
 func checkConfig(config ProviderConfig) error {
@@ -338,18 +339,48 @@ func (provider *OutscaleOAPI) getPublicIps() []Object {
 		return publicIps
 	}
 	for _, pip := range *read.PublicIps {
-		publicIps = append(publicIps, *pip.PublicIpId)
+		publicIps = append(publicIps, *pip.PublicIp)
 	}
 	return publicIps
+}
+
+func (provider *OutscaleOAPI) unlinkPublicIp(publicIP *string) error {
+	cache := provider.cache.publicIps[*publicIP]
+	if cache == nil {
+		return nil
+	}
+	if cache.LinkPublicIpId == nil &&
+		cache.NicId == nil &&
+		cache.VmId == nil {
+		return nil
+	}
+	fmt.Printf("Unlinking public ip %s... ", *publicIP)
+	unlinkOpts := osc.UnlinkPublicIpRequest{PublicIp: publicIP}
+	_, httpRes, err := provider.client.PublicIpApi.
+		UnlinkPublicIp(provider.context).
+		UnlinkPublicIpRequest(unlinkOpts).
+		Execute()
+	if err != nil {
+		fmt.Fprint(os.Stderr, "Error while unlinking public ip: ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return err
+	}
+	fmt.Println("OK")
+	return nil
 }
 
 func (provider *OutscaleOAPI) deletePublicIps(publicIps []Object) {
 	if len(publicIps) == 0 {
 		return
 	}
-	for _, pip := range publicIps {
-		fmt.Printf("Deleting public ip %s... ", pip)
-		deletionOpts := osc.DeletePublicIpRequest{PublicIpId: &pip}
+	for _, publicIP := range publicIps {
+		if provider.unlinkPublicIp(&publicIP) != nil {
+			continue
+		}
+		fmt.Printf("Deleting public ip %s... ", publicIP)
+		deletionOpts := osc.DeletePublicIpRequest{PublicIp: &publicIP}
 		_, httpRes, err := provider.client.PublicIpApi.
 			DeletePublicIp(provider.context).
 			DeletePublicIpRequest(deletionOpts).
