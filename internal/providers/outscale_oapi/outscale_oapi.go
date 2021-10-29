@@ -250,7 +250,10 @@ func (provider *OutscaleOAPI) getNatServices() []Object {
 		return natServices
 	}
 	for _, natService := range *read.NatServices {
-		natServices = append(natServices, *natService.NatServiceId)
+		switch *natService.State {
+		case "pending", "available":
+			natServices = append(natServices, *natService.NatServiceId)
+		}
 	}
 	return natServices
 }
