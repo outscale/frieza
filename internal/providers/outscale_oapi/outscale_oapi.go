@@ -420,7 +420,7 @@ func (provider *OutscaleOAPI) deleteVolumes(volumes []Object) {
 		return
 	}
 	for _, volume := range volumes {
-		fmt.Printf("Deleting public ip %s... ", volume)
+		fmt.Printf("Deleting volume %s... ", volume)
 		deletionOpts := osc.DeleteVolumeRequest{VolumeId: volume}
 		_, httpRes, err := provider.client.VolumeApi.
 			DeleteVolume(provider.context).
