@@ -447,7 +447,10 @@ func (provider *OutscaleOAPI) getVolumes() []Object {
 		return volumes
 	}
 	for _, volume := range *read.Volumes {
-		volumes = append(volumes, *volume.VolumeId)
+		switch *volume.State {
+		case "creating", "available", "in-use", "updating", "error":
+			volumes = append(volumes, *volume.VolumeId)
+		}
 	}
 	return volumes
 }
