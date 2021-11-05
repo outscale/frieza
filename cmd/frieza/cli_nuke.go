@@ -55,7 +55,7 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 	}
 
 	var providers []Provider
-	var diffs []Diff
+	var objectsToDelete []Objects
 	objectsCount := 0
 
 	for _, data := range snapshot.Data {
@@ -79,7 +79,7 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 			fmt.Printf("No new object to delete in profile %s (%s)\n", profile.Name, provider.Name())
 		}
 		providers = append(providers, provider)
-		diffs = append(diffs, *diff)
+		objectsToDelete = append(objectsToDelete, *&diff.Created)
 	}
 
 	if objectsCount == 0 {
@@ -96,9 +96,7 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 	if !confirmAction(&message, autoApprove) {
 		log.Fatal("Clean canceled")
 	}
-	for i, provider := range providers {
-		provider.Delete(diffs[i].Created)
-	}
+	loopDelete(providers, objectsToDelete)
 }
 
 func nuke(customConfigPath string, profiles []string, plan bool, autoApprove bool) {
@@ -160,8 +158,33 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 	if !confirmAction(&message, autoApprove) {
 		log.Fatal("Nuke canceled")
 	}
-	for i, provider := range providers {
-		provider.Delete(objectsToDelete[i])
+	loopDelete(providers, objectsToDelete)
+}
+
+func loopDelete(providers []Provider, objects []Objects) {
+	for {
+		var objectsCount []int
+		var totalObjectCount int
+		for i := range objects {
+			count := ObjectsCount(&objects[i])
+			totalObjectCount += count
+			objectsCount = append(objectsCount, count)
+		}
+		if totalObjectCount == 0 {
+			return
+		}
+		for i, provider := range providers {
+			if objectsCount[i] == 0 {
+				continue
+			}
+			provider.Delete(objects[i])
+		}
+		for i, provider := range providers {
+			diff := NewDiff()
+			remaining := provider.Objects()
+			diff.Build(&remaining, &objects[i])
+			objects[i] = diff.Retained
+		}
 	}
 }
 
