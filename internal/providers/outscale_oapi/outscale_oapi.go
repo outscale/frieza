@@ -26,6 +26,7 @@ const typeNet = "net"
 const typeImage = "image"
 const typeSnapshot = "snapshot"
 const typeVpnConnection = "vpn_connection"
+const typeVirtualGateway = "virtual_gateway"
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -89,6 +90,7 @@ func Types() []ObjectType {
 		typeImage,
 		typeSnapshot,
 		typeVpnConnection,
+		typeVirtualGateway,
 	}
 	return object_types
 }
@@ -137,6 +139,7 @@ func (provider *OutscaleOAPI) Objects() Objects {
 	objects[typeImage] = provider.getImages()
 	objects[typeSnapshot] = provider.getSnapshots()
 	objects[typeVpnConnection] = provider.getVpnConnections()
+	objects[typeVirtualGateway] = provider.getVirtualGateways()
 	return objects
 }
 
@@ -155,6 +158,7 @@ func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteSubnets(objects[typeSubnet])
 	provider.deleteNets(objects[typeNet])
 	provider.deleteVpnConnections(objects[typeVpnConnection])
+	provider.deleteVirtualGateways(objects[typeVirtualGateway])
 }
 
 func newAPICache() apiCache {
@@ -865,6 +869,49 @@ func (provider *OutscaleOAPI) deleteVpnConnections(vpnConnections []Object) {
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting vpn connection: ")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) getVirtualGateways() []Object {
+	virtualGateways := make([]Object, 0)
+	read, httpRes, err := provider.client.VirtualGatewayApi.ReadVirtualGateways(provider.context).
+		ReadVirtualGatewaysRequest(osc.ReadVirtualGatewaysRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprint(os.Stderr, "Error while reading virtual gateways: ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return virtualGateways
+	}
+	for _, virtualGateway := range *read.VirtualGateways {
+		switch *virtualGateway.State {
+		case "pending", "available":
+			virtualGateways = append(virtualGateways, *virtualGateway.VirtualGatewayId)
+		}
+	}
+	return virtualGateways
+}
+
+func (provider *OutscaleOAPI) deleteVirtualGateways(virtualGateways []Object) {
+	if len(virtualGateways) == 0 {
+		return
+	}
+	for _, virtualGateway := range virtualGateways {
+		fmt.Printf("Deleting virtual gateway %s... ", virtualGateway)
+		deletionOpts := osc.DeleteVirtualGatewayRequest{VirtualGatewayId: virtualGateway}
+		_, httpRes, err := provider.client.VirtualGatewayApi.
+			DeleteVirtualGateway(provider.context).
+			DeleteVirtualGatewayRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting virtual gateway: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
