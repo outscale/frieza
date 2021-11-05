@@ -25,6 +25,7 @@ const typeSubnet = "subnet"
 const typeNet = "net"
 const typeImage = "image"
 const typeSnapshot = "snapshot"
+const typeVpnConnection = "vpn_connection"
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -87,6 +88,7 @@ func Types() []ObjectType {
 		typeNet,
 		typeImage,
 		typeSnapshot,
+		typeVpnConnection,
 	}
 	return object_types
 }
@@ -134,6 +136,7 @@ func (provider *OutscaleOAPI) Objects() Objects {
 	objects[typeNet] = provider.getNets()
 	objects[typeImage] = provider.getImages()
 	objects[typeSnapshot] = provider.getSnapshots()
+	objects[typeVpnConnection] = provider.getVpnConnections()
 	return objects
 }
 
@@ -151,6 +154,7 @@ func (provider *OutscaleOAPI) Delete(objects Objects) {
 	provider.deleteSecurityGroups(objects[typeSecurityGroup])
 	provider.deleteSubnets(objects[typeSubnet])
 	provider.deleteNets(objects[typeNet])
+	provider.deleteVpnConnections(objects[typeVpnConnection])
 }
 
 func newAPICache() apiCache {
@@ -818,6 +822,49 @@ func (provider *OutscaleOAPI) deleteSnapshots(snapshots []Object) {
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting snapshot: ")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) getVpnConnections() []Object {
+	vpnConnections := make([]Object, 0)
+	read, httpRes, err := provider.client.VpnConnectionApi.ReadVpnConnections(provider.context).
+		ReadVpnConnectionsRequest(osc.ReadVpnConnectionsRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprint(os.Stderr, "Error while reading vpn connections: ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return vpnConnections
+	}
+	for _, vpnConnection := range *read.VpnConnections {
+		switch *vpnConnection.State {
+		case "pending", "available":
+			vpnConnections = append(vpnConnections, *vpnConnection.VpnConnectionId)
+		}
+	}
+	return vpnConnections
+}
+
+func (provider *OutscaleOAPI) deleteVpnConnections(vpnConnections []Object) {
+	if len(vpnConnections) == 0 {
+		return
+	}
+	for _, vpnConnection := range vpnConnections {
+		fmt.Printf("Deleting vpn connection %s... ", vpnConnection)
+		deletionOpts := osc.DeleteVpnConnectionRequest{VpnConnectionId: vpnConnection}
+		_, httpRes, err := provider.client.VpnConnectionApi.
+			DeleteVpnConnection(provider.context).
+			DeleteVpnConnectionRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting vpn connection: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
