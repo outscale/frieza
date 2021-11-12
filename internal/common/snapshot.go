@@ -9,6 +9,8 @@ import (
 	"path"
 )
 
+type Objects = map[ObjectType][]Object
+
 type Snapshot struct {
 	Version int            `json:"version"`
 	Name    string         `json:"name"`
@@ -29,6 +31,24 @@ type Diff struct {
 
 func SnapshotVersion() int {
 	return 0
+}
+
+func ReadObjects(provider *Provider) Objects {
+	objects := make(Objects)
+	for _, typeName := range (*provider).Types() {
+		objects[typeName] = (*provider).ReadObjects(typeName)
+	}
+	return objects
+}
+
+func DeleteObjects(provider *Provider, objects Objects) {
+	for _, typeName := range (*provider).Types() {
+		objectList := objects[typeName]
+		if len(objectList) == 0 {
+			continue
+		}
+		(*provider).DeleteObjects(typeName, objectList)
+	}
 }
 
 func NewDiff() *Diff {

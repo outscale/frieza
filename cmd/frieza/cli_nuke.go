@@ -67,7 +67,7 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 		if err != nil {
 			log.Fatalf("Error intializing profile %s: %s", data.Profile, err.Error())
 		}
-		objects := provider.Objects()
+		objects := ReadObjects(&provider)
 		diff := NewDiff()
 		diff.Build(&data.Objects, &objects)
 		count := ObjectsCount(&diff.Created)
@@ -132,7 +132,7 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 		if err != nil {
 			log.Fatalf("Error intializing profile %s: %s", profileName, err.Error())
 		}
-		toDelete := provider.Objects()
+		toDelete := ReadObjects(&provider)
 		objectsCount += ObjectsCount(&toDelete)
 		fmt.Printf("Profile %s (%s):\n", profile.Name, provider.Name())
 		if objectsCount > 0 {
@@ -177,11 +177,11 @@ func loopDelete(providers []Provider, objects []Objects) {
 			if objectsCount[i] == 0 {
 				continue
 			}
-			provider.Delete(objects[i])
+			DeleteObjects(&provider, objects[i])
 		}
 		for i, provider := range providers {
 			diff := NewDiff()
-			remaining := provider.Objects()
+			remaining := ReadObjects(&provider)
 			diff.Build(&remaining, &objects[i])
 			objects[i] = diff.Retained
 		}

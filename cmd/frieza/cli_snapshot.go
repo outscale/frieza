@@ -126,7 +126,7 @@ func snapshotNew(customConfigPath string, args []string) {
 	for i, provider := range providers {
 		snapshot.Data = append(snapshot.Data, SnapshotData{
 			Profile: profiles[i],
-			Objects: provider.Objects(),
+			Objects: ReadObjects(&provider),
 		})
 	}
 	if err = snapshot.Write(); err != nil {

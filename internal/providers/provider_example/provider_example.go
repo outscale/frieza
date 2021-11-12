@@ -61,28 +61,22 @@ func (provider *ProviderExample) AuthTest() error {
 	return nil
 }
 
-func newObjects() Objects {
-	objects := make(Objects)
-	for _, typeName := range Types() {
-		objects[typeName] = make([]Object, 0)
+func (provider *ProviderExample) ReadObjects(typeName string) []Object {
+	switch typeName {
+	case typeMyResource:
+		return provider.readMyResources()
 	}
-	return objects
+	return []Object{}
 }
 
-func (provider *ProviderExample) Objects() Objects {
-	objects := newObjects()
-	objects[typeMyResource] = provider.getMyResources()
-	return objects
-}
-
-func (provider *ProviderExample) Delete(objects Objects) {
-	vms := objects[typeMyResource]
-	if vms != nil {
-		provider.deleteMyResources(vms)
+func (provider *ProviderExample) DeleteObjects(typeName string, objects []Object) {
+	switch typeName {
+	case typeMyResource:
+		provider.deleteMyResources(objects)
 	}
 }
 
-func (provider *ProviderExample) getMyResources() []Object {
+func (provider *ProviderExample) readMyResources() []Object {
 	MyResources := make([]Object, 0)
 	// Get remote objects
 	// ...

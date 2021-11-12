@@ -111,7 +111,7 @@ func (provider *OutscaleOAPI) Types() []ObjectType {
 }
 
 func (provider *OutscaleOAPI) AuthTest() error {
-	err, _ := provider.getAccountId()
+	err, _ := provider.readAccountId()
 	return err
 }
 
@@ -123,42 +123,75 @@ func newObjects() Objects {
 	return objects
 }
 
-func (provider *OutscaleOAPI) Objects() Objects {
-	objects := newObjects()
-	objects[typeVm] = provider.getVms()
-	objects[typeLoadBalancer] = provider.getLoadBalancers()
-	objects[typeNatService] = provider.getNatServices()
-	objects[typeSecurityGroup] = provider.getSecurityGroups()
-	objects[typePublicIp] = provider.getPublicIps()
-	objects[typeVolume] = provider.getVolumes()
-	objects[typeKeypair] = provider.getKeypairs()
-	objects[typeRouteTable] = provider.getRouteTables()
-	objects[typeInternetService] = provider.getInternetServices()
-	objects[typeSubnet] = provider.getSubnets()
-	objects[typeNet] = provider.getNets()
-	objects[typeImage] = provider.getImages()
-	objects[typeSnapshot] = provider.getSnapshots()
-	objects[typeVpnConnection] = provider.getVpnConnections()
-	objects[typeVirtualGateway] = provider.getVirtualGateways()
-	return objects
+func (provider *OutscaleOAPI) ReadObjects(typeName string) []Object {
+	switch typeName {
+	case typeVm:
+		return provider.readVms()
+	case typeLoadBalancer:
+		return provider.readLoadBalancers()
+	case typeNatService:
+		return provider.readNatServices()
+	case typeSecurityGroup:
+		return provider.readSecurityGroups()
+	case typePublicIp:
+		return provider.readPublicIps()
+	case typeVolume:
+		return provider.readVolumes()
+	case typeKeypair:
+		return provider.readKeypairs()
+	case typeRouteTable:
+		return provider.readRouteTables()
+	case typeInternetService:
+		return provider.readInternetServices()
+	case typeSubnet:
+		return provider.readSubnets()
+	case typeNet:
+		return provider.readNets()
+	case typeImage:
+		return provider.readImages()
+	case typeSnapshot:
+		return provider.readSnapshots()
+	case typeVpnConnection:
+		return provider.readVpnConnections()
+	case typeVirtualGateway:
+		return provider.readVirtualGateways()
+	}
+	return []Object{}
 }
 
-func (provider *OutscaleOAPI) Delete(objects Objects) {
-	provider.deleteVms(objects[typeVm])
-	provider.deleteImages(objects[typeImage])
-	provider.deleteSnapshots(objects[typeSnapshot])
-	provider.deletePublicIps(objects[typePublicIp])
-	provider.deleteKeypairs(objects[typeKeypair])
-	provider.deleteVolumes(objects[typeVolume])
-	provider.deleteLoadBalancers(objects[typeLoadBalancer])
-	provider.deleteNatServices(objects[typeNatService])
-	provider.deleteInternetServices(objects[typeInternetService])
-	provider.deleteRouteTables(objects[typeRouteTable])
-	provider.deleteSecurityGroups(objects[typeSecurityGroup])
-	provider.deleteSubnets(objects[typeSubnet])
-	provider.deleteNets(objects[typeNet])
-	provider.deleteVpnConnections(objects[typeVpnConnection])
-	provider.deleteVirtualGateways(objects[typeVirtualGateway])
+func (provider *OutscaleOAPI) DeleteObjects(typeName string, objects []Object) {
+	switch typeName {
+	case typeVm:
+		provider.deleteVms(objects)
+	case typeLoadBalancer:
+		provider.deleteLoadBalancers(objects)
+	case typeNatService:
+		provider.deleteNatServices(objects)
+	case typeSecurityGroup:
+		provider.deleteSecurityGroups(objects)
+	case typePublicIp:
+		provider.deletePublicIps(objects)
+	case typeVolume:
+		provider.deleteVolumes(objects)
+	case typeKeypair:
+		provider.deleteKeypairs(objects)
+	case typeRouteTable:
+		provider.deleteRouteTables(objects)
+	case typeInternetService:
+		provider.deleteInternetServices(objects)
+	case typeSubnet:
+		provider.deleteSubnets(objects)
+	case typeNet:
+		provider.deleteNets(objects)
+	case typeImage:
+		provider.deleteImages(objects)
+	case typeSnapshot:
+		provider.deleteSnapshots(objects)
+	case typeVpnConnection:
+		provider.deleteVpnConnections(objects)
+	case typeVirtualGateway:
+		provider.deleteVirtualGateways(objects)
+	}
 }
 
 func newAPICache() apiCache {
@@ -169,7 +202,7 @@ func newAPICache() apiCache {
 	}
 }
 
-func (provider *OutscaleOAPI) getVms() []Object {
+func (provider *OutscaleOAPI) readVms() []Object {
 	vms := make([]Object, 0)
 	read, httpRes, err := provider.client.VmApi.ReadVms(provider.context).
 		ReadVmsRequest(osc.ReadVmsRequest{}).
@@ -243,7 +276,7 @@ func (provider *OutscaleOAPI) deleteVms(vms []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) getLoadBalancers() []Object {
+func (provider *OutscaleOAPI) readLoadBalancers() []Object {
 	loadBalancers := make([]Object, 0)
 	read, httpRes, err := provider.client.LoadBalancerApi.ReadLoadBalancers(provider.context).
 		ReadLoadBalancersRequest(osc.ReadLoadBalancersRequest{}).
@@ -283,7 +316,7 @@ func (provider *OutscaleOAPI) deleteLoadBalancers(loadBalancers []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) getNatServices() []Object {
+func (provider *OutscaleOAPI) readNatServices() []Object {
 	natServices := make([]Object, 0)
 	read, httpRes, err := provider.client.NatServiceApi.ReadNatServices(provider.context).
 		ReadNatServicesRequest(osc.ReadNatServicesRequest{}).
@@ -326,7 +359,7 @@ func (provider *OutscaleOAPI) deleteNatServices(natServices []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) getSecurityGroups() []Object {
+func (provider *OutscaleOAPI) readSecurityGroups() []Object {
 	securityGroups := make([]Object, 0)
 	read, httpRes, err := provider.client.SecurityGroupApi.
 		ReadSecurityGroups(provider.context).
@@ -370,7 +403,7 @@ func (provider *OutscaleOAPI) deleteSecurityGroups(securityGroups []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) getPublicIps() []Object {
+func (provider *OutscaleOAPI) readPublicIps() []Object {
 	publicIps := make([]Object, 0)
 	read, httpRes, err := provider.client.PublicIpApi.
 		ReadPublicIps(provider.context).
@@ -441,7 +474,7 @@ func (provider *OutscaleOAPI) deletePublicIps(publicIps []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) getVolumes() []Object {
+func (provider *OutscaleOAPI) readVolumes() []Object {
 	volumes := make([]Object, 0)
 	read, httpRes, err := provider.client.VolumeApi.
 		ReadVolumes(provider.context).
@@ -485,7 +518,7 @@ func (provider *OutscaleOAPI) deleteVolumes(volumes []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) getKeypairs() []Object {
+func (provider *OutscaleOAPI) readKeypairs() []Object {
 	keypairs := make([]Object, 0)
 	read, httpRes, err := provider.client.KeypairApi.ReadKeypairs(provider.context).
 		ReadKeypairsRequest(osc.ReadKeypairsRequest{}).
@@ -525,7 +558,7 @@ func (provider *OutscaleOAPI) deleteKeypairs(keypairs []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) getRouteTables() []Object {
+func (provider *OutscaleOAPI) readRouteTables() []Object {
 	routeTables := make([]Object, 0)
 	read, httpRes, err := provider.client.RouteTableApi.ReadRouteTables(provider.context).
 		ReadRouteTablesRequest(osc.ReadRouteTablesRequest{}).
@@ -565,7 +598,7 @@ func (provider *OutscaleOAPI) deleteRouteTables(routeTables []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) getInternetServices() []Object {
+func (provider *OutscaleOAPI) readInternetServices() []Object {
 	internetServices := make([]Object, 0)
 	read, httpRes, err := provider.client.InternetServiceApi.ReadInternetServices(provider.context).
 		ReadInternetServicesRequest(osc.ReadInternetServicesRequest{}).
@@ -635,7 +668,7 @@ func (provider *OutscaleOAPI) deleteInternetServices(internetServices []Object) 
 	}
 }
 
-func (provider *OutscaleOAPI) getSubnets() []Object {
+func (provider *OutscaleOAPI) readSubnets() []Object {
 	subnets := make([]Object, 0)
 	read, httpRes, err := provider.client.SubnetApi.ReadSubnets(provider.context).
 		ReadSubnetsRequest(osc.ReadSubnetsRequest{}).
@@ -675,7 +708,7 @@ func (provider *OutscaleOAPI) deleteSubnets(subnets []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) getNets() []Object {
+func (provider *OutscaleOAPI) readNets() []Object {
 	nets := make([]Object, 0)
 	read, httpRes, err := provider.client.NetApi.ReadNets(provider.context).
 		ReadNetsRequest(osc.ReadNetsRequest{}).
@@ -715,7 +748,7 @@ func (provider *OutscaleOAPI) deleteNets(nets []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) getAccountId() (error, *string) {
+func (provider *OutscaleOAPI) readAccountId() (error, *string) {
 	if provider.cache.accountId == nil {
 		read, httpRes, err := provider.client.AccountApi.ReadAccounts(provider.context).
 			ReadAccountsRequest(osc.ReadAccountsRequest{}).
@@ -736,9 +769,9 @@ func (provider *OutscaleOAPI) getAccountId() (error, *string) {
 	return nil, provider.cache.accountId
 }
 
-func (provider *OutscaleOAPI) getImages() []Object {
+func (provider *OutscaleOAPI) readImages() []Object {
 	images := make([]Object, 0)
-	err, accountId := provider.getAccountId()
+	err, accountId := provider.readAccountId()
 	if err != nil {
 		return images
 	}
@@ -785,9 +818,9 @@ func (provider *OutscaleOAPI) deleteImages(images []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) getSnapshots() []Object {
+func (provider *OutscaleOAPI) readSnapshots() []Object {
 	snapshots := make([]Object, 0)
-	err, accountId := provider.getAccountId()
+	err, accountId := provider.readAccountId()
 	if err != nil {
 		return snapshots
 	}
@@ -835,7 +868,7 @@ func (provider *OutscaleOAPI) deleteSnapshots(snapshots []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) getVpnConnections() []Object {
+func (provider *OutscaleOAPI) readVpnConnections() []Object {
 	vpnConnections := make([]Object, 0)
 	read, httpRes, err := provider.client.VpnConnectionApi.ReadVpnConnections(provider.context).
 		ReadVpnConnectionsRequest(osc.ReadVpnConnectionsRequest{}).
@@ -878,7 +911,7 @@ func (provider *OutscaleOAPI) deleteVpnConnections(vpnConnections []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) getVirtualGateways() []Object {
+func (provider *OutscaleOAPI) readVirtualGateways() []Object {
 	virtualGateways := make([]Object, 0)
 	read, httpRes, err := provider.client.VirtualGatewayApi.ReadVirtualGateways(provider.context).
 		ReadVirtualGatewaysRequest(osc.ReadVirtualGatewaysRequest{}).
