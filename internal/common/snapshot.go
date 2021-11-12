@@ -41,6 +41,17 @@ func ReadObjects(provider *Provider) Objects {
 	return objects
 }
 
+func ReadNonEmptyObjects(provider *Provider, nonEmpy Objects) Objects {
+	objects := make(Objects)
+	for _, typeName := range (*provider).Types() {
+		if len(nonEmpy[typeName]) == 0 {
+			continue
+		}
+		objects[typeName] = (*provider).ReadObjects(typeName)
+	}
+	return objects
+}
+
 func DeleteObjects(provider *Provider, objects Objects) {
 	for _, typeName := range (*provider).Types() {
 		objectList := objects[typeName]

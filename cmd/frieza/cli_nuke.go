@@ -181,7 +181,7 @@ func loopDelete(providers []Provider, objects []Objects) {
 		}
 		for i, provider := range providers {
 			diff := NewDiff()
-			remaining := ReadObjects(&provider)
+			remaining := ReadNonEmptyObjects(&provider, objects[i])
 			diff.Build(&remaining, &objects[i])
 			objects[i] = diff.Retained
 		}
