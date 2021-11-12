@@ -27,6 +27,7 @@ const typeImage = "image"
 const typeSnapshot = "snapshot"
 const typeVpnConnection = "vpn_connection"
 const typeVirtualGateway = "virtual_gateway"
+const typeNic = "nic"
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -39,6 +40,7 @@ type apiCache struct {
 	internetServices map[Object]*osc.InternetService
 	publicIps        map[Object]*osc.PublicIp
 	Vms              map[Object]*osc.Vm
+	nics             map[Object]*osc.Nic
 }
 
 func checkConfig(config ProviderConfig) error {
@@ -91,6 +93,7 @@ func Types() []ObjectType {
 		typeSnapshot,
 		typeVpnConnection,
 		typeVirtualGateway,
+		typeNic,
 	}
 	return object_types
 }
@@ -155,6 +158,8 @@ func (provider *OutscaleOAPI) ReadObjects(typeName string) []Object {
 		return provider.readVpnConnections()
 	case typeVirtualGateway:
 		return provider.readVirtualGateways()
+	case typeNic:
+		return provider.readNics()
 	}
 	return []Object{}
 }
@@ -191,6 +196,8 @@ func (provider *OutscaleOAPI) DeleteObjects(typeName string, objects []Object) {
 		provider.deleteVpnConnections(objects)
 	case typeVirtualGateway:
 		provider.deleteVirtualGateways(objects)
+	case typeNic:
+		provider.deleteNics(objects)
 	}
 }
 
@@ -199,6 +206,7 @@ func newAPICache() apiCache {
 		internetServices: make(map[string]*osc.InternetService),
 		publicIps:        make(map[string]*osc.PublicIp),
 		Vms:              make(map[string]*osc.Vm),
+		nics:             make(map[string]*osc.Nic),
 	}
 }
 
@@ -945,6 +953,79 @@ func (provider *OutscaleOAPI) deleteVirtualGateways(virtualGateways []Object) {
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting virtual gateway: ")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readNics() []Object {
+	nics := make([]Object, 0)
+	read, httpRes, err := provider.client.NicApi.ReadNics(provider.context).
+		ReadNicsRequest(osc.ReadNicsRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprint(os.Stderr, "Error while reading nics: ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return nics
+	}
+	for _, nic := range *read.Nics {
+		provider.cache.nics[*nic.NicId] = &nic
+		nics = append(nics, *nic.NicId)
+	}
+	return nics
+}
+
+func (provider *OutscaleOAPI) unlinkNics(nics []Object) {
+	for _, nicId := range nics {
+		nic := provider.cache.nics[nicId]
+		if nic == nil {
+			continue
+		}
+		switch *nic.State {
+		case "attaching", "in-use":
+		default:
+			continue
+		}
+		if nic.LinkNic == nil || nic.LinkNic.LinkNicId == nil {
+			continue
+		}
+		fmt.Printf("Unlinking nic %s... ", nicId)
+		unlinkOpts := osc.UnlinkNicRequest{LinkNicId: *nic.LinkNic.LinkNicId}
+		_, httpRes, err := provider.client.NicApi.
+			UnlinkNic(provider.context).
+			UnlinkNicRequest(unlinkOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while unlinking nic: ")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+			continue
+		}
+		fmt.Println("OK")
+	}
+}
+
+func (provider *OutscaleOAPI) deleteNics(nics []Object) {
+	if len(nics) == 0 {
+		return
+	}
+	provider.unlinkNics(nics)
+	for _, nicId := range nics {
+		fmt.Printf("Deleting nic %s... ", nicId)
+		deletionOpts := osc.DeleteNicRequest{NicId: nicId}
+		_, httpRes, err := provider.client.NicApi.
+			DeleteNic(provider.context).
+			DeleteNicRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting nic: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
