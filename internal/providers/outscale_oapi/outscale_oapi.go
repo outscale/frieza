@@ -39,7 +39,7 @@ type apiCache struct {
 	accountId        *string
 	internetServices map[Object]*osc.InternetService
 	publicIps        map[Object]*osc.PublicIp
-	Vms              map[Object]*osc.Vm
+	vms              map[Object]*osc.Vm
 	nics             map[Object]*osc.Nic
 }
 
@@ -205,7 +205,7 @@ func newAPICache() apiCache {
 	return apiCache{
 		internetServices: make(map[string]*osc.InternetService),
 		publicIps:        make(map[string]*osc.PublicIp),
-		Vms:              make(map[string]*osc.Vm),
+		vms:              make(map[string]*osc.Vm),
 		nics:             make(map[string]*osc.Nic),
 	}
 }
@@ -226,7 +226,7 @@ func (provider *OutscaleOAPI) readVms() []Object {
 		switch *vm.State {
 		case "pending", "running", "stopping", "stopped", "shutting-down", "quarantine":
 			vms = append(vms, *vm.VmId)
-			provider.cache.Vms[*vm.VmId] = &vm
+			provider.cache.vms[*vm.VmId] = &vm
 		}
 	}
 	return vms
@@ -235,7 +235,7 @@ func (provider *OutscaleOAPI) readVms() []Object {
 func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) {
 	var vmsToForce []Object
 	for _, vmId := range vms {
-		vm := provider.cache.Vms[vmId]
+		vm := provider.cache.vms[vmId]
 		if vm == nil {
 			continue
 		}
