@@ -232,7 +232,7 @@ func (provider *OutscaleOAPI) readVms() []Object {
 	return vms
 }
 
-func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) error {
+func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) {
 	var vmsToForce []Object
 	for _, vmId := range vms {
 		vm := provider.cache.Vms[vmId]
@@ -258,10 +258,9 @@ func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) error {
 		if httpRes != nil {
 			fmt.Fprintln(os.Stderr, httpRes.Status)
 		}
-		return err
+		return
 	}
 	fmt.Println("OK")
-	return nil
 }
 
 func (provider *OutscaleOAPI) deleteVms(vms []Object) {
