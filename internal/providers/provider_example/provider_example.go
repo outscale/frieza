@@ -40,10 +40,8 @@ func Types() []ObjectType {
 }
 
 func Cli() (string, cli.Command) {
-	return Name, cli.NewCommand(Name, "create new Outscale API profile").
-		WithOption(cli.NewOption("region", "Outscale region (e.g. eu-west-2)")).
-		WithOption(cli.NewOption("ak", "access key")).
-		WithOption(cli.NewOption("sk", "secret key"))
+	return Name, cli.NewCommand(Name, "create new Example profile").
+		WithOption(cli.NewOption("api-key", "Api key"))
 }
 
 func (provider *ProviderExample) Name() string {
