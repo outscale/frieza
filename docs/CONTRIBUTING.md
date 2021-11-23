@@ -13,7 +13,7 @@ Please provide `frieza version` output and steps to reproduce the bug.
 
 # How to implement a new provider
 
-- Create package in `internal/providers/` folder. You can start by copying `provider_exemple`.
+- Create package in `internal/providers/` folder. You can start by copying `provider_example`.
 - Provider's package must implement:
   - Provider interface (see `internal/common/provider.go`)
   - On package level:
