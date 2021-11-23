@@ -17,6 +17,11 @@ An other usecase is to use Frieza for cleaning additional resources since a know
 - Support multiple providers
 - Can store resources from multiple profiles in one snapshot
 
+# Providers
+
+- [Outscale API](https://outscale.com/)
+- [S3](https://fr.wikipedia.org/wiki/Amazon_S3)
+
 # Installation
 
 You can go to release page and download the latest frieza binary.
