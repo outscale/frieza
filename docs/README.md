@@ -19,7 +19,7 @@ An other usecase is to use Frieza for cleaning additional resources since a know
 
 # Installation
 
-You can go to release page and download the latest frieza binary.
+You can go to [release page](https://github.com/outscale-dev/frieza/releases) and download the latest frieza binary.
 
 Alternatively, you can also install frieza from sources:
 ```
