@@ -11,4 +11,5 @@ type Provider interface {
 	AuthTest() error
 	ReadObjects(typeName string) []Object
 	DeleteObjects(typeName string, objects []Object)
+	StringObject(object string, typeName string) string
 }

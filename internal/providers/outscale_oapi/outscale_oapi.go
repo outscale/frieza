@@ -201,6 +201,10 @@ func (provider *OutscaleOAPI) DeleteObjects(typeName string, objects []Object) {
 	}
 }
 
+func (provider *OutscaleOAPI) StringObject(object string, typeName string) string {
+	return object
+}
+
 func newAPICache() apiCache {
 	return apiCache{
 		internetServices: make(map[string]*osc.InternetService),

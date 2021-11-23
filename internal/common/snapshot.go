@@ -105,16 +105,6 @@ func (diff *Diff) Build(a *Objects, b *Objects) {
 	}
 }
 
-func (diff *Diff) String() string {
-	out := fmt.Sprintf("  - retained:\n")
-	out += ObjectsPrint(&diff.Retained)
-	out += fmt.Sprintf("  - created:\n")
-	out += ObjectsPrint(&diff.Created)
-	out += fmt.Sprintf("  - deleted:\n")
-	out += ObjectsPrint(&diff.Deleted)
-	return out
-}
-
 func ObjectsCount(objects *Objects) int {
 	count := 0
 	for _, objectIds := range *objects {
@@ -123,7 +113,7 @@ func ObjectsCount(objects *Objects) int {
 	return count
 }
 
-func ObjectsPrint(objects *Objects) string {
+func ObjectsPrint(provider *Provider, objects *Objects) string {
 	out := ""
 	for objectType, objectIds := range *objects {
 
@@ -132,7 +122,7 @@ func ObjectsPrint(objects *Objects) string {
 		}
 		out += fmt.Sprintf("%s:\n", objectType)
 		for _, objectId := range objectIds {
-			out += fmt.Sprintf("  - %s\n", objectId)
+			out += fmt.Sprintf("  - %s\n", (*provider).StringObject(objectId, objectType))
 		}
 	}
 	return out

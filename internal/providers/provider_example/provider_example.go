@@ -74,6 +74,10 @@ func (provider *ProviderExample) DeleteObjects(typeName string, objects []Object
 	}
 }
 
+func (provider *ProviderExample) StringObject(object string, typeName string) string {
+	return object
+}
+
 func (provider *ProviderExample) readMyResources() []Object {
 	MyResources := make([]Object, 0)
 	// Get remote objects

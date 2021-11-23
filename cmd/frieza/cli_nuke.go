@@ -74,7 +74,7 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 		objectsCount += count
 		if count > 0 {
 			fmt.Printf("Newly created object to delete in profile %s (%s):\n", profile.Name, provider.Name())
-			fmt.Printf(ObjectsPrint(&diff.Created))
+			fmt.Printf(ObjectsPrint(&provider, &diff.Created))
 		} else {
 			fmt.Printf("No new object to delete in profile %s (%s)\n", profile.Name, provider.Name())
 		}
@@ -136,7 +136,7 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 		objectsCount += ObjectsCount(&toDelete)
 		fmt.Printf("Profile %s (%s):\n", profile.Name, provider.Name())
 		if objectsCount > 0 {
-			fmt.Print(ObjectsPrint(&toDelete))
+			fmt.Print(ObjectsPrint(&provider, &toDelete))
 		} else {
 			fmt.Println("* no object *")
 		}
