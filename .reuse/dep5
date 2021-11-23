@@ -7,6 +7,6 @@ Files: *.md docs/*
 Copyright: 2019 Outscale SAS <support@outscale.com>
 License: CC-BY-4.0
 
-Files: cmd/* *.mod *.sum Makefile internal/common/*.go internal/providers/outscale_oapi/* internal/providers/provider_example/* internal/providers/s3/* .github/* .goreleaser.yml version .gitignore
+Files: cmd/* *.mod *.sum Makefile internal/common/*.go internal/providers/outscale_oapi/* docs/providers.sh internal/providers/provider_example/* internal/providers/s3/* .github/* .goreleaser.yml version .gitignore
 Copyright: 2021 Outscale SAS <support@outscale.com>
 License: BSD-3-Clause
