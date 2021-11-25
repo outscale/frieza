@@ -70,6 +70,9 @@ func (config *Config) Write(customConfigPath *string) error {
 	var configPath string
 	if customConfigPath == nil {
 		configFolderPath, err := DefaultConfigFolderPath()
+		if err != nil {
+			return err
+		}
 		if err := os.MkdirAll(configFolderPath, os.ModePerm); err != nil {
 			return err
 		}
