@@ -28,6 +28,7 @@ const typeSnapshot = "snapshot"
 const typeVpnConnection = "vpn_connection"
 const typeVirtualGateway = "virtual_gateway"
 const typeNic = "nic"
+const typeAccessKey = "access_key"
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -94,6 +95,7 @@ func Types() []ObjectType {
 		typeVpnConnection,
 		typeVirtualGateway,
 		typeNic,
+		typeAccessKey,
 	}
 	return object_types
 }
@@ -160,6 +162,8 @@ func (provider *OutscaleOAPI) ReadObjects(typeName string) []Object {
 		return provider.readVirtualGateways()
 	case typeNic:
 		return provider.readNics()
+	case typeAccessKey:
+		return provider.readAccessKeys()
 	}
 	return []Object{}
 }
@@ -198,6 +202,8 @@ func (provider *OutscaleOAPI) DeleteObjects(typeName string, objects []Object) {
 		provider.deleteVirtualGateways(objects)
 	case typeNic:
 		provider.deleteNics(objects)
+	case typeAccessKey:
+		provider.deleteAccessKeys(objects)
 	}
 }
 
@@ -1029,6 +1035,48 @@ func (provider *OutscaleOAPI) deleteNics(nics []Object) {
 			Execute()
 		if err != nil {
 			fmt.Fprint(os.Stderr, "Error while deleting nic: ")
+			if httpRes != nil {
+				fmt.Fprintln(os.Stderr, httpRes.Status)
+			}
+		} else {
+			fmt.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readAccessKeys() []Object {
+	accessKeys := make([]Object, 0)
+	read, httpRes, err := provider.client.AccessKeyApi.ReadAccessKeys(provider.context).
+		ReadAccessKeysRequest(osc.ReadAccessKeysRequest{}).
+		Execute()
+	if err != nil {
+		fmt.Fprint(os.Stderr, "Error while reading access keys: ")
+		if httpRes != nil {
+			fmt.Fprintln(os.Stderr, httpRes.Status)
+		}
+		return accessKeys
+	}
+	for _, accessKey := range *read.AccessKeys {
+		if *accessKey.State == "ACTIVE" {
+			accessKeys = append(accessKeys, *accessKey.AccessKeyId)
+		}
+	}
+	return accessKeys
+}
+
+func (provider *OutscaleOAPI) deleteAccessKeys(accessKeys []Object) {
+	if len(accessKeys) == 0 {
+		return
+	}
+	for _, accessKey := range accessKeys {
+		fmt.Printf("Deleting access key %s... ", accessKey)
+		deletionOpts := osc.DeleteAccessKeyRequest{AccessKeyId: accessKey}
+		_, httpRes, err := provider.client.AccessKeyApi.
+			DeleteAccessKey(provider.context).
+			DeleteAccessKeyRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			fmt.Fprint(os.Stderr, "Error while deleting access key: ")
 			if httpRes != nil {
 				fmt.Fprintln(os.Stderr, httpRes.Status)
 			}
