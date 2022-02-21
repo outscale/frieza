@@ -130,7 +130,7 @@ func profileNew(customConfigPath string, newProfile Profile) {
 	config, err := ConfigLoad(configPath)
 	if err != nil {
 		config = ConfigNew()
-		if Debug {
+		if GlobalCliOptions.debug {
 			log.Println(err.Error())
 		}
 	} else {
