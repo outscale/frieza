@@ -6,11 +6,17 @@ import (
 	"github.com/teris-io/cli"
 )
 
-var Debug = false
+type CliOptions struct {
+	debug bool
+}
+
+var GlobalCliOptions = CliOptions{
+	debug: false,
+}
 
 func setupDebug(options map[string]string) {
 	if _, ok := options["debug"]; ok {
-		Debug = true
+		GlobalCliOptions.debug = true
 	}
 }
 
