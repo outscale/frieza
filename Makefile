@@ -3,10 +3,10 @@ all: help
 .PHONY: help
 help:
 	@echo "help:"
-	@echo "- build     : build frieza"
-	@echo "- install   : install frieza"
-	@echo "- make test : run all tests"
-	@echo "- release   : will generate artefacts locally"
+	@echo "- build   : build frieza"
+	@echo "- install : install frieza"
+	@echo "- test    : run all tests"
+	@echo "- release : will generate artefacts locally"
 
 .PHONY: test
 test: test-reuse test-go-fmt build
