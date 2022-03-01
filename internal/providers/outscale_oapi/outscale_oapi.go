@@ -63,6 +63,7 @@ func New(config ProviderConfig, debug bool) (*OutscaleOAPI, error) {
 	}
 	oscConfig := osc.NewConfiguration()
 	oscConfig.Debug = debug
+	oscConfig.UserAgent = "frieza/" + FullVersion()
 	client := osc.NewAPIClient(oscConfig)
 	ctx := context.WithValue(context.Background(), osc.ContextAWSv4, osc.AWSv4{
 		AccessKey: config["ak"],
