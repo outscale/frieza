@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 
+	. "github.com/outscale-dev/frieza/internal/common"
 	"github.com/teris-io/cli"
 )
 
@@ -41,7 +42,7 @@ func cliRoot() cli.App {
 func cliVersion() cli.Command {
 	return cli.NewCommand("version", "show version").
 		WithAction(func(args []string, options map[string]string) int {
-			fmt.Println(fullVersion())
+			fmt.Println(FullVersion())
 			return 0
 		})
 }

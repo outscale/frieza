@@ -9,6 +9,19 @@ import (
 	"path"
 )
 
+var version string
+var commit string
+
+func FullVersion() string {
+	if len(version) == 0 {
+		version = "0.0.0-beta-unknown-version"
+	}
+	if len(commit) == 0 {
+		commit = "unknown git commit"
+	}
+	return fmt.Sprintf("%s-%s)", version, commit)
+}
+
 func ConfigVersion() int {
 	return 0
 }
