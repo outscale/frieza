@@ -19,7 +19,6 @@ jobs:
           go-version: 1.17
       - name: Run all tests
         run: make test
-
   dependabot-auto-merge:
     needs: [tests]
     runs-on: ubuntu-latest
@@ -35,3 +34,11 @@ jobs:
         env:
           PR_URL: ${{github.event.pull_request.html_url}}
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+  cred-scan:
+    runs-on: ubuntu-20.04
+    steps:
+    - uses: actions/checkout@v2
+    - name: Scan credentials
+      uses: outscale-dev/cred-scan@main
+      with:
+        scan_path: "./"
