@@ -11,7 +11,8 @@ import (
 func cliConfig() cli.Command {
 	return cli.NewCommand("config", "configure frieza options").
 		WithCommand(cliConfigLs()).
-		WithCommand(cliConfigSet())
+		WithCommand(cliConfigSet()).
+		WithCommand(cliConfigRm())
 }
 
 func cliConfigLs() cli.Command {
@@ -31,6 +32,17 @@ func cliConfigSet() cli.Command {
 		WithArg(cli.NewArg("option_value", "option's value to set")).
 		WithAction(func(args []string, options map[string]string) int {
 			configSet(options["config"], &args[0], &args[1])
+			return 0
+		})
+}
+
+func cliConfigRm() cli.Command {
+	return cli.NewCommand("remove", "delete a specific option (reset to default value)").
+		WithShortcut("rm").
+		WithOption(cliConfigPath()).
+		WithArg(cli.NewArg("option_name", "option's name to remove/unset")).
+		WithAction(func(args []string, options map[string]string) int {
+			configRm(options["config"], &args[0])
 			return 0
 		})
 }
@@ -64,6 +76,26 @@ func configSet(customConfigPath string, optionName *string, optionValue *string)
 	switch *optionName {
 	case "snapshot_folder_path":
 		config.SnapshotFolderPath = *optionValue
+	default:
+		log.Fatalf("Unknow option name")
+	}
+	if err = config.Write(configPath); err != nil {
+		log.Fatalf("Cannot save configuration file: %s", err.Error())
+	}
+}
+
+func configRm(customConfigPath string, optionName *string) {
+	var configPath *string
+	if len(customConfigPath) > 0 {
+		configPath = &customConfigPath
+	}
+	config, err := ConfigLoadWithDefault(configPath)
+	if err != nil {
+		log.Fatal("Cannot load configuration: " + err.Error())
+	}
+	switch *optionName {
+	case "snapshot_folder_path":
+		config.SnapshotFolderPath = ""
 	default:
 		log.Fatalf("Unknow option name")
 	}
