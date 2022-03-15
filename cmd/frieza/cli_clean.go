@@ -32,7 +32,11 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
 
-	snapshot, err := SnapshotLoad(*snapshotName)
+	snapshotFolderPath, err := DefaultSnapshotFolderPath()
+	if err != nil {
+		log.Fatalf("Error while removing snapshot: %s", err.Error())
+	}
+	snapshot, err := SnapshotLoad(*snapshotName, snapshotFolderPath)
 	if err != nil {
 		log.Fatalf("Error load snapshot %s: %s", *snapshotName, err.Error())
 	}

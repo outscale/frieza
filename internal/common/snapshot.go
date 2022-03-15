@@ -12,10 +12,11 @@ import (
 type Objects = map[ObjectType][]Object
 
 type Snapshot struct {
-	Version int            `json:"version"`
-	Name    string         `json:"name"`
-	Date    string         `json:"date"`
-	Data    []SnapshotData `json:"data"`
+	Version    int            `json:"version"`
+	Name       string         `json:"name"`
+	Date       string         `json:"date"`
+	Data       []SnapshotData `json:"data"`
+	FolderPath string         `json:"-"`
 }
 
 type SnapshotData struct {
@@ -137,42 +138,39 @@ func DefaultSnapshotFolderPath() (string, error) {
 }
 
 func (snapshot *Snapshot) Write() error {
-	snapshotFolderPath, err := DefaultSnapshotFolderPath()
-	if err != nil {
+	if err := os.MkdirAll(snapshot.FolderPath, os.ModePerm); err != nil {
 		return err
 	}
-	if err := os.MkdirAll(snapshotFolderPath, os.ModePerm); err != nil {
-		return err
-	}
-	snapshotPath := path.Join(snapshotFolderPath, snapshot.Name+".json")
 	json_bytes, err := json.MarshalIndent(snapshot, "", "  ")
 	if err != nil {
 		return err
 	}
-	if err = ioutil.WriteFile(snapshotPath, json_bytes, 0700); err != nil {
+	if err = ioutil.WriteFile(snapshot.Path(), json_bytes, 0700); err != nil {
 		return err
 	}
 	return nil
 }
 
-func SnapshotLoad(name string) (*Snapshot, error) {
-	snapshotFolderPath, err := DefaultSnapshotFolderPath()
+func (snapshot *Snapshot) Path() string {
+	return path.Join(snapshot.FolderPath, snapshot.Name+".json")
+}
+
+func SnapshotLoad(name string, snapshotFolderPath string) (*Snapshot, error) {
+	snapshot := &Snapshot{
+		Name:       name,
+		FolderPath: snapshotFolderPath,
+	}
+	snapshot_json, err := ioutil.ReadFile(snapshot.Path())
 	if err != nil {
 		return nil, err
 	}
-	snapshotPath := path.Join(snapshotFolderPath, name+".json")
-	snapshot_json, err := ioutil.ReadFile(snapshotPath)
-	if err != nil {
-		return nil, err
-	}
-	var snapshot Snapshot
 	if err := json.Unmarshal(snapshot_json, &snapshot); err != nil {
 		return nil, err
 	}
 	if snapshot.Version > SnapshotVersion() {
 		return nil, errors.New("snapshot version not supported, please upgrade frieza")
 	}
-	return &snapshot, nil
+	return snapshot, nil
 }
 
 func (snapshot Snapshot) String() string {
@@ -189,13 +187,5 @@ func (snapshot Snapshot) String() string {
 }
 
 func (snapshot Snapshot) Delete() error {
-	snapshotFolderPath, err := DefaultSnapshotFolderPath()
-	if err != nil {
-		return err
-	}
-	snapshotPath := path.Join(snapshotFolderPath, snapshot.Name+".json")
-	if err = os.Remove(snapshotPath); err != nil {
-		return err
-	}
-	return nil
+	return os.Remove(snapshot.Path())
 }
