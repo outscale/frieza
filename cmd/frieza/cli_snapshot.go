@@ -85,12 +85,7 @@ func snapshotNew(customConfigPath string, args []string) {
 	if err != nil {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
-
-	snapshotFolderPath, err := DefaultSnapshotFolderPath()
-	if err != nil {
-		log.Fatalf("Cannot get default snapshot folder: %s", err.Error())
-	}
-	if _, err = SnapshotLoad(snapshotName, snapshotFolderPath); err == nil {
+	if _, err = SnapshotLoad(snapshotName, config.SnapshotFolderPath); err == nil {
 		log.Fatalf("Snapshot %s already exist", snapshotName)
 	}
 
@@ -138,12 +133,16 @@ func snapshotNew(customConfigPath string, args []string) {
 	}
 }
 
-func snapshotLs(configPath string) {
-	snapshotFolderPath, err := DefaultSnapshotFolderPath()
-	if err != nil {
-		log.Fatalf("Error while listing snapshots: %s", err.Error())
+func snapshotLs(customConfigPath string) {
+	var configPath *string
+	if len(customConfigPath) > 0 {
+		configPath = &customConfigPath
 	}
-	files, err := ioutil.ReadDir(snapshotFolderPath)
+	config, err := ConfigLoad(configPath)
+	if err != nil {
+		log.Fatalf("Cannot load configuration: %s", err.Error())
+	}
+	files, err := ioutil.ReadDir(config.SnapshotFolderPath)
 	if err != nil {
 		log.Fatalf("Error while listing snapshots: %s", err.Error())
 	}
@@ -152,30 +151,41 @@ func snapshotLs(configPath string) {
 			continue
 		}
 		snapshotName := strings.TrimSuffix(file.Name(), ".json")
-		if snapshot, err := SnapshotLoad(snapshotName, snapshotFolderPath); err == nil {
+		if snapshot, err := SnapshotLoad(snapshotName, config.SnapshotFolderPath); err == nil {
 			fmt.Println(snapshot.Name)
 		}
 	}
 }
 
-func snapshotDescribe(configPath string, snapshotName *string) {
-	snapshotFolderPath, err := DefaultSnapshotFolderPath()
+func snapshotDescribe(customConfigPath string, snapshotName *string) {
+	var configPath *string
+	if len(customConfigPath) > 0 {
+		configPath = &customConfigPath
+	}
+	config, err := ConfigLoad(configPath)
+	if err != nil {
+		log.Fatalf("Cannot load configuration: %s", err.Error())
+	}
 	if err != nil {
 		log.Fatalf("Error while reading snapshots: %s", err.Error())
 	}
-	snapshot, err := SnapshotLoad(*snapshotName, snapshotFolderPath)
+	snapshot, err := SnapshotLoad(*snapshotName, config.SnapshotFolderPath)
 	if err != nil {
 		log.Fatalf("Cannot load snapshot %s: %s", *snapshotName, err.Error())
 	}
 	fmt.Print(snapshot)
 }
 
-func snapshotRm(configPath string, snapshotName *string) {
-	snapshotFolderPath, err := DefaultSnapshotFolderPath()
-	if err != nil {
-		log.Fatalf("Error while removing snapshot: %s", err.Error())
+func snapshotRm(customConfigPath string, snapshotName *string) {
+	var configPath *string
+	if len(customConfigPath) > 0 {
+		configPath = &customConfigPath
 	}
-	snapshot, err := SnapshotLoad(*snapshotName, snapshotFolderPath)
+	config, err := ConfigLoad(configPath)
+	if err != nil {
+		log.Fatalf("Cannot load configuration: %s", err.Error())
+	}
+	snapshot, err := SnapshotLoad(*snapshotName, config.SnapshotFolderPath)
 	if err != nil {
 		log.Fatalf("Error while deleting snapshot %s: %s", *snapshotName, err.Error())
 	}

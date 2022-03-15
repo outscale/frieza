@@ -27,14 +27,16 @@ func ConfigVersion() int {
 }
 
 type Config struct {
-	Version  int       `json:"version"`
-	Profiles []Profile `json:"profiles"`
+	Version            int       `json:"version"`
+	Profiles           []Profile `json:"profiles"`
+	SnapshotFolderPath string    `json:"snapshot_folder_path,omitempty"`
 }
 
 func ConfigNew() *Config {
 	return &Config{
-		Version:  ConfigVersion(),
-		Profiles: []Profile{},
+		Version:            ConfigVersion(),
+		Profiles:           []Profile{},
+		SnapshotFolderPath: "",
 	}
 }
 
@@ -52,6 +54,14 @@ func DefaultConfigPath() (string, error) {
 		return "", err
 	}
 	return path.Join(folderPath, "config.json"), nil
+}
+
+func DefaultSnapshotFolderPath() (string, error) {
+	home, err := os.UserHomeDir()
+	if err != nil {
+		return "", err
+	}
+	return path.Join(home, ".frieza", "snapshots"), nil
 }
 
 func ConfigLoad(customConfigPath *string) (*Config, error) {
@@ -75,6 +85,12 @@ func ConfigLoad(customConfigPath *string) (*Config, error) {
 	}
 	if config.Version > ConfigVersion() {
 		return nil, errors.New("configuration version not supported, please upgrade frieza")
+	}
+	if len(config.SnapshotFolderPath) == 0 {
+		config.SnapshotFolderPath, err = DefaultSnapshotFolderPath()
+		if err != nil {
+			return nil, err
+		}
 	}
 	return &config, nil
 }
