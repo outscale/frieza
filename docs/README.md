@@ -80,6 +80,11 @@ Note that a listing of deleted resources is show before any action.
 
 Confirmation is asked by default but you can overide this behavior with `--auto-approve` option.
 
+## Set configuration
+
+Frieza has a number of options which can set or unset.
+Feel free to explore `frieza config` sub-commands.
+
 # License
 
 > Copyright Outscale SAS

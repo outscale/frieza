@@ -10,9 +10,19 @@ import (
 
 func cliConfig() cli.Command {
 	return cli.NewCommand("config", "configure frieza options").
+		WithCommand(cliConfigDescribe()).
 		WithCommand(cliConfigLs()).
 		WithCommand(cliConfigSet()).
 		WithCommand(cliConfigRm())
+}
+
+func cliConfigDescribe() cli.Command {
+	return cli.NewCommand("describe", "describe all configuration options").
+		WithShortcut("desc").
+		WithAction(func(args []string, options map[string]string) int {
+			configDescribe()
+			return 0
+		})
 }
 
 func cliConfigLs() cli.Command {
@@ -45,6 +55,10 @@ func cliConfigRm() cli.Command {
 			configRm(options["config"], &args[0])
 			return 0
 		})
+}
+
+func configDescribe() {
+	fmt.Println("snapshot_folder_path: specify a folder path where snapshots are located")
 }
 
 func configLs(customConfigPath string) {
