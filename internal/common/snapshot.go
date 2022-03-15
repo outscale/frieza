@@ -129,14 +129,6 @@ func ObjectsPrint(provider *Provider, objects *Objects) string {
 	return out
 }
 
-func DefaultSnapshotFolderPath() (string, error) {
-	home, err := os.UserHomeDir()
-	if err != nil {
-		return "", err
-	}
-	return path.Join(home, ".frieza", "snapshots"), nil
-}
-
 func (snapshot *Snapshot) Write() error {
 	if err := os.MkdirAll(snapshot.FolderPath, os.ModePerm); err != nil {
 		return err
