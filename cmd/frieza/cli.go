@@ -36,6 +36,7 @@ func cliRoot() cli.App {
 		WithCommand(cliClean()).
 		WithCommand(cliNuke()).
 		WithCommand(cliProvider()).
+		WithCommand(cliConfig()).
 		WithCommand(cliVersion())
 }
 
