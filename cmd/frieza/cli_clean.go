@@ -27,7 +27,7 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 	if len(customConfigPath) > 0 {
 		configPath = &customConfigPath
 	}
-	config, err := ConfigLoad(configPath)
+	config, err := ConfigLoadWithDefault(configPath)
 	if err != nil {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}

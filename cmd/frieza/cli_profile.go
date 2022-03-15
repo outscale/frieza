@@ -94,7 +94,7 @@ func profileLs(customConfigPath string) {
 	if len(customConfigPath) > 0 {
 		configPath = &customConfigPath
 	}
-	config, err := ConfigLoad(configPath)
+	config, err := ConfigLoadWithDefault(configPath)
 	if err != nil {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
@@ -108,7 +108,7 @@ func profileDescribe(customConfigPath string, profileName *string) {
 	if len(customConfigPath) > 0 {
 		configPath = &customConfigPath
 	}
-	config, err := ConfigLoad(configPath)
+	config, err := ConfigLoadWithDefault(configPath)
 	if err != nil {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
@@ -127,7 +127,7 @@ func profileNew(customConfigPath string, newProfile Profile) {
 	if len(customConfigPath) > 0 {
 		configPath = &customConfigPath
 	}
-	config, err := ConfigLoad(configPath)
+	config, err := ConfigLoadWithDefault(configPath)
 	if err != nil {
 		config = ConfigNew()
 		if GlobalCliOptions.debug {
@@ -152,7 +152,7 @@ func profileRm(customConfigPath string, profileName *string) {
 	if len(customConfigPath) > 0 {
 		configPath = &customConfigPath
 	}
-	config, err := ConfigLoad(configPath)
+	config, err := ConfigLoadWithDefault(configPath)
 	if err != nil {
 		log.Fatal("Cannot load configuration: " + err.Error())
 	}
@@ -172,7 +172,7 @@ func profileTest(customConfigPath string, profileName *string) {
 	if len(customConfigPath) > 0 {
 		configPath = &customConfigPath
 	}
-	config, err := ConfigLoad(configPath)
+	config, err := ConfigLoadWithDefault(configPath)
 	if err != nil {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}

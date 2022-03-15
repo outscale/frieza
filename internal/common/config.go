@@ -64,6 +64,20 @@ func DefaultSnapshotFolderPath() (string, error) {
 	return path.Join(home, ".frieza", "snapshots"), nil
 }
 
+func ConfigLoadWithDefault(customConfigPath *string) (*Config, error) {
+	config, err := ConfigLoad(customConfigPath)
+	if err != nil {
+		return nil, err
+	}
+	if len(config.SnapshotFolderPath) == 0 {
+		config.SnapshotFolderPath, err = DefaultSnapshotFolderPath()
+		if err != nil {
+			return nil, err
+		}
+	}
+	return config, nil
+}
+
 func ConfigLoad(customConfigPath *string) (*Config, error) {
 	var configPath string
 	var err error
@@ -85,12 +99,6 @@ func ConfigLoad(customConfigPath *string) (*Config, error) {
 	}
 	if config.Version > ConfigVersion() {
 		return nil, errors.New("configuration version not supported, please upgrade frieza")
-	}
-	if len(config.SnapshotFolderPath) == 0 {
-		config.SnapshotFolderPath, err = DefaultSnapshotFolderPath()
-		if err != nil {
-			return nil, err
-		}
 	}
 	return &config, nil
 }

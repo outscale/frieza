@@ -81,7 +81,7 @@ func snapshotNew(customConfigPath string, args []string) {
 	if len(customConfigPath) > 0 {
 		configPath = &customConfigPath
 	}
-	config, err := ConfigLoad(configPath)
+	config, err := ConfigLoadWithDefault(configPath)
 	if err != nil {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
@@ -138,7 +138,7 @@ func snapshotLs(customConfigPath string) {
 	if len(customConfigPath) > 0 {
 		configPath = &customConfigPath
 	}
-	config, err := ConfigLoad(configPath)
+	config, err := ConfigLoadWithDefault(configPath)
 	if err != nil {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
@@ -162,7 +162,7 @@ func snapshotDescribe(customConfigPath string, snapshotName *string) {
 	if len(customConfigPath) > 0 {
 		configPath = &customConfigPath
 	}
-	config, err := ConfigLoad(configPath)
+	config, err := ConfigLoadWithDefault(configPath)
 	if err != nil {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
@@ -181,7 +181,7 @@ func snapshotRm(customConfigPath string, snapshotName *string) {
 	if len(customConfigPath) > 0 {
 		configPath = &customConfigPath
 	}
-	config, err := ConfigLoad(configPath)
+	config, err := ConfigLoadWithDefault(configPath)
 	if err != nil {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
