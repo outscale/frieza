@@ -40,7 +40,7 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 		uniqueProfiles[profile] = true
 	}
 
-	config, err := ConfigLoad(configPath)
+	config, err := ConfigLoadWithDefault(configPath)
 	if err != nil {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
