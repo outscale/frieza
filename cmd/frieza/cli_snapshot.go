@@ -86,7 +86,11 @@ func snapshotNew(customConfigPath string, args []string) {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
 
-	if _, err = SnapshotLoad(snapshotName); err == nil {
+	snapshotFolderPath, err := DefaultSnapshotFolderPath()
+	if err != nil {
+		log.Fatalf("Cannot get default snapshot folder: %s", err.Error())
+	}
+	if _, err = SnapshotLoad(snapshotName, snapshotFolderPath); err == nil {
 		log.Fatalf("Snapshot %s already exist", snapshotName)
 	}
 
@@ -135,11 +139,11 @@ func snapshotNew(customConfigPath string, args []string) {
 }
 
 func snapshotLs(configPath string) {
-	snapshotPath, err := DefaultSnapshotFolderPath()
+	snapshotFolderPath, err := DefaultSnapshotFolderPath()
 	if err != nil {
 		log.Fatalf("Error while listing snapshots: %s", err.Error())
 	}
-	files, err := ioutil.ReadDir(snapshotPath)
+	files, err := ioutil.ReadDir(snapshotFolderPath)
 	if err != nil {
 		log.Fatalf("Error while listing snapshots: %s", err.Error())
 	}
@@ -148,14 +152,18 @@ func snapshotLs(configPath string) {
 			continue
 		}
 		snapshotName := strings.TrimSuffix(file.Name(), ".json")
-		if snapshot, err := SnapshotLoad(snapshotName); err == nil {
+		if snapshot, err := SnapshotLoad(snapshotName, snapshotFolderPath); err == nil {
 			fmt.Println(snapshot.Name)
 		}
 	}
 }
 
 func snapshotDescribe(configPath string, snapshotName *string) {
-	snapshot, err := SnapshotLoad(*snapshotName)
+	snapshotFolderPath, err := DefaultSnapshotFolderPath()
+	if err != nil {
+		log.Fatalf("Error while reading snapshots: %s", err.Error())
+	}
+	snapshot, err := SnapshotLoad(*snapshotName, snapshotFolderPath)
 	if err != nil {
 		log.Fatalf("Cannot load snapshot %s: %s", *snapshotName, err.Error())
 	}
@@ -163,7 +171,11 @@ func snapshotDescribe(configPath string, snapshotName *string) {
 }
 
 func snapshotRm(configPath string, snapshotName *string) {
-	snapshot, err := SnapshotLoad(*snapshotName)
+	snapshotFolderPath, err := DefaultSnapshotFolderPath()
+	if err != nil {
+		log.Fatalf("Error while removing snapshot: %s", err.Error())
+	}
+	snapshot, err := SnapshotLoad(*snapshotName, snapshotFolderPath)
 	if err != nil {
 		log.Fatalf("Error while deleting snapshot %s: %s", *snapshotName, err.Error())
 	}
