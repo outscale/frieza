@@ -12,11 +12,11 @@ import (
 type Objects = map[ObjectType][]Object
 
 type Snapshot struct {
-	Version    int            `json:"version"`
-	Name       string         `json:"name"`
-	Date       string         `json:"date"`
-	Data       []SnapshotData `json:"data"`
-	FolderPath string         `json:"-"`
+	Version int            `json:"version"`
+	Name    string         `json:"name"`
+	Date    string         `json:"date"`
+	Data    []SnapshotData `json:"data"`
+	Config  *Config        `json:"-"`
 }
 
 type SnapshotData struct {
@@ -130,7 +130,7 @@ func ObjectsPrint(provider *Provider, objects *Objects) string {
 }
 
 func (snapshot *Snapshot) Write() error {
-	if err := os.MkdirAll(snapshot.FolderPath, os.ModePerm); err != nil {
+	if err := os.MkdirAll(snapshot.Config.SnapshotFolderPath, os.ModePerm); err != nil {
 		return err
 	}
 	json_bytes, err := json.MarshalIndent(snapshot, "", "  ")
@@ -144,13 +144,13 @@ func (snapshot *Snapshot) Write() error {
 }
 
 func (snapshot *Snapshot) Path() string {
-	return path.Join(snapshot.FolderPath, snapshot.Name+".json")
+	return path.Join(snapshot.Config.SnapshotFolderPath, snapshot.Name+".json")
 }
 
-func SnapshotLoad(name string, snapshotFolderPath string) (*Snapshot, error) {
+func SnapshotLoad(name string, config *Config) (*Snapshot, error) {
 	snapshot := &Snapshot{
-		Name:       name,
-		FolderPath: snapshotFolderPath,
+		Name:   name,
+		Config: config,
 	}
 	snapshot_json, err := ioutil.ReadFile(snapshot.Path())
 	if err != nil {
