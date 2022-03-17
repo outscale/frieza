@@ -2,6 +2,8 @@ package main
 
 import (
 	"fmt"
+	"io/ioutil"
+	"log"
 
 	. "github.com/outscale-dev/frieza/internal/common"
 	"github.com/teris-io/cli"
@@ -29,6 +31,19 @@ func cliDebug() cli.Option {
 	return cli.NewOption("debug", "enable verbose output for debuging purpose").WithType(cli.TypeBool)
 }
 
+func cliJson() cli.Option {
+	return cli.NewOption("json", "output in json format (with --plan option only)").WithType(cli.TypeBool)
+}
+
+func cliFatalf(json bool, format string, v ...interface{}) {
+	msg := fmt.Sprintf(format, v...)
+	if json {
+		log.Fatalf("{\"error\": \"%s\"}", msg)
+	} else {
+		log.Fatalf(msg)
+	}
+}
+
 func cliRoot() cli.App {
 	return cli.New(ShortDescription()).
 		WithCommand(cliProfile()).
@@ -53,5 +68,9 @@ func ShortDescription() string {
 		"    Frieza can remove all resources from a cloud account or resources which are not part of a \"snapshot\".\n" +
 		"    Snapshots are only a listing of cloud resources.\n" +
 		"    Start by adding a new cloud profile with `profile new` sub-command.\n"
+}
 
+func disableLogs() {
+	log.SetFlags(0)
+	log.SetOutput(ioutil.Discard)
 }
