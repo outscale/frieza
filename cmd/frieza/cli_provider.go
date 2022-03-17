@@ -1,7 +1,7 @@
 package main
 
 import (
-	"fmt"
+	"log"
 
 	"github.com/teris-io/cli"
 )
@@ -17,7 +17,7 @@ func cliProviderLs() cli.Command {
 		WithShortcut("ls").
 		WithAction(func(args []string, options map[string]string) int {
 			for providerName := range providersTypes {
-				fmt.Printf("%s\n", providerName)
+				log.Printf("%s\n", providerName)
 			}
 			return 0
 		})
@@ -30,7 +30,7 @@ func cliProviderDescribe() cli.Command {
 		WithAction(func(args []string, options map[string]string) int {
 			providerName := args[0]
 			for _, providerType := range providersTypes[providerName] {
-				fmt.Printf("%s\n", providerType)
+				log.Printf("%s\n", providerType)
 			}
 			return 0
 		})

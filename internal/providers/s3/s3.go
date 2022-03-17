@@ -3,8 +3,7 @@ package s3
 import (
 	"encoding/base64"
 	"errors"
-	"fmt"
-	"os"
+	"log"
 	"strings"
 
 	"github.com/aws/aws-sdk-go/aws"
@@ -183,19 +182,19 @@ func (provider *S3) readBucketObjects() []Object {
 
 func (provider *S3) deleteBucketObjects(bucketObjects []Object) {
 	for _, encodedBucketObject := range bucketObjects {
-		fmt.Printf("Deleting object: %s ... ", provider.StringObject(encodedBucketObject, typeBucketObject))
+		log.Printf("Deleting object: %s ... ", provider.StringObject(encodedBucketObject, typeBucketObject))
 		bucketName, key, err := decodeBucketobject(&encodedBucketObject)
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error while reading object details: ", err.Error())
+			log.Println("Error while reading object details: ", err.Error())
 		}
 		_, err = provider.client.DeleteObject(&s3.DeleteObjectInput{
 			Bucket: &bucketName,
 			Key:    &key,
 		})
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error while deleting object: ", err.Error())
+			log.Println("Error while deleting object: ", err.Error())
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -231,14 +230,14 @@ func (provider *S3) deleteBuckets(buckets []Object) {
 		if err != nil {
 			continue
 		}
-		fmt.Printf("Deleting bucket: %s ... ", BucketName)
+		log.Printf("Deleting bucket: %s ... ", BucketName)
 		_, err = provider.client.DeleteBucket(&s3.DeleteBucketInput{
 			Bucket: &BucketName,
 		})
 		if err != nil {
-			fmt.Fprintln(os.Stderr, "Error while deleting bucket: ", err.Error())
+			log.Println("Error while deleting bucket: ", err.Error())
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }

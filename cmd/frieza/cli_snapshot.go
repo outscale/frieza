@@ -153,7 +153,7 @@ func snapshotLs(customConfigPath string) {
 		}
 		snapshotName := strings.TrimSuffix(file.Name(), ".json")
 		if snapshot, err := SnapshotLoad(snapshotName, config); err == nil {
-			fmt.Println(snapshot.Name)
+			log.Println(snapshot.Name)
 		}
 	}
 }
@@ -174,7 +174,7 @@ func snapshotDescribe(customConfigPath string, snapshotName *string) {
 	if err != nil {
 		log.Fatalf("Cannot load snapshot %s: %s", *snapshotName, err.Error())
 	}
-	fmt.Print(snapshot)
+	log.Print(snapshot)
 }
 
 func snapshotRm(customConfigPath string, snapshotName *string) {
