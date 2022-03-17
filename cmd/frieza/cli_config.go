@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	. "github.com/outscale-dev/frieza/internal/common"
@@ -58,7 +57,7 @@ func cliConfigRm() cli.Command {
 }
 
 func configDescribe() {
-	fmt.Println("snapshot_folder_path: specify a folder path where snapshots are located")
+	log.Println("snapshot_folder_path: specify a folder path where snapshots are located")
 }
 
 func configLs(customConfigPath string) {
@@ -70,11 +69,11 @@ func configLs(customConfigPath string) {
 	if err != nil {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
-	fmt.Println("version:", config.Version)
+	log.Println("version:", config.Version)
 	if len(config.SnapshotFolderPath) == 0 {
-		fmt.Println("snapshot_folder_path: (unset)")
+		log.Println("snapshot_folder_path: (unset)")
 	} else {
-		fmt.Println("snapshot_folder_path:", config.SnapshotFolderPath)
+		log.Println("snapshot_folder_path:", config.SnapshotFolderPath)
 	}
 }
 

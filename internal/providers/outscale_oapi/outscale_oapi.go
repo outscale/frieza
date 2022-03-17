@@ -3,8 +3,7 @@ package outscale_oapi
 import (
 	"context"
 	"errors"
-	"fmt"
-	"os"
+	"log"
 
 	. "github.com/outscale-dev/frieza/internal/common"
 	osc "github.com/outscale/osc-sdk-go/v2"
@@ -227,9 +226,9 @@ func (provider *OutscaleOAPI) readVms() []Object {
 		ReadVmsRequest(osc.ReadVmsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading vms: ")
+		log.Println("Error while reading vms: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return vms
 	}
@@ -255,7 +254,7 @@ func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) {
 			vmsToForce = append(vmsToForce, vmId)
 		}
 	}
-	fmt.Printf("Shutting down virtual machines: %s ... ", vmsToForce)
+	log.Println("Shutting down virtual machines: %s ... ", vmsToForce)
 	forceStop := true
 	stopOpts := osc.StopVmsRequest{
 		VmIds:     vmsToForce,
@@ -265,13 +264,13 @@ func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) {
 		StopVmsRequest(stopOpts).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while shutting down vms: ")
+		log.Print("Error while shutting down vms: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return
 	}
-	fmt.Println("OK")
+	log.Println("OK")
 }
 
 func (provider *OutscaleOAPI) deleteVms(vms []Object) {
@@ -279,18 +278,18 @@ func (provider *OutscaleOAPI) deleteVms(vms []Object) {
 		return
 	}
 	provider.forceShutdownVms(vms)
-	fmt.Printf("Deleting virtual machines: %s ... ", vms)
+	log.Printf("Deleting virtual machines: %s ... ", vms)
 	deletionOpts := osc.DeleteVmsRequest{VmIds: vms}
 	_, httpRes, err := provider.client.VmApi.DeleteVms(provider.context).
 		DeleteVmsRequest(deletionOpts).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while deleting vms: ")
+		log.Print("Error while deleting vms: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 	} else {
-		fmt.Println("OK")
+		log.Println("OK")
 	}
 }
 
@@ -300,9 +299,9 @@ func (provider *OutscaleOAPI) readLoadBalancers() []Object {
 		ReadLoadBalancersRequest(osc.ReadLoadBalancersRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading load balancers: ")
+		log.Print("Error while reading load balancers: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return loadBalancers
 	}
@@ -317,19 +316,19 @@ func (provider *OutscaleOAPI) deleteLoadBalancers(loadBalancers []Object) {
 		return
 	}
 	for _, loadBalancer := range loadBalancers {
-		fmt.Printf("Deleting load balancer %s... ", loadBalancer)
+		log.Printf("Deleting load balancer %s... ", loadBalancer)
 		deletionOpts := osc.DeleteLoadBalancerRequest{LoadBalancerName: loadBalancer}
 		_, httpRes, err := provider.client.LoadBalancerApi.
 			DeleteLoadBalancer(provider.context).
 			DeleteLoadBalancerRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting load balancer: ")
+			log.Print("Error while deleting load balancer: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -340,9 +339,9 @@ func (provider *OutscaleOAPI) readNatServices() []Object {
 		ReadNatServicesRequest(osc.ReadNatServicesRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading nat services: ")
+		log.Print("Error while reading nat services: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return natServices
 	}
@@ -360,19 +359,19 @@ func (provider *OutscaleOAPI) deleteNatServices(natServices []Object) {
 		return
 	}
 	for _, natService := range natServices {
-		fmt.Printf("Deleting nat service %s... ", natService)
+		log.Printf("Deleting nat service %s... ", natService)
 		deletionOpts := osc.DeleteNatServiceRequest{NatServiceId: natService}
 		_, httpRes, err := provider.client.NatServiceApi.
 			DeleteNatService(provider.context).
 			DeleteNatServiceRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting nat service: ")
+			log.Print("Error while deleting nat service: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -384,9 +383,9 @@ func (provider *OutscaleOAPI) readSecurityGroups() []Object {
 		ReadSecurityGroupsRequest(osc.ReadSecurityGroupsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading security groups: ")
+		log.Print("Error while reading security groups: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return securityGroups
 	}
@@ -404,19 +403,19 @@ func (provider *OutscaleOAPI) deleteSecurityGroups(securityGroups []Object) {
 		return
 	}
 	for _, sg := range securityGroups {
-		fmt.Printf("Deleting security group %s... ", sg)
+		log.Printf("Deleting security group %s... ", sg)
 		deletionOpts := osc.DeleteSecurityGroupRequest{SecurityGroupId: &sg}
 		_, httpRes, err := provider.client.SecurityGroupApi.
 			DeleteSecurityGroup(provider.context).
 			DeleteSecurityGroupRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting security groups: ")
+			log.Print("Error while deleting security groups: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -428,9 +427,9 @@ func (provider *OutscaleOAPI) readPublicIps() []Object {
 		ReadPublicIpsRequest(osc.ReadPublicIpsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading public ips: ")
+		log.Print("Error while reading public ips: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return publicIps
 	}
@@ -450,20 +449,20 @@ func (provider *OutscaleOAPI) unlinkPublicIp(publicIP *string) error {
 		cache.VmId == nil {
 		return nil
 	}
-	fmt.Printf("Unlinking public ip %s... ", *publicIP)
+	log.Printf("Unlinking public ip %s... ", *publicIP)
 	unlinkOpts := osc.UnlinkPublicIpRequest{PublicIp: publicIP}
 	_, httpRes, err := provider.client.PublicIpApi.
 		UnlinkPublicIp(provider.context).
 		UnlinkPublicIpRequest(unlinkOpts).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while unlinking public ip: ")
+		log.Print("Error while unlinking public ip: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return err
 	}
-	fmt.Println("OK")
+	log.Println("OK")
 	return nil
 }
 
@@ -475,19 +474,19 @@ func (provider *OutscaleOAPI) deletePublicIps(publicIps []Object) {
 		if provider.unlinkPublicIp(&publicIP) != nil {
 			continue
 		}
-		fmt.Printf("Deleting public ip %s... ", publicIP)
+		log.Printf("Deleting public ip %s... ", publicIP)
 		deletionOpts := osc.DeletePublicIpRequest{PublicIp: &publicIP}
 		_, httpRes, err := provider.client.PublicIpApi.
 			DeletePublicIp(provider.context).
 			DeletePublicIpRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting public ip: ")
+			log.Print("Error while deleting public ip: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -499,9 +498,9 @@ func (provider *OutscaleOAPI) readVolumes() []Object {
 		ReadVolumesRequest(osc.ReadVolumesRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading volumes: ")
+		log.Print("Error while reading volumes: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return volumes
 	}
@@ -519,19 +518,19 @@ func (provider *OutscaleOAPI) deleteVolumes(volumes []Object) {
 		return
 	}
 	for _, volume := range volumes {
-		fmt.Printf("Deleting volume %s... ", volume)
+		log.Printf("Deleting volume %s... ", volume)
 		deletionOpts := osc.DeleteVolumeRequest{VolumeId: volume}
 		_, httpRes, err := provider.client.VolumeApi.
 			DeleteVolume(provider.context).
 			DeleteVolumeRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting volume: ")
+			log.Print("Error while deleting volume: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -542,9 +541,9 @@ func (provider *OutscaleOAPI) readKeypairs() []Object {
 		ReadKeypairsRequest(osc.ReadKeypairsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading keypairs: ")
+		log.Print("Error while reading keypairs: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return keypairs
 	}
@@ -559,19 +558,19 @@ func (provider *OutscaleOAPI) deleteKeypairs(keypairs []Object) {
 		return
 	}
 	for _, keypair := range keypairs {
-		fmt.Printf("Deleting keypair %s... ", keypair)
+		log.Printf("Deleting keypair %s... ", keypair)
 		deletionOpts := osc.DeleteKeypairRequest{KeypairName: keypair}
 		_, httpRes, err := provider.client.KeypairApi.
 			DeleteKeypair(provider.context).
 			DeleteKeypairRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting keypair: ")
+			log.Print("Error while deleting keypair: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -582,9 +581,9 @@ func (provider *OutscaleOAPI) readRouteTables() []Object {
 		ReadRouteTablesRequest(osc.ReadRouteTablesRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading route tables: ")
+		log.Print("Error while reading route tables: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return routeTables
 	}
@@ -599,19 +598,19 @@ func (provider *OutscaleOAPI) deleteRouteTables(routeTables []Object) {
 		return
 	}
 	for _, routeTable := range routeTables {
-		fmt.Printf("Deleting route table %s... ", routeTable)
+		log.Printf("Deleting route table %s... ", routeTable)
 		deletionOpts := osc.DeleteRouteTableRequest{RouteTableId: routeTable}
 		_, httpRes, err := provider.client.RouteTableApi.
 			DeleteRouteTable(provider.context).
 			DeleteRouteTableRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting route table: ")
+			log.Print("Error while deleting route table: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -622,9 +621,9 @@ func (provider *OutscaleOAPI) readInternetServices() []Object {
 		ReadInternetServicesRequest(osc.ReadInternetServicesRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading internet services: ")
+		log.Print("Error while reading internet services: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return internetServices
 	}
@@ -640,7 +639,7 @@ func (provider *OutscaleOAPI) unlinkInternetSevice(internetServiceId string) err
 	if internetService == nil || internetService.NetId == nil {
 		return nil
 	}
-	fmt.Printf("Unlinking internet service %s... ", internetServiceId)
+	log.Printf("Unlinking internet service %s... ", internetServiceId)
 	unlinkOps := osc.UnlinkInternetServiceRequest{
 		InternetServiceId: internetServiceId,
 		NetId:             *internetService.NetId,
@@ -650,13 +649,13 @@ func (provider *OutscaleOAPI) unlinkInternetSevice(internetServiceId string) err
 		UnlinkInternetServiceRequest(unlinkOps).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while unlinking internet service: ")
+		log.Print("Error while unlinking internet service: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return err
 	} else {
-		fmt.Println("OK")
+		log.Println("OK")
 	}
 	return nil
 }
@@ -669,19 +668,19 @@ func (provider *OutscaleOAPI) deleteInternetServices(internetServices []Object) 
 		if provider.unlinkInternetSevice(internetService) != nil {
 			continue
 		}
-		fmt.Printf("Deleting internet service %s... ", internetService)
+		log.Printf("Deleting internet service %s... ", internetService)
 		deletionOpts := osc.DeleteInternetServiceRequest{InternetServiceId: internetService}
 		_, httpRes, err := provider.client.InternetServiceApi.
 			DeleteInternetService(provider.context).
 			DeleteInternetServiceRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting internet service: ")
+			log.Print("Error while deleting internet service: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -692,9 +691,9 @@ func (provider *OutscaleOAPI) readSubnets() []Object {
 		ReadSubnetsRequest(osc.ReadSubnetsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading subnets: ")
+		log.Print("Error while reading subnets: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return subnets
 	}
@@ -709,19 +708,19 @@ func (provider *OutscaleOAPI) deleteSubnets(subnets []Object) {
 		return
 	}
 	for _, subnet := range subnets {
-		fmt.Printf("Deleting subnet %s... ", subnet)
+		log.Printf("Deleting subnet %s... ", subnet)
 		deletionOpts := osc.DeleteSubnetRequest{SubnetId: subnet}
 		_, httpRes, err := provider.client.SubnetApi.
 			DeleteSubnet(provider.context).
 			DeleteSubnetRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting subnet: ")
+			log.Print("Error while deleting subnet: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -732,9 +731,9 @@ func (provider *OutscaleOAPI) readNets() []Object {
 		ReadNetsRequest(osc.ReadNetsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading nets: ")
+		log.Print("Error while reading nets: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return nets
 	}
@@ -749,19 +748,19 @@ func (provider *OutscaleOAPI) deleteNets(nets []Object) {
 		return
 	}
 	for _, net := range nets {
-		fmt.Printf("Deleting net %s... ", net)
+		log.Printf("Deleting net %s... ", net)
 		deletionOpts := osc.DeleteNetRequest{NetId: net}
 		_, httpRes, err := provider.client.NetApi.
 			DeleteNet(provider.context).
 			DeleteNetRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting net: ")
+			log.Print("Error while deleting net: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -772,14 +771,14 @@ func (provider *OutscaleOAPI) readAccountId() (error, *string) {
 			ReadAccountsRequest(osc.ReadAccountsRequest{}).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while reading account: ")
+			log.Print("Error while reading account: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 			return err, nil
 		}
 		if len(*read.Accounts) == 0 {
-			fmt.Fprintln(os.Stderr, "Error while reading account: no account listed")
+			log.Println("Error while reading account: no account listed")
 			return err, nil
 		}
 		provider.cache.accountId = (*read.Accounts)[0].AccountId
@@ -802,9 +801,9 @@ func (provider *OutscaleOAPI) readImages() []Object {
 			}}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading images: ")
+		log.Print("Error while reading images: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return images
 	}
@@ -819,19 +818,19 @@ func (provider *OutscaleOAPI) deleteImages(images []Object) {
 		return
 	}
 	for _, image := range images {
-		fmt.Printf("Deleting image %s... ", image)
+		log.Printf("Deleting image %s... ", image)
 		deletionOpts := osc.DeleteImageRequest{ImageId: image}
 		_, httpRes, err := provider.client.ImageApi.
 			DeleteImage(provider.context).
 			DeleteImageRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting image: ")
+			log.Print("Error while deleting image: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -852,9 +851,9 @@ func (provider *OutscaleOAPI) readSnapshots() []Object {
 		}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading snapshots: ")
+		log.Print("Error while reading snapshots: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return snapshots
 	}
@@ -869,19 +868,19 @@ func (provider *OutscaleOAPI) deleteSnapshots(snapshots []Object) {
 		return
 	}
 	for _, snapshot := range snapshots {
-		fmt.Printf("Deleting snapshot %s... ", snapshot)
+		log.Printf("Deleting snapshot %s... ", snapshot)
 		deletionOpts := osc.DeleteSnapshotRequest{SnapshotId: snapshot}
 		_, httpRes, err := provider.client.SnapshotApi.
 			DeleteSnapshot(provider.context).
 			DeleteSnapshotRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting snapshot: ")
+			log.Print("Error while deleting snapshot: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -892,9 +891,9 @@ func (provider *OutscaleOAPI) readVpnConnections() []Object {
 		ReadVpnConnectionsRequest(osc.ReadVpnConnectionsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading vpn connections: ")
+		log.Print("Error while reading vpn connections: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return vpnConnections
 	}
@@ -912,19 +911,19 @@ func (provider *OutscaleOAPI) deleteVpnConnections(vpnConnections []Object) {
 		return
 	}
 	for _, vpnConnection := range vpnConnections {
-		fmt.Printf("Deleting vpn connection %s... ", vpnConnection)
+		log.Printf("Deleting vpn connection %s... ", vpnConnection)
 		deletionOpts := osc.DeleteVpnConnectionRequest{VpnConnectionId: vpnConnection}
 		_, httpRes, err := provider.client.VpnConnectionApi.
 			DeleteVpnConnection(provider.context).
 			DeleteVpnConnectionRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting vpn connection: ")
+			log.Print("Error while deleting vpn connection: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -935,9 +934,9 @@ func (provider *OutscaleOAPI) readVirtualGateways() []Object {
 		ReadVirtualGatewaysRequest(osc.ReadVirtualGatewaysRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading virtual gateways: ")
+		log.Print("Error while reading virtual gateways: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return virtualGateways
 	}
@@ -955,19 +954,19 @@ func (provider *OutscaleOAPI) deleteVirtualGateways(virtualGateways []Object) {
 		return
 	}
 	for _, virtualGateway := range virtualGateways {
-		fmt.Printf("Deleting virtual gateway %s... ", virtualGateway)
+		log.Printf("Deleting virtual gateway %s... ", virtualGateway)
 		deletionOpts := osc.DeleteVirtualGatewayRequest{VirtualGatewayId: virtualGateway}
 		_, httpRes, err := provider.client.VirtualGatewayApi.
 			DeleteVirtualGateway(provider.context).
 			DeleteVirtualGatewayRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting virtual gateway: ")
+			log.Print("Error while deleting virtual gateway: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -978,9 +977,9 @@ func (provider *OutscaleOAPI) readNics() []Object {
 		ReadNicsRequest(osc.ReadNicsRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading nics: ")
+		log.Print("Error while reading nics: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return nics
 	}
@@ -1005,20 +1004,20 @@ func (provider *OutscaleOAPI) unlinkNics(nics []Object) {
 		if nic.LinkNic == nil || nic.LinkNic.LinkNicId == nil {
 			continue
 		}
-		fmt.Printf("Unlinking nic %s... ", nicId)
+		log.Printf("Unlinking nic %s... ", nicId)
 		unlinkOpts := osc.UnlinkNicRequest{LinkNicId: *nic.LinkNic.LinkNicId}
 		_, httpRes, err := provider.client.NicApi.
 			UnlinkNic(provider.context).
 			UnlinkNicRequest(unlinkOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while unlinking nic: ")
+			log.Print("Error while unlinking nic: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 			continue
 		}
-		fmt.Println("OK")
+		log.Println("OK")
 	}
 }
 
@@ -1028,19 +1027,19 @@ func (provider *OutscaleOAPI) deleteNics(nics []Object) {
 	}
 	provider.unlinkNics(nics)
 	for _, nicId := range nics {
-		fmt.Printf("Deleting nic %s... ", nicId)
+		log.Printf("Deleting nic %s... ", nicId)
 		deletionOpts := osc.DeleteNicRequest{NicId: nicId}
 		_, httpRes, err := provider.client.NicApi.
 			DeleteNic(provider.context).
 			DeleteNicRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting nic: ")
+			log.Print("Error while deleting nic: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }
@@ -1051,9 +1050,9 @@ func (provider *OutscaleOAPI) readAccessKeys() []Object {
 		ReadAccessKeysRequest(osc.ReadAccessKeysRequest{}).
 		Execute()
 	if err != nil {
-		fmt.Fprint(os.Stderr, "Error while reading access keys: ")
+		log.Print("Error while reading access keys: ")
 		if httpRes != nil {
-			fmt.Fprintln(os.Stderr, httpRes.Status)
+			log.Println(httpRes.Status)
 		}
 		return accessKeys
 	}
@@ -1070,19 +1069,19 @@ func (provider *OutscaleOAPI) deleteAccessKeys(accessKeys []Object) {
 		return
 	}
 	for _, accessKey := range accessKeys {
-		fmt.Printf("Deleting access key %s... ", accessKey)
+		log.Printf("Deleting access key %s... ", accessKey)
 		deletionOpts := osc.DeleteAccessKeyRequest{AccessKeyId: accessKey}
 		_, httpRes, err := provider.client.AccessKeyApi.
 			DeleteAccessKey(provider.context).
 			DeleteAccessKeyRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			fmt.Fprint(os.Stderr, "Error while deleting access key: ")
+			log.Print("Error while deleting access key: ")
 			if httpRes != nil {
-				fmt.Fprintln(os.Stderr, httpRes.Status)
+				log.Println(httpRes.Status)
 			}
 		} else {
-			fmt.Println("OK")
+			log.Println("OK")
 		}
 	}
 }

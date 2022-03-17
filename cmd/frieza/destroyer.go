@@ -3,7 +3,6 @@ package main
 import (
 	"bufio"
 	"encoding/json"
-	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -58,16 +57,16 @@ func (destroyer *Destroyer) print_human() {
 	totalObjectCount := 0
 	for i := 0; i < count; i++ {
 		target := destroyer.Targets[i]
-		fmt.Printf("Objects to delete in profile %s (%s):\n", target.profile.Name, (*target.provider).Name())
+		log.Printf("Objects to delete in profile %s (%s):\n", target.profile.Name, (*target.provider).Name())
 		objectsCount := ObjectsCount(target.Objects)
 		if objectsCount == 0 {
-			fmt.Println("* no object *")
+			log.Println("* no object *")
 		}
 		totalObjectCount += objectsCount
-		fmt.Print(ObjectsPrint(target.provider, target.Objects))
+		log.Print(ObjectsPrint(target.provider, target.Objects))
 	}
 	if totalObjectCount == 0 {
-		fmt.Println("\nNothing to delete")
+		log.Println("\nNothing to delete")
 	}
 }
 
@@ -126,9 +125,9 @@ func confirmAction(message *string, autoApprove bool) bool {
 	if autoApprove {
 		return true
 	}
-	fmt.Printf("\n%s\n", *message)
-	fmt.Printf("  There is no undo. Only 'yes' will be accepted to confirm.\n\n")
-	fmt.Printf("  Enter a value: ")
+	log.Printf("\n%s\n", *message)
+	log.Printf("  There is no undo. Only 'yes' will be accepted to confirm.\n\n")
+	log.Printf("  Enter a value: ")
 	reader := bufio.NewReader(os.Stdin)
 	response, _ := reader.ReadString('\n')
 	response = strings.Replace(response, "\n", "", -1)

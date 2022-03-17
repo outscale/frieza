@@ -5,7 +5,7 @@ package provider_example
 
 import (
 	"errors"
-	"fmt"
+	"log"
 
 	. "github.com/outscale-dev/frieza/internal/common"
 	"github.com/teris-io/cli"
@@ -88,6 +88,6 @@ func (provider *ProviderExample) readMyResources() []Object {
 }
 
 func (provider *ProviderExample) deleteMyResources(MyResources []Object) {
-	fmt.Printf("Deleting MyResources: %s ... ", MyResources)
-	fmt.Println("OK")
+	log.Printf("Deleting MyResources: %s ... ", MyResources)
+	log.Println("OK")
 }

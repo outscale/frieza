@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 
 	. "github.com/outscale-dev/frieza/internal/common"
@@ -99,7 +98,7 @@ func profileLs(customConfigPath string) {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
 	for _, profile := range config.Profiles {
-		fmt.Println(profile.Name)
+		log.Println(profile.Name)
 	}
 }
 
