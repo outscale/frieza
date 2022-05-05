@@ -1,0 +1,20 @@
+name: 'frieza-clean'
+description: 'Clean an  3DS Outscale account after the action'
+inputs:
+  access_key:
+    description: 'Access Key'
+    required: true
+  secret_key:
+    description: 'Secret Key'
+    required: true
+  region:
+    description: 'Region'
+    required: true
+  frieza_version:
+    description: 'Access Key'
+    required: false
+    default: 'latest'
+runs:
+  using: 'node16'
+  main: 'index.js'
+  post: 'cleanup.js'
