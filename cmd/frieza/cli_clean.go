@@ -11,6 +11,7 @@ import (
 func cliClean() cli.Command {
 	return cli.NewCommand("clean", "delete created resources since a specific snapshot").
 		WithOption(cli.NewOption("plan", "Only show what resource would be deleted").WithType(cli.TypeBool)).
+		WithOption(cli.NewOption("timeout", "Exit with error after a specific duration (ex: 30s, 5m, 1.5h)").WithType(cli.TypeString)).
 		WithOption(cliJson()).
 		WithOption(cli.NewOption("auto-approve", "Approve resource deletion without confirmation").WithType(cli.TypeBool)).
 		WithArg(cli.NewArg("snapshot_name", "snapshot")).
@@ -18,12 +19,19 @@ func cliClean() cli.Command {
 		WithOption(cliDebug()).
 		WithAction(func(args []string, options map[string]string) int {
 			setupDebug(options)
-			clean(options["config"], &args[0], options["plan"] == "true", options["auto-approve"] == "true", options["json"] == "true")
+			plan := options["plan"] == "true"
+			autoApprove := options["auto-approve"] == "true"
+			jsonOutput := options["json"] == "true"
+			timeout := "-1"
+			if len(options["timeout"]) > 0 {
+				timeout = options["timeout"]
+			}
+			clean(options["config"], &args[0], plan, autoApprove, jsonOutput, timeout)
 			return 0
 		})
 }
 
-func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove bool, jsonOutput bool) {
+func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove bool, jsonOutput bool, timeout string) {
 	var configPath *string
 	if jsonOutput && !autoApprove {
 		cliFatalf(true, "Cannot use --json option without --auto-approve")
@@ -70,5 +78,6 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 	if !confirmAction(&message, autoApprove) {
 		log.Fatal("Clean canceled")
 	}
+	go timeoutRunner(timeout, jsonOutput)
 	destroyer.run()
 }

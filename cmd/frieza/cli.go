@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io/ioutil"
 	"log"
+	"time"
 
 	. "github.com/outscale-dev/frieza/internal/common"
 	"github.com/teris-io/cli"
@@ -73,4 +74,16 @@ func ShortDescription() string {
 func disableLogs() {
 	log.SetFlags(0)
 	log.SetOutput(ioutil.Discard)
+}
+
+func timeoutRunner(timeout string, json bool) {
+	if timeout == "-1" {
+		return
+	}
+	duration, err := time.ParseDuration(timeout)
+	if err != nil {
+		cliFatalf(json, "Bad format for --timeout")
+	}
+	time.Sleep(duration)
+	cliFatalf(json, "Frieza reached timeout")
 }
