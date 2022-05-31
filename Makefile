@@ -25,12 +25,12 @@ test-go-fmt:
 .PHONY: build
 build:
 	@echo building:
-	cd cmd/frieza && go build -ldflags "-X main.version=`cat version` -X main.commit=`git rev-list -1 HEAD`"
+	cd cmd/frieza && go build -ldflags "-X github.com/outscale-dev/frieza/internal/common.version=`cat version` -X github.com/outscale-dev/frieza/internal/common.commit=`git rev-list -1 HEAD`"
 
 .PHONY: install
 install:
 	@echo installing:
-	cd cmd/frieza && go install -ldflags "-X main.version=`cat version` -X main.commit=`git rev-list -1 HEAD`"
+	cd cmd/frieza && go install -ldflags "-X github.com/outscale-dev/frieza/internal/common.version=`cat version` -X github.com/outscale-dev/frieza/internal/common.commit=`git rev-list -1 HEAD`"
 
 .PHONY: release
 release:
