@@ -19,7 +19,7 @@ func FullVersion() string {
 	if len(commit) == 0 {
 		commit = "unknown git commit"
 	}
-	return fmt.Sprintf("%s-%s)", version, commit)
+	return fmt.Sprintf("%s-%s", version, commit)
 }
 
 func ConfigVersion() int {
