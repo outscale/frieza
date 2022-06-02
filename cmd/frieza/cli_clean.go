@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	. "github.com/outscale-dev/frieza/internal/common"
 	"github.com/teris-io/cli"
@@ -12,6 +13,7 @@ func cliClean() cli.Command {
 	return cli.NewCommand("clean", "delete created resources since a specific snapshot").
 		WithOption(cli.NewOption("plan", "Only show what resource would be deleted").WithType(cli.TypeBool)).
 		WithOption(cli.NewOption("timeout", "Exit with error after a specific duration (ex: 30s, 5m, 1.5h)").WithType(cli.TypeString)).
+		WithOption(cli.NewOption("only-resource-types", "Remove only theses resource types (separated by ','). You can see all resource types in the description of the provider.").WithType(cli.TypeString)).
 		WithOption(cliJson()).
 		WithOption(cli.NewOption("auto-approve", "Approve resource deletion without confirmation").WithType(cli.TypeBool)).
 		WithArg(cli.NewArg("snapshot_name", "snapshot")).
@@ -26,12 +28,18 @@ func cliClean() cli.Command {
 			if len(options["timeout"]) > 0 {
 				timeout = options["timeout"]
 			}
-			clean(options["config"], &args[0], plan, autoApprove, jsonOutput, timeout)
+
+			var resourcesTypeFilterPtr *[]ObjectType = nil
+			if len(options["only-resource-types"]) > 0 {
+				resourcesTypeFilter := strings.Split(options["only-resource-types"], ",")
+				resourcesTypeFilterPtr = &resourcesTypeFilter
+			}
+			clean(options["config"], &args[0], plan, autoApprove, jsonOutput, timeout, resourcesTypeFilterPtr)
 			return 0
 		})
 }
 
-func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove bool, jsonOutput bool, timeout string) {
+func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove bool, jsonOutput bool, timeout string, onlyResourcesType *[]ObjectType) {
 	var configPath *string
 	if jsonOutput && !autoApprove {
 		cliFatalf(true, "Cannot use --json option without --auto-approve")
@@ -60,6 +68,9 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 			cliFatalf(jsonOutput, "Error intializing profile %s: %s", data.Profile, err.Error())
 		}
 		objects := ReadObjects(&provider)
+		if onlyResourcesType != nil {
+			objects = FiltersObjects(&objects, *onlyResourcesType)
+		}
 		diff := NewDiff()
 		diff.Build(&data.Objects, &objects)
 		objectsCount += ObjectsCount(&diff.Created)

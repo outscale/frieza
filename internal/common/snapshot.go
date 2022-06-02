@@ -42,6 +42,14 @@ func ReadObjects(provider *Provider) Objects {
 	return objects
 }
 
+func FiltersObjects(objects *Objects, onlyResources []ObjectType) Objects {
+	filteredObjects := make(Objects)
+	for _, typeName := range onlyResources {
+		filteredObjects[typeName] = (*objects)[typeName]
+	}
+	return filteredObjects
+}
+
 func ReadNonEmptyObjects(provider *Provider, nonEmpy Objects) Objects {
 	objects := make(Objects)
 	for _, typeName := range (*provider).Types() {

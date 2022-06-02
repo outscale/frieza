@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"strings"
 
 	. "github.com/outscale-dev/frieza/internal/common"
 	"github.com/teris-io/cli"
@@ -12,6 +13,7 @@ func cliNuke() cli.Command {
 	return cli.NewCommand("nuke", "delete ALL resources of specified profiles").
 		WithOption(cli.NewOption("plan", "Only show what resource would be deleted").WithType(cli.TypeBool)).
 		WithOption(cli.NewOption("timeout", "Exit with error after a specific duration (ex: 30s, 5m, 1.5h)").WithType(cli.TypeString)).
+		WithOption(cli.NewOption("only-resource-types", "Remove only theses resource types (separated by ','). You can see all resource types in the description of the provider.").WithType(cli.TypeString)).
 		WithOption(cliJson()).
 		WithOption(cli.NewOption("auto-approve", "Approve resource deletion without confirmation").WithType(cli.TypeBool)).
 		WithOption(cliConfigPath()).
@@ -26,12 +28,17 @@ func cliNuke() cli.Command {
 			if len(options["timeout"]) > 0 {
 				timeout = options["timeout"]
 			}
-			nuke(options["config"], args, plan, autoApprove, jsonOutput, timeout)
+			var resourcesTypeFilterPtr *[]ObjectType = nil
+			if len(options["only-resource-types"]) > 0 {
+				resourcesTypeFilter := strings.Split(options["only-resource-types"], ",")
+				resourcesTypeFilterPtr = &resourcesTypeFilter
+			}
+			nuke(options["config"], args, plan, autoApprove, jsonOutput, timeout, resourcesTypeFilterPtr)
 			return 0
 		})
 }
 
-func nuke(customConfigPath string, profiles []string, plan bool, autoApprove bool, jsonOutput bool, timeout string) {
+func nuke(customConfigPath string, profiles []string, plan bool, autoApprove bool, jsonOutput bool, timeout string, onlyResourcesType *[]ObjectType) {
 	if jsonOutput && !autoApprove {
 		cliFatalf(true, "Cannot use --json option without --auto-approve")
 	}
@@ -65,6 +72,9 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 			cliFatalf(jsonOutput, "Error intializing profile %s: %s", profileName, err.Error())
 		}
 		objectsToDelete := ReadObjects(&provider)
+		if onlyResourcesType != nil {
+			objectsToDelete = FiltersObjects(&objectsToDelete, *onlyResourcesType)
+		}
 		destroyer.add(profile, &provider, &objectsToDelete)
 	}
 
