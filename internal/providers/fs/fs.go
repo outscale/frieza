@@ -12,7 +12,9 @@ import (
 )
 
 const Name = "fs"
+
 const typeFile = "file"
+const typeFolder = "folder"
 
 type FileSystem struct {
 	Path string
@@ -35,7 +37,7 @@ func New(config ProviderConfig, debug bool) (*FileSystem, error) {
 }
 
 func Types() []ObjectType {
-	object_types := []ObjectType{typeFile}
+	object_types := []ObjectType{typeFile, typeFolder}
 	return object_types
 }
 
@@ -64,6 +66,8 @@ func (provider *FileSystem) ReadObjects(typeName string) []Object {
 	switch typeName {
 	case typeFile:
 		return provider.readFiles()
+	case typeFolder:
+		return provider.readFolders()
 	}
 	return []Object{}
 }
@@ -72,6 +76,8 @@ func (provider *FileSystem) DeleteObjects(typeName string, objects []Object) {
 	switch typeName {
 	case typeFile:
 		provider.deleteFiles(objects)
+	case typeFolder:
+		provider.deleteFolders(objects)
 	}
 }
 
@@ -115,6 +121,46 @@ func (provider *FileSystem) deleteFiles(files []Object) {
 		log.Printf("Deleting file %s ... ", filePath)
 		if err := os.Remove(filePath); err != nil {
 			log.Printf("cannot remove file %s\n", err.Error())
+			continue
+		}
+		log.Println("OK")
+	}
+}
+
+func (provider *FileSystem) readFolders() []Object {
+	folders := make([]Object, 0)
+
+	if err := os.Chdir(provider.Path); err != nil {
+		log.Printf("cannot move to directory: %s", err.Error())
+		return folders
+	}
+
+	folderStack := []string{"."}
+	for len(folderStack) > 0 {
+		dirPath := folderStack[len(folderStack)-1]
+		folderStack = folderStack[:len(folderStack)-1]
+		dir, err := os.ReadDir(dirPath)
+		if err != nil {
+			log.Printf("cannot read directory: %s", err.Error())
+			continue
+		}
+		for _, node := range dir {
+			nodePath := path.Join(dirPath, node.Name())
+			if node.IsDir() {
+				folderStack = append(folderStack, nodePath)
+				folders = append(folders, nodePath)
+			}
+		}
+	}
+	return folders
+}
+
+func (provider *FileSystem) deleteFolders(folders []Object) {
+	for _, relativeFolderPath := range folders {
+		folderPath := path.Join(provider.Path, relativeFolderPath)
+		log.Printf("Deleting folder %s ... ", folderPath)
+		if err := os.Remove(folderPath); err != nil {
+			log.Printf("cannot remove folder %s\n", err.Error())
 			continue
 		}
 		log.Println("OK")
