@@ -1,9 +1,5 @@
 # Providers and supported objects
 
-## s3
-- object
-- bucket
-
 ## outscale_oapi
 - vm
 - load_balancer
@@ -21,3 +17,8 @@
 - vpn_connection
 - virtual_gateway
 - nic
+- access_key
+
+## s3
+- object
+- bucket
