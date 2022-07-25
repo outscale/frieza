@@ -121,14 +121,6 @@ func (provider *OutscaleOAPI) AuthTest() error {
 	return err
 }
 
-func newObjects() Objects {
-	objects := make(Objects)
-	for _, typeName := range Types() {
-		objects[typeName] = make([]Object, 0)
-	}
-	return objects
-}
-
 func (provider *OutscaleOAPI) ReadObjects(typeName string) []Object {
 	switch typeName {
 	case typeVm:
