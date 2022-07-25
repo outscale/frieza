@@ -117,7 +117,7 @@ func (provider *OutscaleOAPI) Types() []ObjectType {
 }
 
 func (provider *OutscaleOAPI) AuthTest() error {
-	err, _ := provider.readAccountId()
+	_, err := provider.readAccountId()
 	return err
 }
 
@@ -802,7 +802,7 @@ func (provider *OutscaleOAPI) deleteNets(nets []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readAccountId() (error, *string) {
+func (provider *OutscaleOAPI) readAccountId() (*string, error) {
 	if provider.cache.accountId == nil {
 		read, httpRes, err := provider.client.AccountApi.ReadAccounts(provider.context).
 			ReadAccountsRequest(osc.ReadAccountsRequest{}).
@@ -812,20 +812,20 @@ func (provider *OutscaleOAPI) readAccountId() (error, *string) {
 			if httpRes != nil {
 				log.Println(httpRes.Status)
 			}
-			return err, nil
+			return nil, err
 		}
 		if len(*read.Accounts) == 0 {
 			log.Println("Error while reading account: no account listed")
-			return err, nil
+			return nil, err
 		}
 		provider.cache.accountId = (*read.Accounts)[0].AccountId
 	}
-	return nil, provider.cache.accountId
+	return provider.cache.accountId, nil
 }
 
 func (provider *OutscaleOAPI) readImages() []Object {
 	images := make([]Object, 0)
-	err, accountId := provider.readAccountId()
+	accountId, err := provider.readAccountId()
 	if err != nil {
 		return images
 	}
@@ -874,7 +874,7 @@ func (provider *OutscaleOAPI) deleteImages(images []Object) {
 
 func (provider *OutscaleOAPI) readSnapshots() []Object {
 	snapshots := make([]Object, 0)
-	err, accountId := provider.readAccountId()
+	accountId, err := provider.readAccountId()
 	if err != nil {
 		return snapshots
 	}
