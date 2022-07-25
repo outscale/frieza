@@ -41,6 +41,7 @@ type apiCache struct {
 	publicIps        map[Object]*osc.PublicIp
 	vms              map[Object]*osc.Vm
 	nics             map[Object]*osc.Nic
+	routeTables      map[Object]*osc.RouteTable
 }
 
 func checkConfig(config ProviderConfig) error {
@@ -217,6 +218,7 @@ func newAPICache() apiCache {
 		publicIps:        make(map[string]*osc.PublicIp),
 		vms:              make(map[string]*osc.Vm),
 		nics:             make(map[string]*osc.Nic),
+		routeTables:      make(map[string]*osc.RouteTable),
 	}
 }
 
@@ -589,8 +591,40 @@ func (provider *OutscaleOAPI) readRouteTables() []Object {
 	}
 	for _, routeTable := range *read.RouteTables {
 		routeTables = append(routeTables, *routeTable.RouteTableId)
+		provider.cache.routeTables[*routeTable.RouteTableId] = &routeTable
 	}
 	return routeTables
+}
+
+func (provider *OutscaleOAPI) unlinkRouteTable(RouteTableId string) error {
+	routeTable := provider.cache.routeTables[RouteTableId]
+	if routeTable == nil || routeTable.LinkRouteTables == nil {
+		return nil
+	}
+	for _, link := range *routeTable.LinkRouteTables {
+		if link.LinkRouteTableId == nil {
+			continue
+		}
+		linkId := *link.LinkRouteTableId
+		log.Printf("Unlinking route table %s (link %s)... ", RouteTableId, linkId)
+		unlinkOps := osc.UnlinkRouteTableRequest{
+			LinkRouteTableId: *link.LinkRouteTableId,
+		}
+		_, httpRes, err := provider.client.RouteTableApi.
+			UnlinkRouteTable(provider.context).
+			UnlinkRouteTableRequest(unlinkOps).
+			Execute()
+		if err != nil {
+			log.Printf("Error while unlinking route table %s (links %s): ", RouteTableId, linkId)
+			if httpRes != nil {
+				log.Println(httpRes.Status)
+			}
+			return err
+		} else {
+			log.Println("OK")
+		}
+	}
+	return nil
 }
 
 func (provider *OutscaleOAPI) deleteRouteTables(routeTables []Object) {
@@ -598,6 +632,9 @@ func (provider *OutscaleOAPI) deleteRouteTables(routeTables []Object) {
 		return
 	}
 	for _, routeTable := range routeTables {
+		if provider.unlinkRouteTable(routeTable) != nil {
+			continue
+		}
 		log.Printf("Deleting route table %s... ", routeTable)
 		deletionOpts := osc.DeleteRouteTableRequest{RouteTableId: routeTable}
 		_, httpRes, err := provider.client.RouteTableApi.
