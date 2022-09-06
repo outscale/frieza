@@ -1,6 +1,10 @@
 # Frieza
 
-Cleanup your cloud ressources!
+<p align="center">
+  <img width="200" height="200" src="https://raw.githubusercontent.com/outscale-dev/frieza/master/docs/logo.png">
+  <br/>
+  Cleanup your cloud ressources!
+</p>
 
 # Usecases
 
