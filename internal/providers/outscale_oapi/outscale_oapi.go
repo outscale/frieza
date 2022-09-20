@@ -656,9 +656,9 @@ func (provider *OutscaleOAPI) readInternetServices() []Object {
 		}
 		return internetServices
 	}
-	for _, internetService := range *read.InternetServices {
+	for i, internetService := range *read.InternetServices {
 		internetServices = append(internetServices, *internetService.InternetServiceId)
-		provider.cache.internetServices[*internetService.InternetServiceId] = &internetService
+		provider.cache.internetServices[*internetService.InternetServiceId] = &(*read.InternetServices)[i]
 	}
 	return internetServices
 }
