@@ -581,9 +581,9 @@ func (provider *OutscaleOAPI) readRouteTables() []Object {
 		}
 		return routeTables
 	}
-	for _, routeTable := range *read.RouteTables {
+	for i, routeTable := range *read.RouteTables {
 		routeTables = append(routeTables, *routeTable.RouteTableId)
-		provider.cache.routeTables[*routeTable.RouteTableId] = &routeTable
+		provider.cache.routeTables[*routeTable.RouteTableId] = &(*read.RouteTables)[i]
 	}
 	return routeTables
 }
