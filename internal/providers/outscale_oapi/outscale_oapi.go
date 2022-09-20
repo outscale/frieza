@@ -427,8 +427,9 @@ func (provider *OutscaleOAPI) readPublicIps() []Object {
 		}
 		return publicIps
 	}
-	for _, pip := range *read.PublicIps {
+	for i, pip := range *read.PublicIps {
 		publicIps = append(publicIps, *pip.PublicIp)
+		provider.cache.publicIps[*pip.PublicIp] = &(*read.PublicIps)[i]
 	}
 	return publicIps
 }
