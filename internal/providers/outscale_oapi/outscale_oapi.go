@@ -1012,9 +1012,9 @@ func (provider *OutscaleOAPI) readNics() []Object {
 		}
 		return nics
 	}
-	for _, nic := range *read.Nics {
-		provider.cache.nics[*nic.NicId] = &nic
+	for i, nic := range *read.Nics {
 		nics = append(nics, *nic.NicId)
+		provider.cache.nics[*nic.NicId] = &(*read.Nics)[i]
 	}
 	return nics
 }
