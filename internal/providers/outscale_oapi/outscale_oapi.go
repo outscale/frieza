@@ -226,11 +226,11 @@ func (provider *OutscaleOAPI) readVms() []Object {
 		}
 		return vms
 	}
-	for _, vm := range *read.Vms {
+	for i, vm := range *read.Vms {
 		switch *vm.State {
 		case "pending", "running", "stopping", "stopped", "shutting-down", "quarantine":
 			vms = append(vms, *vm.VmId)
-			provider.cache.vms[*vm.VmId] = &vm
+			provider.cache.vms[*vm.VmId] = &(*read.Vms)[i]
 		}
 	}
 	return vms
