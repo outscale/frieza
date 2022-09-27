@@ -1,5 +1,13 @@
 # Providers and supported objects
 
+## s3
+- object
+- bucket
+
+## fs
+- file
+- folder
+
 ## outscale_oapi
 - vm
 - load_balancer
@@ -18,11 +26,3 @@
 - virtual_gateway
 - nic
 - access_key
-
-## s3
-- object
-- bucket
-
-## fs
-- file
-- folder
