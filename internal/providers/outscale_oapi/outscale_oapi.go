@@ -42,6 +42,7 @@ type apiCache struct {
 	vms              map[Object]*osc.Vm
 	nics             map[Object]*osc.Nic
 	routeTables      map[Object]*osc.RouteTable
+	securityGroups   map[Object]*osc.SecurityGroup
 }
 
 func checkConfig(config ProviderConfig) error {
@@ -211,6 +212,7 @@ func newAPICache() apiCache {
 		vms:              make(map[string]*osc.Vm),
 		nics:             make(map[string]*osc.Nic),
 		routeTables:      make(map[string]*osc.RouteTable),
+		securityGroups:   make(map[string]*osc.SecurityGroup),
 	}
 }
 
@@ -387,9 +389,99 @@ func (provider *OutscaleOAPI) readSecurityGroups() []Object {
 		if *sg.SecurityGroupName == "default" {
 			continue
 		}
+		copySg := sg
 		securityGroups = append(securityGroups, *sg.SecurityGroupId)
+		provider.cache.securityGroups[*sg.SecurityGroupId] = &copySg
 	}
 	return securityGroups
+}
+
+func (provider *OutscaleOAPI) deleteSecurityGroupRules(securityGroupId string) error {
+	securityGroup := provider.cache.securityGroups[securityGroupId]
+	if securityGroup == nil || (securityGroup.InboundRules == nil && securityGroup.OutboundRules == nil) {
+		return nil
+	}
+
+	if len(securityGroup.GetInboundRules()) != 0 {
+		targetRules := []osc.SecurityGroupRule{}
+		for _, rule := range securityGroup.GetInboundRules() {
+			if len(rule.GetSecurityGroupsMembers()) == 0 {
+				targetRules = append(targetRules, rule)
+			}
+
+			targetSecurityGroupMember := []osc.SecurityGroupsMember{}
+			for _, sgMember := range rule.GetSecurityGroupsMembers() {
+				sgMember.SetAccountId("")
+				sgMember.SetSecurityGroupName("")
+				targetSecurityGroupMember = append(targetSecurityGroupMember, sgMember)
+			}
+
+			rule.SetSecurityGroupsMembers(targetSecurityGroupMember)
+			targetRules = append(targetRules, rule)
+
+		}
+		log.Printf("Deleting inbound security group rule from %s... ", securityGroupId)
+		delete := osc.DeleteSecurityGroupRuleRequest{
+			Flow:            "Inbound",
+			Rules:           &targetRules,
+			SecurityGroupId: securityGroupId,
+		}
+
+		_, httpRes, err := provider.client.SecurityGroupRuleApi.
+			DeleteSecurityGroupRule(provider.context).
+			DeleteSecurityGroupRuleRequest(delete).
+			Execute()
+		if err != nil {
+			log.Printf("Error while deleting inbound rules of security group route %s: ", securityGroupId)
+			if httpRes != nil {
+				log.Println(httpRes.Status)
+			}
+			return err
+		} else {
+			log.Println("OK")
+		}
+	}
+
+	if len(securityGroup.GetOutboundRules()) != 0 {
+		targetRules := []osc.SecurityGroupRule{}
+		for _, rule := range securityGroup.GetOutboundRules() {
+			if len(rule.GetSecurityGroupsMembers()) == 0 {
+				targetRules = append(targetRules, rule)
+			}
+
+			targetSecurityGroupMember := []osc.SecurityGroupsMember{}
+			for _, sgMember := range rule.GetSecurityGroupsMembers() {
+				sgMember.SetAccountId("")
+				sgMember.SetSecurityGroupName("")
+				targetSecurityGroupMember = append(targetSecurityGroupMember, sgMember)
+			}
+
+			rule.SetSecurityGroupsMembers(targetSecurityGroupMember)
+			targetRules = append(targetRules, rule)
+
+		}
+		log.Printf("Deleting outbound security group rule from %s... ", securityGroupId)
+		delete := osc.DeleteSecurityGroupRuleRequest{
+			Flow:            "Outbound",
+			Rules:           &targetRules,
+			SecurityGroupId: securityGroupId,
+		}
+
+		_, httpRes, err := provider.client.SecurityGroupRuleApi.
+			DeleteSecurityGroupRule(provider.context).
+			DeleteSecurityGroupRuleRequest(delete).
+			Execute()
+		if err != nil {
+			log.Printf("Error while deleting outbound rules of security group route %s: ", securityGroupId)
+			if httpRes != nil {
+				log.Println(httpRes.Status)
+			}
+			return err
+		} else {
+			log.Println("OK")
+		}
+	}
+	return nil
 }
 
 func (provider *OutscaleOAPI) deleteSecurityGroups(securityGroups []Object) {
@@ -397,6 +489,9 @@ func (provider *OutscaleOAPI) deleteSecurityGroups(securityGroups []Object) {
 		return
 	}
 	for _, sg := range securityGroups {
+		if provider.deleteSecurityGroupRules(sg) != nil {
+			continue
+		}
 		log.Printf("Deleting security group %s... ", sg)
 		deletionOpts := osc.DeleteSecurityGroupRequest{SecurityGroupId: &sg}
 		_, httpRes, err := provider.client.SecurityGroupApi.
