@@ -228,10 +228,7 @@ func (provider *OutscaleOAPI) readVms() []Object {
 		ReadVmsRequest(osc.ReadVmsRequest{}).
 		Execute()
 	if err != nil {
-		log.Println("Error while reading vms: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading vms: %v\n", getErrorInfo(err, httpRes))
 		return vms
 	}
 	for i, vm := range *read.Vms {
@@ -266,10 +263,7 @@ func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) {
 		StopVmsRequest(stopOpts).
 		Execute()
 	if err != nil {
-		log.Print("Error while shutting down vms: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while shutting down vms: %v\n", getErrorInfo(err, httpRes))
 		return
 	}
 	log.Println("OK")
@@ -286,10 +280,7 @@ func (provider *OutscaleOAPI) deleteVms(vms []Object) {
 		DeleteVmsRequest(deletionOpts).
 		Execute()
 	if err != nil {
-		log.Print("Error while deleting vms: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while deleting vms: %v\n", getErrorInfo(err, httpRes))
 	} else {
 		log.Println("OK")
 	}
@@ -301,10 +292,7 @@ func (provider *OutscaleOAPI) readLoadBalancers() []Object {
 		ReadLoadBalancersRequest(osc.ReadLoadBalancersRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading load balancers: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading load balancers: %v\n", getErrorInfo(err, httpRes))
 		return loadBalancers
 	}
 	for _, loadBalancer := range *read.LoadBalancers {
@@ -325,10 +313,7 @@ func (provider *OutscaleOAPI) deleteLoadBalancers(loadBalancers []Object) {
 			DeleteLoadBalancerRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting load balancer: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting load balancer: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -341,10 +326,7 @@ func (provider *OutscaleOAPI) readNatServices() []Object {
 		ReadNatServicesRequest(osc.ReadNatServicesRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading nat services: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading nat services: %v\n", getErrorInfo(err, httpRes))
 		return natServices
 	}
 	for _, natService := range *read.NatServices {
@@ -368,10 +350,7 @@ func (provider *OutscaleOAPI) deleteNatServices(natServices []Object) {
 			DeleteNatServiceRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting nat service: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting nat service: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -385,10 +364,7 @@ func (provider *OutscaleOAPI) readSecurityGroups() []Object {
 		ReadSecurityGroupsRequest(osc.ReadSecurityGroupsRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading security groups: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading security groups: %v\n", getErrorInfo(err, httpRes))
 		return securityGroups
 	}
 	for _, sg := range *read.SecurityGroups {
@@ -505,10 +481,7 @@ func (provider *OutscaleOAPI) deleteSecurityGroups(securityGroups []Object) {
 			DeleteSecurityGroupRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting security groups: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting security groups: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -522,10 +495,7 @@ func (provider *OutscaleOAPI) readPublicIps() []Object {
 		ReadPublicIpsRequest(osc.ReadPublicIpsRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading public ips: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading public ips: %v\n", getErrorInfo(err, httpRes))
 		return publicIps
 	}
 	for i, pip := range *read.PublicIps {
@@ -552,10 +522,7 @@ func (provider *OutscaleOAPI) unlinkPublicIp(publicIP *string) error {
 		UnlinkPublicIpRequest(unlinkOpts).
 		Execute()
 	if err != nil {
-		log.Print("Error while unlinking public ip: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while unlinking public ip: %v\n", getErrorInfo(err, httpRes))
 		return err
 	}
 	log.Println("OK")
@@ -577,10 +544,7 @@ func (provider *OutscaleOAPI) deletePublicIps(publicIps []Object) {
 			DeletePublicIpRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting public ip: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting public ip: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -594,10 +558,7 @@ func (provider *OutscaleOAPI) readVolumes() []Object {
 		ReadVolumesRequest(osc.ReadVolumesRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading volumes: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading volumes: %v\n", getErrorInfo(err, httpRes))
 		return volumes
 	}
 	for _, volume := range *read.Volumes {
@@ -621,10 +582,7 @@ func (provider *OutscaleOAPI) deleteVolumes(volumes []Object) {
 			DeleteVolumeRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting volume: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting volume: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -637,10 +595,7 @@ func (provider *OutscaleOAPI) readKeypairs() []Object {
 		ReadKeypairsRequest(osc.ReadKeypairsRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading keypairs: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading keypairs: %v\n", getErrorInfo(err, httpRes))
 		return keypairs
 	}
 	for _, keypair := range *read.Keypairs {
@@ -661,10 +616,7 @@ func (provider *OutscaleOAPI) deleteKeypairs(keypairs []Object) {
 			DeleteKeypairRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting keypair: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting keypair: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -677,10 +629,7 @@ func (provider *OutscaleOAPI) readRouteTables() []Object {
 		ReadRouteTablesRequest(osc.ReadRouteTablesRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading route tables: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading route tables: %v\n", getErrorInfo(err, httpRes))
 		return routeTables
 	}
 	for i, routeTable := range *read.RouteTables {
@@ -709,10 +658,7 @@ func (provider *OutscaleOAPI) unlinkRouteTable(RouteTableId string) error {
 			UnlinkRouteTableRequest(unlinkOps).
 			Execute()
 		if err != nil {
-			log.Printf("Error while unlinking route table %s (links %s): ", RouteTableId, linkId)
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while unlinking route table %s (links %s): %v\n", RouteTableId, linkId, getErrorInfo(err, httpRes))
 			return err
 		} else {
 			log.Println("OK")
@@ -736,10 +682,7 @@ func (provider *OutscaleOAPI) deleteRouteTables(routeTables []Object) {
 			DeleteRouteTableRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting route table: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting route table: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -752,10 +695,7 @@ func (provider *OutscaleOAPI) readInternetServices() []Object {
 		ReadInternetServicesRequest(osc.ReadInternetServicesRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading internet services: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading internet services: %v\n", getErrorInfo(err, httpRes))
 		return internetServices
 	}
 	for i, internetService := range *read.InternetServices {
@@ -780,10 +720,7 @@ func (provider *OutscaleOAPI) unlinkInternetSevice(internetServiceId string) err
 		UnlinkInternetServiceRequest(unlinkOps).
 		Execute()
 	if err != nil {
-		log.Print("Error while unlinking internet service: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while unlinking internet service: %v\n", getErrorInfo(err, httpRes))
 		return err
 	} else {
 		log.Println("OK")
@@ -806,10 +743,7 @@ func (provider *OutscaleOAPI) deleteInternetServices(internetServices []Object) 
 			DeleteInternetServiceRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting internet service: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting internet service: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -822,10 +756,7 @@ func (provider *OutscaleOAPI) readSubnets() []Object {
 		ReadSubnetsRequest(osc.ReadSubnetsRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading subnets: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading subnets: %v\n", getErrorInfo(err, httpRes))
 		return subnets
 	}
 	for _, subnet := range *read.Subnets {
@@ -846,10 +777,7 @@ func (provider *OutscaleOAPI) deleteSubnets(subnets []Object) {
 			DeleteSubnetRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting subnet: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting subnet: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -862,10 +790,7 @@ func (provider *OutscaleOAPI) readNets() []Object {
 		ReadNetsRequest(osc.ReadNetsRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading nets: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading nets: %v\n", getErrorInfo(err, httpRes))
 		return nets
 	}
 	for _, net := range *read.Nets {
@@ -886,10 +811,7 @@ func (provider *OutscaleOAPI) deleteNets(nets []Object) {
 			DeleteNetRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting net: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting net: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -902,10 +824,7 @@ func (provider *OutscaleOAPI) readAccountId() (*string, error) {
 			ReadAccountsRequest(osc.ReadAccountsRequest{}).
 			Execute()
 		if err != nil {
-			log.Print("Error while reading account: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while reading account: %v\n", getErrorInfo(err, httpRes))
 			return nil, err
 		}
 		if len(*read.Accounts) == 0 {
@@ -932,10 +851,7 @@ func (provider *OutscaleOAPI) readImages() []Object {
 			}}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading images: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading images: %v\n", getErrorInfo(err, httpRes))
 		return images
 	}
 	for _, image := range *read.Images {
@@ -956,10 +872,7 @@ func (provider *OutscaleOAPI) deleteImages(images []Object) {
 			DeleteImageRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting image: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting image: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -982,10 +895,7 @@ func (provider *OutscaleOAPI) readSnapshots() []Object {
 		}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading snapshots: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading snapshots: %v\n", getErrorInfo(err, httpRes))
 		return snapshots
 	}
 	for _, snapshot := range *read.Snapshots {
@@ -1006,10 +916,7 @@ func (provider *OutscaleOAPI) deleteSnapshots(snapshots []Object) {
 			DeleteSnapshotRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting snapshot: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting snapshot: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -1022,10 +929,7 @@ func (provider *OutscaleOAPI) readVpnConnections() []Object {
 		ReadVpnConnectionsRequest(osc.ReadVpnConnectionsRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading vpn connections: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading vpn connections: %v\n", getErrorInfo(err, httpRes))
 		return vpnConnections
 	}
 	for _, vpnConnection := range *read.VpnConnections {
@@ -1049,10 +953,7 @@ func (provider *OutscaleOAPI) deleteVpnConnections(vpnConnections []Object) {
 			DeleteVpnConnectionRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting vpn connection: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting vpn connection: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -1065,10 +966,7 @@ func (provider *OutscaleOAPI) readVirtualGateways() []Object {
 		ReadVirtualGatewaysRequest(osc.ReadVirtualGatewaysRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading virtual gateways: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading virtual gateways: %v\n", getErrorInfo(err, httpRes))
 		return virtualGateways
 	}
 	for _, virtualGateway := range *read.VirtualGateways {
@@ -1092,10 +990,7 @@ func (provider *OutscaleOAPI) deleteVirtualGateways(virtualGateways []Object) {
 			DeleteVirtualGatewayRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting virtual gateway: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting virtual gateway: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -1108,10 +1003,7 @@ func (provider *OutscaleOAPI) readNics() []Object {
 		ReadNicsRequest(osc.ReadNicsRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading nics: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading nics: %v\n", getErrorInfo(err, httpRes))
 		return nics
 	}
 	for i, nic := range *read.Nics {
@@ -1142,10 +1034,7 @@ func (provider *OutscaleOAPI) unlinkNics(nics []Object) {
 			UnlinkNicRequest(unlinkOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while unlinking nic: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while unlinking nic: %v\n", getErrorInfo(err, httpRes))
 			continue
 		}
 		log.Println("OK")
@@ -1165,10 +1054,7 @@ func (provider *OutscaleOAPI) deleteNics(nics []Object) {
 			DeleteNicRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting nic: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting nic: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
@@ -1181,10 +1067,7 @@ func (provider *OutscaleOAPI) readAccessKeys() []Object {
 		ReadAccessKeysRequest(osc.ReadAccessKeysRequest{}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading access keys: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
+		log.Printf("Error while reading access keys: %v\n", getErrorInfo(err, httpRes))
 		return accessKeys
 	}
 	for _, accessKey := range *read.AccessKeys {
@@ -1207,10 +1090,7 @@ func (provider *OutscaleOAPI) deleteAccessKeys(accessKeys []Object) {
 			DeleteAccessKeyRequest(deletionOpts).
 			Execute()
 		if err != nil {
-			log.Print("Error while deleting access key: ")
-			if httpRes != nil {
-				log.Println(httpRes.Status)
-			}
+			log.Printf("Error while deleting access key: %v\n", getErrorInfo(err, httpRes))
 		} else {
 			log.Println("OK")
 		}
