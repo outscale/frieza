@@ -28,6 +28,7 @@ const typeVpnConnection = "vpn_connection"
 const typeVirtualGateway = "virtual_gateway"
 const typeNic = "nic"
 const typeAccessKey = "access_key"
+const typeNetAccessPoint = "net_access_point"
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -98,6 +99,7 @@ func Types() []ObjectType {
 		typeVirtualGateway,
 		typeNic,
 		typeAccessKey,
+		typeNetAccessPoint,
 	}
 	return object_types
 }
@@ -158,6 +160,8 @@ func (provider *OutscaleOAPI) ReadObjects(typeName string) []Object {
 		return provider.readNics()
 	case typeAccessKey:
 		return provider.readAccessKeys()
+	case typeNetAccessPoint:
+		return provider.readNetAccessPoints()
 	}
 	return []Object{}
 }
@@ -198,6 +202,8 @@ func (provider *OutscaleOAPI) DeleteObjects(typeName string, objects []Object) {
 		provider.deleteNics(objects)
 	case typeAccessKey:
 		provider.deleteAccessKeys(objects)
+	case typeNetAccessPoint:
+		provider.deleteNetAccessPoints(objects)
 	}
 }
 
@@ -1202,6 +1208,48 @@ func (provider *OutscaleOAPI) deleteAccessKeys(accessKeys []Object) {
 			Execute()
 		if err != nil {
 			log.Print("Error while deleting access key: ")
+			if httpRes != nil {
+				log.Println(httpRes.Status)
+			}
+		} else {
+			log.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readNetAccessPoints() []Object {
+	netAccessPoints := make([]Object, 0)
+	read, httpRes, err := provider.client.NetAccessPointApi.ReadNetAccessPoints(provider.context).
+		ReadNetAccessPointsRequest(osc.ReadNetAccessPointsRequest{}).
+		Execute()
+	if err != nil {
+		log.Print("Error while reading net access points: ")
+		if httpRes != nil {
+			log.Println(httpRes.Status)
+		}
+		return netAccessPoints
+	}
+	for _, netAccessPoint := range *read.NetAccessPoints {
+		if *netAccessPoint.State == "available" {
+			netAccessPoints = append(netAccessPoints, *netAccessPoint.NetAccessPointId)
+		}
+	}
+	return netAccessPoints
+}
+
+func (provider *OutscaleOAPI) deleteNetAccessPoints(netAccessPoints []Object) {
+	if len(netAccessPoints) == 0 {
+		return
+	}
+	for _, netAccessPoint := range netAccessPoints {
+		log.Printf("Deleting net access point %s... ", netAccessPoint)
+		deletionOpts := osc.DeleteNetAccessPointRequest{NetAccessPointId: netAccessPoint}
+		_, httpRes, err := provider.client.NetAccessPointApi.
+			DeleteNetAccessPoint(provider.context).
+			DeleteNetAccessPointRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			log.Print("Error while deleting net access point: ")
 			if httpRes != nil {
 				log.Println(httpRes.Status)
 			}
