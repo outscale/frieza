@@ -595,7 +595,7 @@ func (provider *OutscaleOAPI) unlinkRouteTable(RouteTableId string) error {
 		return nil
 	}
 	for _, link := range *routeTable.LinkRouteTables {
-		if link.LinkRouteTableId == nil {
+		if link.LinkRouteTableId == nil || link.GetMain() {
 			continue
 		}
 		linkId := *link.LinkRouteTableId
@@ -620,12 +620,29 @@ func (provider *OutscaleOAPI) unlinkRouteTable(RouteTableId string) error {
 	return nil
 }
 
+func (provider *OutscaleOAPI) isMainRouteTable(RouteTableId string) bool {
+	routeTable := provider.cache.routeTables[RouteTableId]
+	if routeTable == nil || routeTable.LinkRouteTables == nil {
+		return false
+	}
+	for _, link := range *routeTable.LinkRouteTables {
+		if link.GetMain() {
+			return true
+		}
+	}
+	return false
+}
+
 func (provider *OutscaleOAPI) deleteRouteTables(routeTables []Object) {
 	if len(routeTables) == 0 {
 		return
 	}
 	for _, routeTable := range routeTables {
 		if provider.unlinkRouteTable(routeTable) != nil {
+			continue
+		}
+		if provider.isMainRouteTable(routeTable) {
+			log.Printf("Skipping deletion of Main RouteTable %v\n", routeTable)
 			continue
 		}
 		log.Printf("Deleting route table %s... ", routeTable)
