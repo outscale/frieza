@@ -17,7 +17,8 @@ func cliSnapshot() cli.Command {
 		WithCommand(cliSnapshotNew()).
 		WithCommand(cliSnapshotLs()).
 		WithCommand(cliSnapshotDescribe()).
-		WithCommand(cliSnapshotRm())
+		WithCommand(cliSnapshotRm()).
+		WithCommand(cliSnapshotUpdate())
 }
 
 func cliSnapshotNew() cli.Command {
@@ -67,6 +68,19 @@ func cliSnapshotRm() cli.Command {
 		WithAction(func(args []string, options map[string]string) int {
 			setupDebug(options)
 			snapshotRm(options["config"], &args[0])
+			return 0
+		})
+}
+
+func cliSnapshotUpdate() cli.Command {
+	return cli.NewCommand("update", "update existing snapshot").
+		WithShortcut("up").
+		WithArg(cli.NewArg("snapshot_name", "snapshot name")).
+		WithOption(cliConfigPath()).
+		WithOption(cliDebug()).
+		WithAction(func(args []string, options map[string]string) int {
+			setupDebug(options)
+			snapshotUpdate(options["config"], &args[0])
 			return 0
 		})
 }
@@ -192,5 +206,54 @@ func snapshotRm(customConfigPath string, snapshotName *string) {
 	}
 	if err = snapshot.Delete(); err != nil {
 		log.Fatalf("Error while deleting snapshot %s: %s", *snapshotName, err.Error())
+	}
+}
+
+func snapshotUpdate(customConfigPath string, snapshotName *string) {
+	var configPath *string
+	if len(customConfigPath) > 0 {
+		configPath = &customConfigPath
+	}
+	config, err := ConfigLoadWithDefault(configPath)
+	if err != nil {
+		log.Fatalf("Cannot load configuration: %s", err.Error())
+	}
+	var snapshot *Snapshot
+	if snapshot, err = SnapshotLoad(*snapshotName, config); err != nil {
+		log.Fatalf("Snapshot %s does not exist", *snapshotName)
+	}
+
+	for _, data := range snapshot.Data {
+		profile, err := config.GetProfile(data.Profile)
+		if err != nil {
+			log.Fatalf("Error while getting profile %s: %s", data.Profile, err.Error())
+		}
+		provider, err := ProviderNew(*profile)
+		if err != nil {
+			log.Fatalf("Error intializing profile %s: %s", data.Profile, err.Error())
+		}
+
+		if err := provider.AuthTest(); err != nil {
+			log.Fatalf("Provider test failed for profile %s: %s", profile.Name, err.Error())
+		}
+
+		objects := ReadObjects(&provider)
+		diff := NewDiff()
+		diff.Build(&data.Objects, &objects)
+		for key, value := range diff.Created {
+			if snapshotValue, ok := data.Objects[key]; ok {
+				data.Objects[key] = append(snapshotValue, value...)
+			} else {
+				data.Objects[key] = value
+			}
+		}
+	}
+
+	date := time.Now().UTC().String()
+	snapshot.Version = SnapshotVersion()
+	snapshot.Date = date
+
+	if err = snapshot.Write(); err != nil {
+		log.Fatalf("Snapshot failed: %s", err.Error())
 	}
 }
