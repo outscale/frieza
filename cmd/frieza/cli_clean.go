@@ -14,6 +14,7 @@ func cliClean() cli.Command {
 		WithOption(cli.NewOption("plan", "Only show what resource would be deleted").WithType(cli.TypeBool)).
 		WithOption(cli.NewOption("timeout", "Exit with error after a specific duration (ex: 30s, 5m, 1.5h)").WithType(cli.TypeString)).
 		WithOption(cli.NewOption("only-resource-types", "Remove only theses resource types (separated by ','). You can see all resource types in the description of the provider.").WithType(cli.TypeString)).
+		WithOption(cli.NewOption("exclude-resource-types", "Remove all except theses resource types (separated by ','). You can see all resource types in the description of the provider.").WithType(cli.TypeString)).
 		WithOption(cliJson()).
 		WithOption(cli.NewOption("auto-approve", "Approve resource deletion without confirmation").WithType(cli.TypeBool)).
 		WithArg(cli.NewArg("snapshot_name", "snapshot")).
@@ -29,17 +30,29 @@ func cliClean() cli.Command {
 				timeout = options["timeout"]
 			}
 
-			var resourcesTypeFilterPtr *[]ObjectType = nil
+			var resourcesTypeFilterPtr ResourceFilter = nil
+			if len(options["only-resource-types"]) > 0 && len(options["exclude-resource-types"]) > 0 {
+				cliFatalf(true, "Cannot use --only-resource-types option with --exclude-resource-types")
+			}
 			if len(options["only-resource-types"]) > 0 {
 				resourcesTypeFilter := strings.Split(options["only-resource-types"], ",")
-				resourcesTypeFilterPtr = &resourcesTypeFilter
+				resourcesTypeFilterPtr = OnlyFilter{
+					SelectedType: &resourcesTypeFilter,
+				}
 			}
+			if len(options["exclude-resource-types"]) > 0 {
+				resourcesTypeFilter := strings.Split(options["exclude-resource-types"], ",")
+				resourcesTypeFilterPtr = ExcludeFilter{
+					ExcludedType: &resourcesTypeFilter,
+				}
+			}
+
 			clean(options["config"], &args[0], plan, autoApprove, jsonOutput, timeout, resourcesTypeFilterPtr)
 			return 0
 		})
 }
 
-func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove bool, jsonOutput bool, timeout string, onlyResourcesType *[]ObjectType) {
+func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove bool, jsonOutput bool, timeout string, resourcesFilter ResourceFilter) {
 	var configPath *string
 	if jsonOutput && !autoApprove {
 		cliFatalf(true, "Cannot use --json option without --auto-approve")
@@ -68,8 +81,8 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 			cliFatalf(jsonOutput, "Error intializing profile %s: %s", data.Profile, err.Error())
 		}
 		objects := ReadObjects(&provider)
-		if onlyResourcesType != nil {
-			objects = FiltersObjects(&objects, *onlyResourcesType)
+		if resourcesFilter != nil {
+			objects = FiltersObjects(&objects, resourcesFilter)
 		}
 		diff := NewDiff()
 		diff.Build(&data.Objects, &objects)
