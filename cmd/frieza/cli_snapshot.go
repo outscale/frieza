@@ -78,9 +78,11 @@ func cliSnapshotUpdate() cli.Command {
 		WithArg(cli.NewArg("snapshot_name", "snapshot name")).
 		WithOption(cliConfigPath()).
 		WithOption(cliDebug()).
+		WithOption(cli.NewOption("incremental", "update snapshot incrementally").WithType(cli.TypeBool).WithChar('i')).
 		WithAction(func(args []string, options map[string]string) int {
+			incrementalUpdate := options["incremental"] == "true"
 			setupDebug(options)
-			snapshotUpdate(options["config"], &args[0])
+			snapshotUpdate(options["config"], &args[0], incrementalUpdate)
 			return 0
 		})
 }
@@ -209,7 +211,7 @@ func snapshotRm(customConfigPath string, snapshotName *string) {
 	}
 }
 
-func snapshotUpdate(customConfigPath string, snapshotName *string) {
+func snapshotUpdate(customConfigPath string, snapshotName *string, incrementalUpdate bool) {
 	var configPath *string
 	if len(customConfigPath) > 0 {
 		configPath = &customConfigPath
@@ -241,11 +243,27 @@ func snapshotUpdate(customConfigPath string, snapshotName *string) {
 		diff := NewDiff()
 		diff.Build(&data.Objects, &objects)
 		for key, value := range diff.Created {
-			if snapshotValue, ok := data.Objects[key]; ok {
-				data.Objects[key] = append(snapshotValue, value...)
+			var objectToAdd []string
+			if incrementalUpdate {
+				incrementObject, err := incrementalChoice(key, value)
+				if err != nil {
+					log.Fatalf("Snapshot failed: %s", err.Error())
+				}
+
+				if incrementObject == nil {
+					log.Fatalf("Snapshot update cancels")
+				}
+				objectToAdd = append(objectToAdd, (*incrementObject)...)
 			} else {
-				data.Objects[key] = value
+				objectToAdd = value
 			}
+
+			if snapshotValue, ok := data.Objects[key]; ok {
+				data.Objects[key] = append(snapshotValue, objectToAdd...)
+			} else {
+				data.Objects[key] = objectToAdd
+			}
+
 		}
 	}
 
