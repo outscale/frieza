@@ -14,6 +14,7 @@ func cliNuke() cli.Command {
 		WithOption(cli.NewOption("plan", "Only show what resource would be deleted").WithType(cli.TypeBool)).
 		WithOption(cli.NewOption("timeout", "Exit with error after a specific duration (ex: 30s, 5m, 1.5h)").WithType(cli.TypeString)).
 		WithOption(cli.NewOption("only-resource-types", "Remove only theses resource types (separated by ','). You can see all resource types in the description of the provider.").WithType(cli.TypeString)).
+		WithOption(cli.NewOption("exclude-resource-types", "Remove all except theses resource types (separated by ','). You can see all resource types in the description of the provider.").WithType(cli.TypeString)).
 		WithOption(cliJson()).
 		WithOption(cli.NewOption("auto-approve", "Approve resource deletion without confirmation").WithType(cli.TypeBool)).
 		WithOption(cliConfigPath()).
@@ -28,17 +29,28 @@ func cliNuke() cli.Command {
 			if len(options["timeout"]) > 0 {
 				timeout = options["timeout"]
 			}
-			var resourcesTypeFilterPtr *[]ObjectType = nil
+			var resourcesTypeFilterPtr ResourceFilter = nil
+			if len(options["only-resource-types"]) > 0 && len(options["exclude-resource-types"]) > 0 {
+				cliFatalf(true, "Cannot use --only-resource-types option with --exclude-resource-types")
+			}
 			if len(options["only-resource-types"]) > 0 {
 				resourcesTypeFilter := strings.Split(options["only-resource-types"], ",")
-				resourcesTypeFilterPtr = &resourcesTypeFilter
+				resourcesTypeFilterPtr = OnlyFilter{
+					SelectedType: &resourcesTypeFilter,
+				}
+			}
+			if len(options["exclude-resource-types"]) > 0 {
+				resourcesTypeFilter := strings.Split(options["exclude-resource-types"], ",")
+				resourcesTypeFilterPtr = ExcludeFilter{
+					ExcludedType: &resourcesTypeFilter,
+				}
 			}
 			nuke(options["config"], args, plan, autoApprove, jsonOutput, timeout, resourcesTypeFilterPtr)
 			return 0
 		})
 }
 
-func nuke(customConfigPath string, profiles []string, plan bool, autoApprove bool, jsonOutput bool, timeout string, onlyResourcesType *[]ObjectType) {
+func nuke(customConfigPath string, profiles []string, plan bool, autoApprove bool, jsonOutput bool, timeout string, resourceFilter ResourceFilter) {
 	if jsonOutput && !autoApprove {
 		cliFatalf(true, "Cannot use --json option without --auto-approve")
 	}
@@ -72,8 +84,8 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 			cliFatalf(jsonOutput, "Error intializing profile %s: %s", profileName, err.Error())
 		}
 		objectsToDelete := ReadObjects(&provider)
-		if onlyResourcesType != nil {
-			objectsToDelete = FiltersObjects(&objectsToDelete, *onlyResourcesType)
+		if resourceFilter != nil {
+			objectsToDelete = FiltersObjects(&objectsToDelete, resourceFilter)
 		}
 		destroyer.add(profile, &provider, &objectsToDelete)
 	}

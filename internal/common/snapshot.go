@@ -42,10 +42,12 @@ func ReadObjects(provider *Provider) Objects {
 	return objects
 }
 
-func FiltersObjects(objects *Objects, onlyResources []ObjectType) Objects {
+func FiltersObjects(objects *Objects, resourceFilter ResourceFilter) Objects {
 	filteredObjects := make(Objects)
-	for _, typeName := range onlyResources {
-		filteredObjects[typeName] = (*objects)[typeName]
+	for typeName, value := range *objects {
+		if resourceFilter.Select(typeName) {
+			filteredObjects[typeName] = value
+		}
 	}
 	return filteredObjects
 }
