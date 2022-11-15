@@ -66,6 +66,7 @@ frieza snapshot new myFristSnap myDevAccount myOtherAccount
 frieza snapshot list
 frieza snapshot describe myFristSnap
 frieza snapshot rm myFristSnap
+frieza snapshot update myFristSnap
 ```
 
 ## Delete resources
