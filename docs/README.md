@@ -28,7 +28,7 @@ An other usecase is to use Frieza for cleaning additional resources since a know
 ## MacOS
 
 You can install frieza through homebrew:
-1. Install [outscale tap](https://github.com/outscale/homebrew-tap)
+1. Install [outscale tap](https://github.com/outscale/homebrew-tap): `brew tap outscale/tap` (without this brew will not find frieza package)
 2. `brew install frieza`
 
 ## Other OS
