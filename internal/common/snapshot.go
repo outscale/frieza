@@ -4,7 +4,6 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 )
@@ -147,7 +146,7 @@ func (snapshot *Snapshot) Write() error {
 	if err != nil {
 		return err
 	}
-	if err = ioutil.WriteFile(snapshot.Path(), json_bytes, 0700); err != nil {
+	if err = os.WriteFile(snapshot.Path(), json_bytes, 0o700); err != nil {
 		return err
 	}
 	return nil
@@ -162,7 +161,7 @@ func SnapshotLoad(name string, config *Config) (*Snapshot, error) {
 		Name:   name,
 		Config: config,
 	}
-	snapshot_json, err := ioutil.ReadFile(snapshot.Path())
+	snapshot_json, err := os.ReadFile(snapshot.Path())
 	if err != nil {
 		return nil, err
 	}
@@ -178,7 +177,7 @@ func SnapshotLoad(name string, config *Config) (*Snapshot, error) {
 func (snapshot Snapshot) String() string {
 	out := fmt.Sprintf("name: %v\n", snapshot.Name)
 	out += fmt.Sprintf("date: %v\n", snapshot.Date)
-	out += fmt.Sprintf("profiles:\n")
+	out += "profiles:\n"
 	for _, data := range snapshot.Data {
 		out += fmt.Sprintf("  - %v:\n", data.Profile)
 		for objectType, objects := range data.Objects {

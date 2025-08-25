@@ -4,13 +4,14 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"os"
 	"path"
 )
 
-var version string
-var commit string
+var (
+	version string
+	commit  string
+)
 
 func FullVersion() string {
 	if len(version) == 0 {
@@ -89,7 +90,7 @@ func ConfigLoad(customConfigPath *string) (*Config, error) {
 	} else {
 		configPath = *customConfigPath
 	}
-	config_json, err := ioutil.ReadFile(configPath)
+	config_json, err := os.ReadFile(configPath)
 	if err != nil {
 		return nil, err
 	}
@@ -124,7 +125,7 @@ func (config *Config) Write(customConfigPath *string) error {
 	if err != nil {
 		return err
 	}
-	if err = ioutil.WriteFile(configPath, json_bytes, 0700); err != nil {
+	if err = os.WriteFile(configPath, json_bytes, 0o700); err != nil {
 		return err
 	}
 	return nil

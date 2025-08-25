@@ -2,11 +2,11 @@ package main
 
 import (
 	"fmt"
-	"io/ioutil"
+	"io"
 	"log"
 	"time"
 
-	. "github.com/outscale-dev/frieza/internal/common"
+	. "github.com/outscale/frieza/internal/common"
 	"github.com/teris-io/cli"
 )
 
@@ -29,11 +29,13 @@ func cliConfigPath() cli.Option {
 }
 
 func cliDebug() cli.Option {
-	return cli.NewOption("debug", "enable verbose output for debuging purpose").WithType(cli.TypeBool)
+	return cli.NewOption("debug", "enable verbose output for debuging purpose").
+		WithType(cli.TypeBool)
 }
 
 func cliJson() cli.Option {
-	return cli.NewOption("json", "output in json format (with --plan option only)").WithType(cli.TypeBool)
+	return cli.NewOption("json", "output in json format (with --plan option only)").
+		WithType(cli.TypeBool)
 }
 
 func cliFatalf(json bool, format string, v ...interface{}) {
@@ -41,7 +43,7 @@ func cliFatalf(json bool, format string, v ...interface{}) {
 	if json {
 		log.Fatalf("{\"error\": \"%s\"}", msg)
 	} else {
-		log.Fatalf(msg)
+		log.Fatal(msg)
 	}
 }
 
@@ -73,7 +75,7 @@ func ShortDescription() string {
 
 func disableLogs() {
 	log.SetFlags(0)
-	log.SetOutput(ioutil.Discard)
+	log.SetOutput(io.Discard)
 }
 
 func timeoutRunner(timeout string, json bool) {

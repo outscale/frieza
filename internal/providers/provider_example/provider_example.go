@@ -7,12 +7,14 @@ import (
 	"errors"
 	"log"
 
-	. "github.com/outscale-dev/frieza/internal/common"
+	. "github.com/outscale/frieza/internal/common"
 	"github.com/teris-io/cli"
 )
 
-const Name = "provider_example"
-const typeMyResource = "MyResource"
+const (
+	Name           = "provider_example"
+	typeMyResource = "MyResource"
+)
 
 type ProviderExample struct {
 	apiKey string
@@ -54,7 +56,7 @@ func (provider *ProviderExample) Types() []ObjectType {
 
 func (provider *ProviderExample) AuthTest() error {
 	if provider.apiKey != "123" {
-		return errors.New("Cannot authenticate with API Key")
+		return errors.New("cannot authenticate with API Key")
 	}
 	return nil
 }

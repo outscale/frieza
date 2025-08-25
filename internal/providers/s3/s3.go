@@ -10,13 +10,15 @@ import (
 	"github.com/aws/aws-sdk-go/aws/credentials"
 	"github.com/aws/aws-sdk-go/aws/session"
 	"github.com/aws/aws-sdk-go/service/s3"
-	. "github.com/outscale-dev/frieza/internal/common"
+	. "github.com/outscale/frieza/internal/common"
 	"github.com/teris-io/cli"
 )
 
-const Name = "s3"
-const typeBucketObject = "object"
-const typeBucket = "bucket"
+const (
+	Name             = "s3"
+	typeBucketObject = "object"
+	typeBucket       = "bucket"
+)
 
 type S3 struct {
 	client *s3.S3
@@ -95,7 +97,7 @@ func (provider *S3) Types() []ObjectType {
 func (provider *S3) AuthTest() error {
 	_, err := provider.client.ListBuckets(nil)
 	if err != nil {
-		return errors.New("Unable to list buckets")
+		return errors.New("unable to list buckets")
 	}
 	return nil
 }
@@ -182,7 +184,10 @@ func (provider *S3) readBucketObjects() []Object {
 
 func (provider *S3) deleteBucketObjects(bucketObjects []Object) {
 	for _, encodedBucketObject := range bucketObjects {
-		log.Printf("Deleting object: %s ... ", provider.StringObject(encodedBucketObject, typeBucketObject))
+		log.Printf(
+			"Deleting object: %s ... ",
+			provider.StringObject(encodedBucketObject, typeBucketObject),
+		)
 		bucketName, key, err := decodeBucketobject(&encodedBucketObject)
 		if err != nil {
 			log.Println("Error while reading object details: ", err.Error())
