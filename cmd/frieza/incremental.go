@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	. "github.com/outscale-dev/frieza/internal/common"
+	. "github.com/outscale/frieza/internal/common"
 )
 
 const (
@@ -29,8 +29,16 @@ func printIncrementalUsage() {
 	log.Printf(fmt.Sprintf(ErrorColor+"\n", "%v - %v"), ADD_RESOURCE, "add this resource")
 	log.Printf(fmt.Sprintf(ErrorColor+"\n", "%v - %v"), SKIP_RESOURCE, "skip the resource")
 	log.Printf(fmt.Sprintf(ErrorColor+"\n", "%v - %v"), CANCEL, "cancel addition of resources")
-	log.Printf(fmt.Sprintf(ErrorColor+"\n", "%v - %v"), ADD_TYPE, "add this resource and all later resources of this type")
-	log.Printf(fmt.Sprintf(ErrorColor+"\n", "%v - %v"), SKIP_TYPE, "skip the resource and all later resources of this type")
+	log.Printf(
+		fmt.Sprintf(ErrorColor+"\n", "%v - %v"),
+		ADD_TYPE,
+		"add this resource and all later resources of this type",
+	)
+	log.Printf(
+		fmt.Sprintf(ErrorColor+"\n", "%v - %v"),
+		SKIP_TYPE,
+		"skip the resource and all later resources of this type",
+	)
 	log.Printf(fmt.Sprintf(ErrorColor+"\n", "%v - %v"), HELP, "print help")
 }
 
@@ -38,12 +46,17 @@ func retrieveNextUserInput(message string, currentStage int, numberStage int) st
 	acceptedChar := []string{ADD_RESOURCE, SKIP_RESOURCE, CANCEL, ADD_TYPE, SKIP_TYPE, HELP}
 	for {
 		log.Printf("%v\n", message)
-		log.Printf(fmt.Sprintf(InfoColor, "(%d/%d) Add this resource [%v]? "), currentStage, numberStage, strings.Join(acceptedChar[:], ","))
+		log.Printf(
+			fmt.Sprintf(InfoColor, "(%d/%d) Add this resource [%v]? "),
+			currentStage,
+			numberStage,
+			strings.Join(acceptedChar[:], ","),
+		)
 
 		reader := bufio.NewReader(os.Stdin)
 		response, _ := reader.ReadString('\n')
-		response = strings.Replace(response, "\n", "", -1)
-		response = strings.Replace(response, "\r", "", -1)
+		response = strings.ReplaceAll(response, "\n", "")
+		response = strings.ReplaceAll(response, "\r", "")
 		switch response {
 		case ADD_RESOURCE, SKIP_RESOURCE, CANCEL, ADD_TYPE, SKIP_TYPE:
 			return response
@@ -82,7 +95,7 @@ func incrementalChoice(typeName ObjectType, values []Object) (*[]Object, error) 
 		case SKIP_TYPE:
 			return &selectObjects, nil
 		default:
-			return nil, fmt.Errorf("Internal error")
+			return nil, fmt.Errorf("internal error")
 		}
 	}
 	return &selectObjects, nil

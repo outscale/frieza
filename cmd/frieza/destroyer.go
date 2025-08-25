@@ -7,7 +7,7 @@ import (
 	"os"
 	"strings"
 
-	. "github.com/outscale-dev/frieza/internal/common"
+	. "github.com/outscale/frieza/internal/common"
 )
 
 type Destroyer struct {
@@ -57,7 +57,11 @@ func (destroyer *Destroyer) print_human() {
 	totalObjectCount := 0
 	for i := 0; i < count; i++ {
 		target := destroyer.Targets[i]
-		log.Printf("Objects to delete in profile %s (%s):\n", target.profile.Name, (*target.provider).Name())
+		log.Printf(
+			"Objects to delete in profile %s (%s):\n",
+			target.profile.Name,
+			(*target.provider).Name(),
+		)
 		objectsCount := ObjectsCount(target.Objects)
 		if objectsCount == 0 {
 			log.Println("* no object *")
@@ -130,7 +134,7 @@ func confirmAction(message *string, autoApprove bool) bool {
 	log.Printf("  Enter a value: ")
 	reader := bufio.NewReader(os.Stdin)
 	response, _ := reader.ReadString('\n')
-	response = strings.Replace(response, "\n", "", -1)
-	response = strings.Replace(response, "\r", "", -1)
+	response = strings.ReplaceAll(response, "\n", "")
+	response = strings.ReplaceAll(response, "\r", "")
 	return response == "yes"
 }

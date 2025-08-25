@@ -5,30 +5,32 @@ import (
 	"errors"
 	"log"
 
-	. "github.com/outscale-dev/frieza/internal/common"
+	. "github.com/outscale/frieza/internal/common"
 	osc "github.com/outscale/osc-sdk-go/v2"
 	"github.com/teris-io/cli"
 )
 
-const Name = "outscale_oapi"
-const typeVm = "vm"
-const typeLoadBalancer = "load_balancer"
-const typeNatService = "nat_service"
-const typeSecurityGroup = "security_group"
-const typePublicIp = "public_ip"
-const typeVolume = "volume"
-const typeKeypair = "keypair"
-const typeRouteTable = "route_table"
-const typeInternetService = "internet_service"
-const typeSubnet = "subnet"
-const typeNet = "net"
-const typeImage = "image"
-const typeSnapshot = "snapshot"
-const typeVpnConnection = "vpn_connection"
-const typeVirtualGateway = "virtual_gateway"
-const typeNic = "nic"
-const typeAccessKey = "access_key"
-const typeNetAccessPoint = "net_access_point"
+const (
+	Name                = "outscale_oapi"
+	typeVm              = "vm"
+	typeLoadBalancer    = "load_balancer"
+	typeNatService      = "nat_service"
+	typeSecurityGroup   = "security_group"
+	typePublicIp        = "public_ip"
+	typeVolume          = "volume"
+	typeKeypair         = "keypair"
+	typeRouteTable      = "route_table"
+	typeInternetService = "internet_service"
+	typeSubnet          = "subnet"
+	typeNet             = "net"
+	typeImage           = "image"
+	typeSnapshot        = "snapshot"
+	typeVpnConnection   = "vpn_connection"
+	typeVirtualGateway  = "virtual_gateway"
+	typeNic             = "nic"
+	typeAccessKey       = "access_key"
+	typeNetAccessPoint  = "net_access_point"
+)
 
 type OutscaleOAPI struct {
 	client  *osc.APIClient
@@ -72,7 +74,11 @@ func New(config ProviderConfig, debug bool) (*OutscaleOAPI, error) {
 		SecretKey: config["sk"],
 	})
 	ctx = context.WithValue(ctx, osc.ContextServerIndex, 0)
-	ctx = context.WithValue(ctx, osc.ContextServerVariables, map[string]string{"region": config["region"]})
+	ctx = context.WithValue(
+		ctx,
+		osc.ContextServerVariables,
+		map[string]string{"region": config["region"]},
+	)
 	return &OutscaleOAPI{
 		client:  client,
 		context: ctx,
@@ -380,7 +386,8 @@ func (provider *OutscaleOAPI) readSecurityGroups() []Object {
 
 func (provider *OutscaleOAPI) deleteSecurityGroupRules(securityGroupId string) error {
 	securityGroup := provider.cache.securityGroups[securityGroupId]
-	if securityGroup == nil || (securityGroup.InboundRules == nil && securityGroup.OutboundRules == nil) {
+	if securityGroup == nil ||
+		(securityGroup.InboundRules == nil && securityGroup.OutboundRules == nil) {
 		return nil
 	}
 
@@ -414,7 +421,10 @@ func (provider *OutscaleOAPI) deleteSecurityGroupRules(securityGroupId string) e
 			DeleteSecurityGroupRuleRequest(delete).
 			Execute()
 		if err != nil {
-			log.Printf("Error while deleting inbound rules of security group route %s: ", securityGroupId)
+			log.Printf(
+				"Error while deleting inbound rules of security group route %s: ",
+				securityGroupId,
+			)
 			if httpRes != nil {
 				log.Println(httpRes.Status)
 			}
@@ -454,7 +464,10 @@ func (provider *OutscaleOAPI) deleteSecurityGroupRules(securityGroupId string) e
 			DeleteSecurityGroupRuleRequest(delete).
 			Execute()
 		if err != nil {
-			log.Printf("Error while deleting outbound rules of security group route %s: ", securityGroupId)
+			log.Printf(
+				"Error while deleting outbound rules of security group route %s: ",
+				securityGroupId,
+			)
 			if httpRes != nil {
 				log.Println(httpRes.Status)
 			}
@@ -610,7 +623,7 @@ func (provider *OutscaleOAPI) deleteKeypairs(keypairs []Object) {
 	}
 	for _, keypair := range keypairs {
 		log.Printf("Deleting keypair %s... ", keypair)
-		deletionOpts := osc.DeleteKeypairRequest{KeypairName: keypair}
+		deletionOpts := osc.DeleteKeypairRequest{KeypairName: &keypair}
 		_, httpRes, err := provider.client.KeypairApi.
 			DeleteKeypair(provider.context).
 			DeleteKeypairRequest(deletionOpts).
@@ -658,7 +671,12 @@ func (provider *OutscaleOAPI) unlinkRouteTable(RouteTableId string) error {
 			UnlinkRouteTableRequest(unlinkOps).
 			Execute()
 		if err != nil {
-			log.Printf("Error while unlinking route table %s (links %s): %v\n", RouteTableId, linkId, getErrorInfo(err, httpRes))
+			log.Printf(
+				"Error while unlinking route table %s (links %s): %v\n",
+				RouteTableId,
+				linkId,
+				getErrorInfo(err, httpRes),
+			)
 			return err
 		} else {
 			log.Println("OK")
@@ -865,7 +883,8 @@ func (provider *OutscaleOAPI) readImages() []Object {
 		ReadImagesRequest(osc.ReadImagesRequest{
 			Filters: &osc.FiltersImage{
 				AccountIds: &accountIds,
-			}}).
+			},
+		}).
 		Execute()
 	if err != nil {
 		log.Printf("Error while reading images: %v\n", getErrorInfo(err, httpRes))

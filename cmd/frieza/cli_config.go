@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	. "github.com/outscale-dev/frieza/internal/common"
+	. "github.com/outscale/frieza/internal/common"
 	"github.com/teris-io/cli"
 )
 

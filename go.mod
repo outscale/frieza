@@ -1,9 +1,16 @@
-module github.com/outscale-dev/frieza
+module github.com/outscale/frieza
 
-go 1.16
+go 1.23.0
+
+toolchain go1.24.5
 
 require (
-	github.com/aws/aws-sdk-go v1.44.107
-	github.com/outscale/osc-sdk-go/v2 v2.12.0
+	github.com/aws/aws-sdk-go v1.55.8
+	github.com/outscale/osc-sdk-go/v2 v2.29.0
 	github.com/teris-io/cli v1.0.1
+)
+
+require (
+	github.com/jmespath/go-jmespath v0.4.0 // indirect
+	golang.org/x/oauth2 v0.30.0 // indirect
 )

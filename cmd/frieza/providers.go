@@ -3,10 +3,10 @@ package main
 import (
 	"fmt"
 
-	. "github.com/outscale-dev/frieza/internal/common"
-	"github.com/outscale-dev/frieza/internal/providers/fs"
-	"github.com/outscale-dev/frieza/internal/providers/outscale_oapi"
-	"github.com/outscale-dev/frieza/internal/providers/s3"
+	. "github.com/outscale/frieza/internal/common"
+	"github.com/outscale/frieza/internal/providers/fs"
+	"github.com/outscale/frieza/internal/providers/outscale_oapi"
+	"github.com/outscale/frieza/internal/providers/s3"
 	"github.com/teris-io/cli"
 )
 

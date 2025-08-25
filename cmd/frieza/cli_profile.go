@@ -3,7 +3,7 @@ package main
 import (
 	"log"
 
-	. "github.com/outscale-dev/frieza/internal/common"
+	. "github.com/outscale/frieza/internal/common"
 	"github.com/teris-io/cli"
 )
 
@@ -143,7 +143,7 @@ func profileNew(customConfigPath string, newProfile Profile) {
 		log.Fatalf("Cannot create profile %s: %s", newProfile.Name, err.Error())
 	}
 	config.Profiles = append(config.Profiles, newProfile)
-	config.Write(configPath)
+	_ = config.Write(configPath)
 }
 
 func profileRm(customConfigPath string, profileName *string) {
@@ -159,7 +159,7 @@ func profileRm(customConfigPath string, profileName *string) {
 	for idx, profile := range config.Profiles {
 		if *profileName == profile.Name {
 			config.Profiles = removeProfileIndex(config.Profiles, idx)
-			config.Write(configPath)
+			_ = config.Write(configPath)
 			return
 		}
 	}
@@ -180,7 +180,12 @@ func profileTest(customConfigPath string, profileName *string) {
 		if *profileName == profile.Name {
 			p, err := ProviderNew(profile)
 			if err != nil {
-				log.Fatalf("Cannot initialize provider %s with profile %s: %s", profile.Provider, profile.Name, err.Error())
+				log.Fatalf(
+					"Cannot initialize provider %s with profile %s: %s",
+					profile.Provider,
+					profile.Name,
+					err.Error(),
+				)
 			}
 			if err := p.AuthTest(); err != nil {
 				log.Fatalf("Provider test failed: %s", err.Error())

@@ -1,13 +1,12 @@
 package main
 
 import (
-	"fmt"
-	"io/ioutil"
 	"log"
+	"os"
 	"strings"
 	"time"
 
-	. "github.com/outscale-dev/frieza/internal/common"
+	. "github.com/outscale/frieza/internal/common"
 	"github.com/teris-io/cli"
 )
 
@@ -132,7 +131,7 @@ func snapshotNew(customConfigPath string, args []string) {
 		}
 	}
 
-	date := fmt.Sprintf("%s", time.Now().UTC())
+	date := time.Now().UTC().String()
 	snapshot := Snapshot{
 		Version: SnapshotVersion(),
 		Name:    snapshotName,
@@ -159,7 +158,7 @@ func snapshotLs(customConfigPath string) {
 	if err != nil {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
-	files, err := ioutil.ReadDir(config.SnapshotFolderPath)
+	files, err := os.ReadDir(config.SnapshotFolderPath)
 	if err != nil {
 		log.Fatalf("Error while listing snapshots: %s", err.Error())
 	}
