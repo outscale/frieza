@@ -89,7 +89,7 @@ It can either wipe all resources in an account or compare a known “clean state
 
 ---
 
-## ⚙️ Installation
+## ⚙ Installation
 
 ### macOS (via Homebrew)
 
@@ -176,7 +176,7 @@ Use `--auto-approve` to skip confirmation prompts.
 
 ---
 
-### ⚙️ Configuration
+### ⚙ Configuration
 
 Use the `frieza config` subcommands to view and modify CLI options.
 
