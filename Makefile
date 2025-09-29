@@ -15,7 +15,7 @@ test: test-reuse test-go-fmt build
 .PHONY: test-reuse
 test-reuse:
 	@echo test reuse:
-	docker run --rm --volume $(PWD):/data fsfe/reuse:0.11.1 lint
+	docker run --rm --volume $(PWD):/data fsfe/reuse:latest lint
 
 .PHONY: test-go-fmt
 test-go-fmt:
