@@ -1,63 +1,134 @@
-[![Project Graduated](https://docs.outscale.com/fr/userguide/_images/Project-Graduated-green.svg)](https://docs.outscale.com/en/userguide/Open-Source-Projects.html)
-
 # Frieza
 
+[![Project Graduated](https://docs.outscale.com/fr/userguide/_images/Project-Graduated-green.svg)](https://docs.outscale.com/en/userguide/Open-Source-Projects.html) [![](https://dcbadge.limes.pink/api/server/HUVtY5gT6s?style=flat&theme=default-inverted)](https://discord.gg/HUVtY5gT6s)
+
 <p align="center">
-  <img width="200" height="200" src="https://raw.githubusercontent.com/outscale-dev/frieza/master/docs/logo.png">
+  <img alt="Terminal Icon" src="https://img.icons8.com/ios-filled/100/console.png" width="100px">
   <br/>
-  Cleanup your cloud ressources!
+  <strong>Cleanup your cloud resources!</strong>
 </p>
 
-# Usecases
+---
 
-The main usecase is to free all resources inside a cloud account (e.g. `frieza nuke regionEu2`)
+## 🌐 Links
 
-An other usecase is to use Frieza for cleaning additional resources since a known state:
-1. You want to keep important resources on your account (virtual machines, volumes, etc)
-2. Make a "snapshot" (e.g. `frieza snap new cleanAccountState regionEu2`
-3. Run some experiment which create a number of resources
-4. Once done, cleanup those additional resources with `frieza clean cleanAccountState`
+* 📘 Documentation: [Supported Providers](./providers.md)
+* 📦 Releases: [GitHub Releases](https://github.com/outscale-dev/frieza/releases)
+* 🤝 Contribution Guide: [CONTRIBUTING.md](./CONTRIBUTING.md)
+* 💬 Join us on [Discord](https://discord.gg/HUVtY5gT6s)
 
-# Features
+---
 
-- Support multiple providers, see [list of all providers and supported objects](providers.md)
-- Can store resources from multiple profiles in one snapshot
+## 📄 Table of Contents
 
-# Installation
+* [Overview](#-overview)
+* [Use Cases](#-use-cases)
+* [Features](#-features)
+* [Requirements](#-requirements)
+* [Installation](#-installation)
+* [Usage](#-usage)
 
-## MacOS
+  * [Manage Profiles](#manage-profiles)
+  * [Manage Snapshots](#manage-snapshots)
+  * [Cleanup Resources](#cleanup-resources)
+  * [Configuration](#configuration)
+* [Building from Source](#-building-from-source)
+* [License](#-license)
 
-You can install frieza through homebrew:
-1. Install [outscale tap](https://github.com/outscale/homebrew-tap): `brew tap outscale/tap` (without this brew will not find frieza package)
-2. `brew install frieza`
+---
 
-## Other OS
+## 🧭 Overview
 
-You can go to [release page](https://github.com/outscale-dev/frieza/releases) and download the latest frieza binary.
+**Frieza** is a CLI tool to clean up cloud resources across multiple providers.
 
-Alternatively, you can also install frieza from sources:
+It can either wipe all resources in an account or compare a known “clean state” snapshot and delete only what was created since.
+
+---
+
+## 🚀 Use Cases
+
+* **Full Cleanup:**
+  Delete all cloud resources from a specific account or region.
+
+  ```bash
+  frieza nuke regionEu2
+  ```
+
+* **Snapshot-based Cleanup:**
+
+  1. Keep your essential resources
+  2. Create a snapshot
+
+     ```bash
+     frieza snap new cleanAccountState regionEu2
+     ```
+  3. Run temporary experiments that create resources
+  4. Clean everything not present in the original snapshot
+
+     ```bash
+     frieza clean cleanAccountState
+     ```
+
+---
+
+## ✨ Features
+
+* Multi-provider support ([see list](./providers.md))
+* Clean resources based on current state or snapshot delta
+* Store multiple profiles and configurations
+* Track and review deleted resources before execution
+* Optional `--auto-approve` for automated cleanup
+
+---
+
+## ✅ Requirements
+
+* Golang (to build from source)
+* Make
+* A valid cloud account (e.g., Outscale API credentials)
+
+---
+
+## ⚙️ Installation
+
+### macOS (via Homebrew)
+
+```bash
+brew tap outscale/tap
+brew install frieza
 ```
-git clone https://github.com/outscale-dev/frieza.git
+
+### Other OS (manual)
+
+Download the latest release from the [Releases page](https://github.com/outscale-dev/frieza/releases).
+
+Or build from source:
+
+```bash
+git clone https://github.com/outscale/frieza.git
 cd frieza
 make install
 ```
 
-# Building
+---
 
-To build frieza, you will need golang and Make utilities:
-- run `make build`
-- binary is ready in `cmd/frieza/frieza`
+## 🧪 Usage
 
-# Usage
+Run the CLI to discover subcommands:
 
-Type `frieza` to list all sub command, use `--help` parameter for more details.
-
-## Manage Profiles
-
-The subcommand `profile` allow you to manage all your provider configuration and test them.
-Profiles are stored by default with frieza configuration in `~/.frieza/config.json`.
-
+```bash
+frieza --help
 ```
+
+Use `--help` with subcommands for detailed usage.
+
+---
+
+### 🔐 Manage Profiles
+
+Configure access to your cloud providers:
+
+```bash
 frieza profile new outscale_oapi --help
 frieza profile new outscale_oapi myDevAccount --region=eu-west-2 --ak=XXX --sk=YYY
 frieza profile test myDevAccount
@@ -66,48 +137,66 @@ frieza profile describe myDevAccount
 frieza profile rm myDevAccount
 ```
 
-## Manage Snapshots
+Profiles are stored in: `~/.frieza/config.json`
 
-Frieza snapshots are only a listing of resources from one or more profiles at a specific time.
-Snapshots are stored by default in `~/.frieza/snapshots/`.
+---
 
-```
-frieza snapshot new myFristSnap myDevAccount myOtherAccount
+### 📸 Manage Snapshots
+
+Create and manage snapshots of cloud state:
+
+```bash
+frieza snapshot new myFirstSnap myDevAccount myOtherAccount
 frieza snapshot list
-frieza snapshot describe myFristSnap
-frieza snapshot rm myFristSnap
-frieza snapshot update myFristSnap
+frieza snapshot describe myFirstSnap
+frieza snapshot update myFirstSnap
+frieza snapshot rm myFirstSnap
 ```
 
-## Delete resources
+Snapshots are stored in: `~/.frieza/snapshots/`
 
-To delete all newly created resources since myFristSnap:
-```
-frieza clean myFristSnap
+---
+
+### 💥 Cleanup Resources
+
+Delete resources created **since a snapshot**:
+
+```bash
+frieza clean myFirstSnap
 ```
 
-To delete ALL resources of a profile:
-```
+Delete **all resources** for a profile:
+
+```bash
 frieza nuke myDevAccount
 ```
 
-Note that a listing of deleted resources is show before any action.
+You will see a preview of the deletions before execution.
+Use `--auto-approve` to skip confirmation prompts.
 
-Confirmation is asked by default but you can overide this behavior with `--auto-approve` option.
+---
 
-## Set configuration
+### ⚙️ Configuration
 
-Frieza has a number of options which can set or unset.
-Feel free to explore `frieza config` sub-commands.
+Use the `frieza config` subcommands to view and modify CLI options.
 
-# License
+---
 
-> Copyright Outscale SAS
->
-> BSD-3-Clause
+## 🏗 Building from Source
 
-`LICENSE` folder contain raw licenses terms following spdx naming.
+To build Frieza from source:
 
-You can check which license apply to which copyright owner through `.reuse/dep5` specification.
+```bash
+make build
+# Output binary is located at: cmd/frieza/frieza
+```
 
-You can test [reuse](https://reuse.software/.) compliance by running `make test-reuse`.
+---
+
+## 📜 License
+
+**Frieza** is licensed under the BSD 3-Clause License.
+© Outscale SAS
+
+License files are available in the [`LICENSES`](./LICENSES) directory.
+This project follows the [REUSE Specification](https://reuse.software/).
