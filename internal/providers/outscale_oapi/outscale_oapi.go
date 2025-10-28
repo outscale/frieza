@@ -11,7 +11,8 @@ import (
 )
 
 const (
-	Name                = "outscale_oapi"
+	Name = "outscale_oapi"
+
 	typeVm              = "vm"
 	typeLoadBalancer    = "load_balancer"
 	typeNatService      = "nat_service"
@@ -30,6 +31,7 @@ const (
 	typeNic             = "nic"
 	typeAccessKey       = "access_key"
 	typeNetAccessPoint  = "net_access_point"
+	typeNetPeering      = "net_peering"
 )
 
 type OutscaleOAPI struct {
@@ -106,6 +108,7 @@ func Types() []ObjectType {
 		typeNic,
 		typeAccessKey,
 		typeNetAccessPoint,
+		typeNetPeering,
 	}
 	return object_types
 }
@@ -168,6 +171,8 @@ func (provider *OutscaleOAPI) ReadObjects(typeName string) []Object {
 		return provider.readAccessKeys()
 	case typeNetAccessPoint:
 		return provider.readNetAccessPoints()
+	case typeNetPeering:
+		return provider.readNetPeerings()
 	}
 	return []Object{}
 }
@@ -210,6 +215,8 @@ func (provider *OutscaleOAPI) DeleteObjects(typeName string, objects []Object) {
 		provider.deleteAccessKeys(objects)
 	case typeNetAccessPoint:
 		provider.deleteNetAccessPoints(objects)
+	case typeNetPeering:
+		provider.deleteNetPeerings(objects)
 	}
 }
 
@@ -231,18 +238,21 @@ func newAPICache() apiCache {
 func (provider *OutscaleOAPI) readVms() []Object {
 	vms := make([]Object, 0)
 	read, httpRes, err := provider.client.VmApi.ReadVms(provider.context).
-		ReadVmsRequest(osc.ReadVmsRequest{}).
+		ReadVmsRequest(osc.ReadVmsRequest{
+			Filters: &osc.FiltersVm{
+				VmStateNames: &[]string{
+					"pending", "running", "stopping", "stopped", "shutting-down", "quarantine", // skipping terminated
+				},
+			},
+		}).
 		Execute()
 	if err != nil {
 		log.Printf("Error while reading vms: %v\n", getErrorInfo(err, httpRes))
 		return vms
 	}
 	for i, vm := range *read.Vms {
-		switch *vm.State {
-		case "pending", "running", "stopping", "stopped", "shutting-down", "quarantine":
-			vms = append(vms, *vm.VmId)
-			provider.cache.vms[*vm.VmId] = &(*read.Vms)[i]
-		}
+		vms = append(vms, *vm.VmId)
+		provider.cache.vms[*vm.VmId] = &(*read.Vms)[i]
 	}
 	return vms
 }
@@ -329,17 +339,20 @@ func (provider *OutscaleOAPI) deleteLoadBalancers(loadBalancers []Object) {
 func (provider *OutscaleOAPI) readNatServices() []Object {
 	natServices := make([]Object, 0)
 	read, httpRes, err := provider.client.NatServiceApi.ReadNatServices(provider.context).
-		ReadNatServicesRequest(osc.ReadNatServicesRequest{}).
+		ReadNatServicesRequest(osc.ReadNatServicesRequest{
+			Filters: &osc.FiltersNatService{
+				States: &[]string{
+					"pending", "available", // skipping deleting, deleted
+				},
+			},
+		}).
 		Execute()
 	if err != nil {
 		log.Printf("Error while reading nat services: %v\n", getErrorInfo(err, httpRes))
 		return natServices
 	}
 	for _, natService := range *read.NatServices {
-		switch *natService.State {
-		case "pending", "available":
-			natServices = append(natServices, *natService.NatServiceId)
-		}
+		natServices = append(natServices, *natService.NatServiceId)
 	}
 	return natServices
 }
@@ -568,17 +581,20 @@ func (provider *OutscaleOAPI) readVolumes() []Object {
 	volumes := make([]Object, 0)
 	read, httpRes, err := provider.client.VolumeApi.
 		ReadVolumes(provider.context).
-		ReadVolumesRequest(osc.ReadVolumesRequest{}).
+		ReadVolumesRequest(osc.ReadVolumesRequest{
+			Filters: &osc.FiltersVolume{
+				VolumeStates: &[]string{
+					"creating", "available", "in-use", "error", // skip deleting
+				},
+			},
+		}).
 		Execute()
 	if err != nil {
 		log.Printf("Error while reading volumes: %v\n", getErrorInfo(err, httpRes))
 		return volumes
 	}
 	for _, volume := range *read.Volumes {
-		switch *volume.State {
-		case "creating", "available", "in-use", "updating", "error":
-			volumes = append(volumes, *volume.VolumeId)
-		}
+		volumes = append(volumes, *volume.VolumeId)
 	}
 	return volumes
 }
@@ -822,7 +838,11 @@ func (provider *OutscaleOAPI) deleteSubnets(subnets []Object) {
 func (provider *OutscaleOAPI) readNets() []Object {
 	nets := make([]Object, 0)
 	read, httpRes, err := provider.client.NetApi.ReadNets(provider.context).
-		ReadNetsRequest(osc.ReadNetsRequest{}).
+		ReadNetsRequest(osc.ReadNetsRequest{
+			Filters: &osc.FiltersNet{
+				States: &[]string{"pending", "available"}, // skipping deleting
+			},
+		}).
 		Execute()
 	if err != nil {
 		log.Printf("Error while reading nets: %v\n", getErrorInfo(err, httpRes))
@@ -927,6 +947,9 @@ func (provider *OutscaleOAPI) readSnapshots() []Object {
 		ReadSnapshotsRequest(osc.ReadSnapshotsRequest{
 			Filters: &osc.FiltersSnapshot{
 				AccountIds: &accountIds,
+				States: &[]string{
+					"in-queue", "pending", "completed", "error", // skipping deleting
+				},
 			},
 		}).
 		Execute()
@@ -962,17 +985,20 @@ func (provider *OutscaleOAPI) deleteSnapshots(snapshots []Object) {
 func (provider *OutscaleOAPI) readVpnConnections() []Object {
 	vpnConnections := make([]Object, 0)
 	read, httpRes, err := provider.client.VpnConnectionApi.ReadVpnConnections(provider.context).
-		ReadVpnConnectionsRequest(osc.ReadVpnConnectionsRequest{}).
+		ReadVpnConnectionsRequest(osc.ReadVpnConnectionsRequest{
+			Filters: &osc.FiltersVpnConnection{
+				States: &[]string{
+					"pending", "available", // skipping deleting, deleted
+				},
+			},
+		}).
 		Execute()
 	if err != nil {
 		log.Printf("Error while reading vpn connections: %v\n", getErrorInfo(err, httpRes))
 		return vpnConnections
 	}
 	for _, vpnConnection := range *read.VpnConnections {
-		switch *vpnConnection.State {
-		case "pending", "available":
-			vpnConnections = append(vpnConnections, *vpnConnection.VpnConnectionId)
-		}
+		vpnConnections = append(vpnConnections, *vpnConnection.VpnConnectionId)
 	}
 	return vpnConnections
 }
@@ -999,17 +1025,20 @@ func (provider *OutscaleOAPI) deleteVpnConnections(vpnConnections []Object) {
 func (provider *OutscaleOAPI) readVirtualGateways() []Object {
 	virtualGateways := make([]Object, 0)
 	read, httpRes, err := provider.client.VirtualGatewayApi.ReadVirtualGateways(provider.context).
-		ReadVirtualGatewaysRequest(osc.ReadVirtualGatewaysRequest{}).
+		ReadVirtualGatewaysRequest(osc.ReadVirtualGatewaysRequest{
+			Filters: &osc.FiltersVirtualGateway{
+				States: &[]string{
+					"pending", "available", // skipping deleting, deleted
+				},
+			},
+		}).
 		Execute()
 	if err != nil {
 		log.Printf("Error while reading virtual gateways: %v\n", getErrorInfo(err, httpRes))
 		return virtualGateways
 	}
 	for _, virtualGateway := range *read.VirtualGateways {
-		switch *virtualGateway.State {
-		case "pending", "available":
-			virtualGateways = append(virtualGateways, *virtualGateway.VirtualGatewayId)
-		}
+		virtualGateways = append(virtualGateways, *virtualGateway.VirtualGatewayId)
 	}
 	return virtualGateways
 }
@@ -1136,7 +1165,13 @@ func (provider *OutscaleOAPI) deleteAccessKeys(accessKeys []Object) {
 func (provider *OutscaleOAPI) readNetAccessPoints() []Object {
 	netAccessPoints := make([]Object, 0)
 	read, httpRes, err := provider.client.NetAccessPointApi.ReadNetAccessPoints(provider.context).
-		ReadNetAccessPointsRequest(osc.ReadNetAccessPointsRequest{}).
+		ReadNetAccessPointsRequest(osc.ReadNetAccessPointsRequest{
+			Filters: &osc.FiltersNetAccessPoint{
+				States: &[]string{
+					"pending", "available", // skipping deleting, deleted
+				},
+			},
+		}).
 		Execute()
 	if err != nil {
 		log.Print("Error while reading net access points: ")
@@ -1146,9 +1181,7 @@ func (provider *OutscaleOAPI) readNetAccessPoints() []Object {
 		return netAccessPoints
 	}
 	for _, netAccessPoint := range *read.NetAccessPoints {
-		if *netAccessPoint.State == "available" {
-			netAccessPoints = append(netAccessPoints, *netAccessPoint.NetAccessPointId)
-		}
+		netAccessPoints = append(netAccessPoints, *netAccessPoint.NetAccessPointId)
 	}
 	return netAccessPoints
 }
@@ -1166,6 +1199,52 @@ func (provider *OutscaleOAPI) deleteNetAccessPoints(netAccessPoints []Object) {
 			Execute()
 		if err != nil {
 			log.Print("Error while deleting net access point: ")
+			if httpRes != nil {
+				log.Println(httpRes.Status)
+			}
+		} else {
+			log.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readNetPeerings() []Object {
+	netPeerings := make([]Object, 0)
+	read, httpRes, err := provider.client.NetPeeringApi.ReadNetPeerings(provider.context).
+		ReadNetPeeringsRequest(osc.ReadNetPeeringsRequest{
+			Filters: &osc.FiltersNetPeering{
+				StateNames: &[]string{
+					"pending-acceptance", "active", "rejected", "failed", "expired", // skipping deleted
+				},
+			},
+		}).
+		Execute()
+	if err != nil {
+		log.Print("Error while reading net access points: ")
+		if httpRes != nil {
+			log.Println(httpRes.Status)
+		}
+		return nil
+	}
+	for _, netPeering := range *read.NetPeerings {
+		netPeerings = append(netPeerings, *netPeering.NetPeeringId)
+	}
+	return netPeerings
+}
+
+func (provider *OutscaleOAPI) deleteNetPeerings(netPeerings []Object) {
+	if len(netPeerings) == 0 {
+		return
+	}
+	for _, netPeering := range netPeerings {
+		log.Printf("Deleting net peering %s... ", netPeering)
+		deletionOpts := osc.DeleteNetPeeringRequest{NetPeeringId: netPeering}
+		_, httpRes, err := provider.client.NetPeeringApi.
+			DeleteNetPeering(provider.context).
+			DeleteNetPeeringRequest(deletionOpts).
+			Execute()
+		if err != nil {
+			log.Print("Error while deleting net peering: ")
 			if httpRes != nil {
 				log.Println(httpRes.Status)
 			}
