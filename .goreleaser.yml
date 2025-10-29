@@ -41,7 +41,7 @@ checksum:
 release:
   name_template: "Frieza v{{.Version}}"
   github:
-    owner: outscale-dev
+    owner: outscale
     name: frieza
   draft: false
   disable: false
