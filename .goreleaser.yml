@@ -1,3 +1,4 @@
+version: 2
 project_name: frieza
 builds:
 - main: ./cmd/frieza
@@ -27,15 +28,15 @@ builds:
     - goos: linux
       goarch: '386'
   binary: '{{ .ProjectName }}_v{{ .Version }}'
+
 archives:
-- format: zip
+- format_overrides:
+  - formats: [ 'zip' ]
   name_template: '{{ .ProjectName }}_{{ .Version }}_{{ .Os }}_{{ .Arch }}'
+
 checksum:
   name_template: '{{ .ProjectName }}_{{ .Version }}_SHA256SUMS'
   algorithm: sha256
-
-changelog:
-  skip: false
 
 release:
   name_template: "Frieza v{{.Version}}"
