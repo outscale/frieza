@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	. "github.com/outscale/frieza/internal/common"
 )
@@ -115,6 +116,7 @@ func (destroyer *Destroyer) run() {
 				continue
 			}
 			DeleteObjects(target.provider, *objects[i])
+			time.Sleep(100 * time.Millisecond)
 		}
 		for i, target := range destroyer.Targets {
 			diff := NewDiff()
@@ -122,6 +124,7 @@ func (destroyer *Destroyer) run() {
 			diff.Build(&remaining, objects[i])
 			objects[i] = &diff.Retained
 		}
+		time.Sleep(time.Second)
 	}
 }
 
