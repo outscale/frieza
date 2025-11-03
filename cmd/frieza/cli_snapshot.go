@@ -139,9 +139,13 @@ func snapshotNew(customConfigPath string, args []string) {
 		Config:  config,
 	}
 	for i, provider := range providers {
+		objs, err := ReadObjects(&provider)
+		if err != nil {
+			log.Fatalf("Error reading objects: %v\n", err)
+		}
 		snapshot.Data = append(snapshot.Data, SnapshotData{
 			Profile: profiles[i],
-			Objects: ReadObjects(&provider),
+			Objects: objs,
 		})
 	}
 	if err = snapshot.Write(); err != nil {
@@ -238,7 +242,10 @@ func snapshotUpdate(customConfigPath string, snapshotName *string, incrementalUp
 			log.Fatalf("Provider test failed for profile %s: %s", profile.Name, err.Error())
 		}
 
-		objects := ReadObjects(&provider)
+		objects, err := ReadObjects(&provider)
+		if err != nil {
+			log.Fatalf("Error reading objects: %v\n", err)
+		}
 		diff := NewDiff()
 		diff.Build(&data.Objects, &objects)
 		for key, value := range diff.Created {

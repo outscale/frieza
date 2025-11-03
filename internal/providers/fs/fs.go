@@ -62,14 +62,14 @@ func (provider *FileSystem) AuthTest() error {
 	return nil
 }
 
-func (provider *FileSystem) ReadObjects(typeName string) []Object {
+func (provider *FileSystem) ReadObjects(typeName string) ([]Object, error) {
 	switch typeName {
 	case typeFile:
 		return provider.readFiles()
 	case typeFolder:
 		return provider.readFolders()
 	}
-	return []Object{}
+	return []Object{}, nil
 }
 
 func (provider *FileSystem) DeleteObjects(typeName string, objects []Object) {
@@ -85,12 +85,11 @@ func (provider *FileSystem) StringObject(object string, typeName string) string 
 	return object
 }
 
-func (provider *FileSystem) readFiles() []Object {
+func (provider *FileSystem) readFiles() ([]Object, error) {
 	files := make([]Object, 0)
 
 	if err := os.Chdir(provider.Path); err != nil {
-		log.Printf("cannot move to directory: %s", err.Error())
-		return files
+		return nil, fmt.Errorf("chdir: %w", err)
 	}
 
 	folderStack := []string{"."}
@@ -99,8 +98,7 @@ func (provider *FileSystem) readFiles() []Object {
 		folderStack = folderStack[:len(folderStack)-1]
 		dir, err := os.ReadDir(dirPath)
 		if err != nil {
-			log.Printf("cannot read directory: %s", err.Error())
-			continue
+			return nil, fmt.Errorf("read dir: %w", err)
 		}
 		for _, node := range dir {
 			nodePath := path.Join(dirPath, node.Name())
@@ -112,7 +110,7 @@ func (provider *FileSystem) readFiles() []Object {
 			}
 		}
 	}
-	return files
+	return files, nil
 }
 
 func (provider *FileSystem) deleteFiles(files []Object) {
@@ -127,12 +125,11 @@ func (provider *FileSystem) deleteFiles(files []Object) {
 	}
 }
 
-func (provider *FileSystem) readFolders() []Object {
+func (provider *FileSystem) readFolders() ([]Object, error) {
 	folders := make([]Object, 0)
 
 	if err := os.Chdir(provider.Path); err != nil {
-		log.Printf("cannot move to directory: %s", err.Error())
-		return folders
+		return nil, fmt.Errorf("chdir: %w", err)
 	}
 
 	folderStack := []string{"."}
@@ -152,7 +149,7 @@ func (provider *FileSystem) readFolders() []Object {
 			}
 		}
 	}
-	return folders
+	return folders, nil
 }
 
 func (provider *FileSystem) deleteFolders(folders []Object) {

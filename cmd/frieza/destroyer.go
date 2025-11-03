@@ -3,6 +3,7 @@ package main
 import (
 	"bufio"
 	"encoding/json"
+	"fmt"
 	"log"
 	"os"
 	"strings"
@@ -120,7 +121,10 @@ func (destroyer *Destroyer) run() {
 		}
 		for i, target := range destroyer.Targets {
 			diff := NewDiff()
-			remaining := ReadNonEmptyObjects(target.provider, *objects[i])
+			remaining, err := ReadNonEmptyObjects(target.provider, *objects[i])
+			if err != nil {
+				fmt.Fprintf(os.Stderr, "Error reading: %v\n", err)
+			}
 			diff.Build(&remaining, objects[i])
 			objects[i] = &diff.Retained
 		}

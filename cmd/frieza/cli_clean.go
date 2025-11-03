@@ -80,7 +80,10 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 		if err != nil {
 			cliFatalf(jsonOutput, "Error intializing profile %s: %s", data.Profile, err.Error())
 		}
-		objects := ReadObjects(&provider)
+		objects, err := ReadObjects(&provider)
+		if err != nil {
+			log.Fatalf("Error reading objects: %v", err)
+		}
 		if resourcesFilter != nil {
 			objects = FiltersObjects(&objects, resourcesFilter)
 		}

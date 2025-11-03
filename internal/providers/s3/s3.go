@@ -3,6 +3,7 @@ package s3
 import (
 	"encoding/base64"
 	"errors"
+	"fmt"
 	"log"
 	"strings"
 
@@ -102,14 +103,14 @@ func (provider *S3) AuthTest() error {
 	return nil
 }
 
-func (provider *S3) ReadObjects(typeName string) []Object {
+func (provider *S3) ReadObjects(typeName string) ([]Object, error) {
 	switch typeName {
 	case typeBucketObject:
 		return provider.readBucketObjects()
 	case typeBucket:
 		return provider.readBuckets()
 	}
-	return []Object{}
+	return []Object{}, nil
 }
 
 func (provider *S3) DeleteObjects(typeName string, objects []Object) {
@@ -162,11 +163,11 @@ func decodeBucketobject(encodedObject *string) (string, string, error) {
 	return bucketName, key, nil
 }
 
-func (provider *S3) readBucketObjects() []Object {
+func (provider *S3) readBucketObjects() ([]Object, error) {
 	objects := make([]Object, 0)
 	result, err := provider.client.ListBuckets(nil)
 	if err != nil {
-		return objects
+		return nil, err
 	}
 	for _, bucket := range result.Buckets {
 		result, err := provider.client.ListObjects(&s3.ListObjectsInput{
@@ -179,7 +180,7 @@ func (provider *S3) readBucketObjects() []Object {
 			objects = append(objects, encodeBucketObject(bucket.Name, object.Key))
 		}
 	}
-	return objects
+	return objects, nil
 }
 
 func (provider *S3) deleteBucketObjects(bucketObjects []Object) {
@@ -217,16 +218,16 @@ func decodeBucket(b64Bucket *string) (string, error) {
 	return bucketName, nil
 }
 
-func (provider *S3) readBuckets() []Object {
+func (provider *S3) readBuckets() ([]Object, error) {
 	buckets := make([]Object, 0)
 	result, err := provider.client.ListBuckets(nil)
 	if err != nil {
-		return buckets
+		return nil, fmt.Errorf("read buckets: %w", err)
 	}
 	for _, b := range result.Buckets {
 		buckets = append(buckets, encodeBucket(b.Name))
 	}
-	return buckets
+	return buckets, nil
 }
 
 func (provider *S3) deleteBuckets(buckets []Object) {

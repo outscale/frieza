@@ -9,7 +9,7 @@ type Provider interface {
 	Name() string
 	Types() []ObjectType
 	AuthTest() error
-	ReadObjects(typeName string) []Object
+	ReadObjects(typeName string) ([]Object, error)
 	DeleteObjects(typeName string, objects []Object)
 	StringObject(object string, typeName string) string
 }
