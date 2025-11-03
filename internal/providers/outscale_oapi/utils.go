@@ -19,13 +19,13 @@ func extractApiError(err error) (bool, *osc.ErrorResponse) {
 	return false, nil
 }
 
-func getErrorInfo(err error, httpRes *http.Response) string {
+func getErrorInfo(err error, httpRes *http.Response) error {
 	if ok, apiError := extractApiError(err); ok {
-		return fmt.Sprintf("%v %v %v %v", httpRes.Status, apiError.GetErrors()[0].GetCode(), apiError.GetErrors()[0].GetType(), apiError.GetErrors()[0].GetDetails())
+		return fmt.Errorf("%v %v %v %v", httpRes.Status, apiError.GetErrors()[0].GetCode(), apiError.GetErrors()[0].GetType(), apiError.GetErrors()[0].GetDetails())
 	}
 	if httpRes != nil {
-		return httpRes.Status
+		return fmt.Errorf("http status %d", httpRes.Status)
 	}
 
-	return fmt.Sprintf("%v", err)
+	return err
 }

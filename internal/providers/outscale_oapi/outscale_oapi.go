@@ -3,7 +3,9 @@ package outscale_oapi
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log"
+	"os"
 
 	. "github.com/outscale/frieza/internal/common"
 	osc "github.com/outscale/osc-sdk-go/v2"
@@ -133,7 +135,7 @@ func (provider *OutscaleOAPI) AuthTest() error {
 	return err
 }
 
-func (provider *OutscaleOAPI) ReadObjects(typeName string) []Object {
+func (provider *OutscaleOAPI) ReadObjects(typeName string) ([]Object, error) {
 	switch typeName {
 	case typeVm:
 		return provider.readVms()
@@ -174,7 +176,7 @@ func (provider *OutscaleOAPI) ReadObjects(typeName string) []Object {
 	case typeNetPeering:
 		return provider.readNetPeerings()
 	}
-	return []Object{}
+	return []Object{}, nil
 }
 
 func (provider *OutscaleOAPI) DeleteObjects(typeName string, objects []Object) {
@@ -235,7 +237,7 @@ func newAPICache() apiCache {
 	}
 }
 
-func (provider *OutscaleOAPI) readVms() []Object {
+func (provider *OutscaleOAPI) readVms() ([]Object, error) {
 	vms := make([]Object, 0)
 	read, httpRes, err := provider.client.VmApi.ReadVms(provider.context).
 		ReadVmsRequest(osc.ReadVmsRequest{
@@ -247,14 +249,13 @@ func (provider *OutscaleOAPI) readVms() []Object {
 		}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading vms: %v\n", getErrorInfo(err, httpRes))
-		return vms
+		return nil, fmt.Errorf("read vms: %w", getErrorInfo(err, httpRes))
 	}
 	for i, vm := range *read.Vms {
 		vms = append(vms, *vm.VmId)
 		provider.cache.vms[*vm.VmId] = &(*read.Vms)[i]
 	}
-	return vms
+	return vms, nil
 }
 
 func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) {
@@ -302,19 +303,18 @@ func (provider *OutscaleOAPI) deleteVms(vms []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readLoadBalancers() []Object {
+func (provider *OutscaleOAPI) readLoadBalancers() ([]Object, error) {
 	loadBalancers := make([]Object, 0)
 	read, httpRes, err := provider.client.LoadBalancerApi.ReadLoadBalancers(provider.context).
 		ReadLoadBalancersRequest(osc.ReadLoadBalancersRequest{}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading load balancers: %v\n", getErrorInfo(err, httpRes))
-		return loadBalancers
+		return nil, fmt.Errorf("read load balancers: %w", getErrorInfo(err, httpRes))
 	}
 	for _, loadBalancer := range *read.LoadBalancers {
 		loadBalancers = append(loadBalancers, *loadBalancer.LoadBalancerName)
 	}
-	return loadBalancers
+	return loadBalancers, nil
 }
 
 func (provider *OutscaleOAPI) deleteLoadBalancers(loadBalancers []Object) {
@@ -336,7 +336,7 @@ func (provider *OutscaleOAPI) deleteLoadBalancers(loadBalancers []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readNatServices() []Object {
+func (provider *OutscaleOAPI) readNatServices() ([]Object, error) {
 	natServices := make([]Object, 0)
 	read, httpRes, err := provider.client.NatServiceApi.ReadNatServices(provider.context).
 		ReadNatServicesRequest(osc.ReadNatServicesRequest{
@@ -348,13 +348,12 @@ func (provider *OutscaleOAPI) readNatServices() []Object {
 		}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading nat services: %v\n", getErrorInfo(err, httpRes))
-		return natServices
+		return nil, fmt.Errorf("read nat: %w", getErrorInfo(err, httpRes))
 	}
 	for _, natService := range *read.NatServices {
 		natServices = append(natServices, *natService.NatServiceId)
 	}
-	return natServices
+	return natServices, nil
 }
 
 func (provider *OutscaleOAPI) deleteNatServices(natServices []Object) {
@@ -376,15 +375,14 @@ func (provider *OutscaleOAPI) deleteNatServices(natServices []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readSecurityGroups() []Object {
+func (provider *OutscaleOAPI) readSecurityGroups() ([]Object, error) {
 	securityGroups := make([]Object, 0)
 	read, httpRes, err := provider.client.SecurityGroupApi.
 		ReadSecurityGroups(provider.context).
 		ReadSecurityGroupsRequest(osc.ReadSecurityGroupsRequest{}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading security groups: %v\n", getErrorInfo(err, httpRes))
-		return securityGroups
+		return nil, fmt.Errorf("read security groups: %w", getErrorInfo(err, httpRes))
 	}
 	for _, sg := range *read.SecurityGroups {
 		if *sg.SecurityGroupName == "default" {
@@ -394,7 +392,7 @@ func (provider *OutscaleOAPI) readSecurityGroups() []Object {
 		securityGroups = append(securityGroups, *sg.SecurityGroupId)
 		provider.cache.securityGroups[*sg.SecurityGroupId] = &copySg
 	}
-	return securityGroups
+	return securityGroups, nil
 }
 
 func (provider *OutscaleOAPI) deleteSecurityGroupRules(securityGroupId string) error {
@@ -514,21 +512,20 @@ func (provider *OutscaleOAPI) deleteSecurityGroups(securityGroups []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readPublicIps() []Object {
+func (provider *OutscaleOAPI) readPublicIps() ([]Object, error) {
 	publicIps := make([]Object, 0)
 	read, httpRes, err := provider.client.PublicIpApi.
 		ReadPublicIps(provider.context).
 		ReadPublicIpsRequest(osc.ReadPublicIpsRequest{}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading public ips: %v\n", getErrorInfo(err, httpRes))
-		return publicIps
+		return nil, fmt.Errorf("read public ips: %w", getErrorInfo(err, httpRes))
 	}
 	for i, pip := range *read.PublicIps {
 		publicIps = append(publicIps, *pip.PublicIp)
 		provider.cache.publicIps[*pip.PublicIp] = &(*read.PublicIps)[i]
 	}
-	return publicIps
+	return publicIps, nil
 }
 
 func (provider *OutscaleOAPI) unlinkPublicIp(publicIP *string) error {
@@ -577,7 +574,7 @@ func (provider *OutscaleOAPI) deletePublicIps(publicIps []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readVolumes() []Object {
+func (provider *OutscaleOAPI) readVolumes() ([]Object, error) {
 	volumes := make([]Object, 0)
 	read, httpRes, err := provider.client.VolumeApi.
 		ReadVolumes(provider.context).
@@ -590,13 +587,12 @@ func (provider *OutscaleOAPI) readVolumes() []Object {
 		}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading volumes: %v\n", getErrorInfo(err, httpRes))
-		return volumes
+		return nil, fmt.Errorf("read volumes: %w", getErrorInfo(err, httpRes))
 	}
 	for _, volume := range *read.Volumes {
 		volumes = append(volumes, *volume.VolumeId)
 	}
-	return volumes
+	return volumes, nil
 }
 
 func (provider *OutscaleOAPI) deleteVolumes(volumes []Object) {
@@ -618,19 +614,18 @@ func (provider *OutscaleOAPI) deleteVolumes(volumes []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readKeypairs() []Object {
+func (provider *OutscaleOAPI) readKeypairs() ([]Object, error) {
 	keypairs := make([]Object, 0)
 	read, httpRes, err := provider.client.KeypairApi.ReadKeypairs(provider.context).
 		ReadKeypairsRequest(osc.ReadKeypairsRequest{}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading keypairs: %v\n", getErrorInfo(err, httpRes))
-		return keypairs
+		return nil, fmt.Errorf("read key pairs: %w", getErrorInfo(err, httpRes))
 	}
 	for _, keypair := range *read.Keypairs {
 		keypairs = append(keypairs, *keypair.KeypairName)
 	}
-	return keypairs
+	return keypairs, nil
 }
 
 func (provider *OutscaleOAPI) deleteKeypairs(keypairs []Object) {
@@ -652,24 +647,22 @@ func (provider *OutscaleOAPI) deleteKeypairs(keypairs []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readRouteTables() []Object {
+func (provider *OutscaleOAPI) readRouteTables() ([]Object, error) {
 	routeTables := make([]Object, 0)
 	read, httpRes, err := provider.client.RouteTableApi.ReadRouteTables(provider.context).
 		ReadRouteTablesRequest(osc.ReadRouteTablesRequest{}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading route tables: %v\n", getErrorInfo(err, httpRes))
-		return routeTables
+		return nil, fmt.Errorf("read route tables: %w", getErrorInfo(err, httpRes))
 	}
 	for i, routeTable := range *read.RouteTables {
 		if provider.isMainRouteTable(&routeTable) {
-			log.Printf("Skipping Main RouteTable %v\n", routeTable)
 			continue
 		}
 		routeTables = append(routeTables, *routeTable.RouteTableId)
 		provider.cache.routeTables[*routeTable.RouteTableId] = &(*read.RouteTables)[i]
 	}
-	return routeTables
+	return routeTables, nil
 }
 
 func (provider *OutscaleOAPI) unlinkRouteTable(RouteTableId string) error {
@@ -736,20 +729,19 @@ func (provider *OutscaleOAPI) deleteRouteTables(routeTables []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readInternetServices() []Object {
+func (provider *OutscaleOAPI) readInternetServices() ([]Object, error) {
 	internetServices := make([]Object, 0)
 	read, httpRes, err := provider.client.InternetServiceApi.ReadInternetServices(provider.context).
 		ReadInternetServicesRequest(osc.ReadInternetServicesRequest{}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading internet services: %v\n", getErrorInfo(err, httpRes))
-		return internetServices
+		return nil, fmt.Errorf("read internet service: %w", getErrorInfo(err, httpRes))
 	}
 	for i, internetService := range *read.InternetServices {
 		internetServices = append(internetServices, *internetService.InternetServiceId)
 		provider.cache.internetServices[*internetService.InternetServiceId] = &(*read.InternetServices)[i]
 	}
-	return internetServices
+	return internetServices, nil
 }
 
 func (provider *OutscaleOAPI) unlinkInternetSevice(internetServiceId string) error {
@@ -797,19 +789,18 @@ func (provider *OutscaleOAPI) deleteInternetServices(internetServices []Object) 
 	}
 }
 
-func (provider *OutscaleOAPI) readSubnets() []Object {
+func (provider *OutscaleOAPI) readSubnets() ([]Object, error) {
 	subnets := make([]Object, 0)
 	read, httpRes, err := provider.client.SubnetApi.ReadSubnets(provider.context).
 		ReadSubnetsRequest(osc.ReadSubnetsRequest{}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading subnets: %v\n", getErrorInfo(err, httpRes))
-		return subnets
+		return nil, fmt.Errorf("read subnets: %w", getErrorInfo(err, httpRes))
 	}
 	for _, subnet := range *read.Subnets {
 		subnets = append(subnets, *subnet.SubnetId)
 	}
-	return subnets
+	return subnets, nil
 }
 
 func (provider *OutscaleOAPI) deleteSubnets(subnets []Object) {
@@ -831,7 +822,7 @@ func (provider *OutscaleOAPI) deleteSubnets(subnets []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readNets() []Object {
+func (provider *OutscaleOAPI) readNets() ([]Object, error) {
 	nets := make([]Object, 0)
 	read, httpRes, err := provider.client.NetApi.ReadNets(provider.context).
 		ReadNetsRequest(osc.ReadNetsRequest{
@@ -841,13 +832,12 @@ func (provider *OutscaleOAPI) readNets() []Object {
 		}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading nets: %v\n", getErrorInfo(err, httpRes))
-		return nets
+		return nil, fmt.Errorf("read nets: %w", getErrorInfo(err, httpRes))
 	}
 	for _, net := range *read.Nets {
 		nets = append(nets, *net.NetId)
 	}
-	return nets
+	return nets, nil
 }
 
 func (provider *OutscaleOAPI) deleteNets(nets []Object) {
@@ -875,8 +865,7 @@ func (provider *OutscaleOAPI) readAccountId() (*string, error) {
 			ReadAccountsRequest(osc.ReadAccountsRequest{}).
 			Execute()
 		if err != nil {
-			log.Printf("Error while reading account: %v\n", getErrorInfo(err, httpRes))
-			return nil, err
+			return nil, fmt.Errorf("read vms: %w", getErrorInfo(err, httpRes))
 		}
 		if len(*read.Accounts) == 0 {
 			log.Println("Error while reading account: no account listed")
@@ -887,11 +876,11 @@ func (provider *OutscaleOAPI) readAccountId() (*string, error) {
 	return provider.cache.accountId, nil
 }
 
-func (provider *OutscaleOAPI) readImages() []Object {
+func (provider *OutscaleOAPI) readImages() ([]Object, error) {
 	images := make([]Object, 0)
 	accountId, err := provider.readAccountId()
 	if err != nil {
-		return images
+		return images, nil
 	}
 	var accountIds []string
 	accountIds = append(accountIds, *accountId)
@@ -903,13 +892,13 @@ func (provider *OutscaleOAPI) readImages() []Object {
 		}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading images: %v\n", getErrorInfo(err, httpRes))
-		return images
+		fmt.Fprintf(os.Stderr, "Error while reading images: %v\n", getErrorInfo(err, httpRes))
+		return nil, fmt.Errorf("read images: %w")
 	}
 	for _, image := range *read.Images {
 		images = append(images, *image.ImageId)
 	}
-	return images
+	return images, nil
 }
 
 func (provider *OutscaleOAPI) deleteImages(images []Object) {
@@ -931,11 +920,11 @@ func (provider *OutscaleOAPI) deleteImages(images []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readSnapshots() []Object {
+func (provider *OutscaleOAPI) readSnapshots() ([]Object, error) {
 	snapshots := make([]Object, 0)
 	accountId, err := provider.readAccountId()
 	if err != nil {
-		return snapshots
+		return snapshots, nil
 	}
 	var accountIds []string
 	accountIds = append(accountIds, *accountId)
@@ -950,13 +939,12 @@ func (provider *OutscaleOAPI) readSnapshots() []Object {
 		}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading snapshots: %v\n", getErrorInfo(err, httpRes))
-		return snapshots
+		return nil, fmt.Errorf("read snapshots: %w", getErrorInfo(err, httpRes))
 	}
 	for _, snapshot := range *read.Snapshots {
 		snapshots = append(snapshots, *snapshot.SnapshotId)
 	}
-	return snapshots
+	return snapshots, nil
 }
 
 func (provider *OutscaleOAPI) deleteSnapshots(snapshots []Object) {
@@ -978,7 +966,7 @@ func (provider *OutscaleOAPI) deleteSnapshots(snapshots []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readVpnConnections() []Object {
+func (provider *OutscaleOAPI) readVpnConnections() ([]Object, error) {
 	vpnConnections := make([]Object, 0)
 	read, httpRes, err := provider.client.VpnConnectionApi.ReadVpnConnections(provider.context).
 		ReadVpnConnectionsRequest(osc.ReadVpnConnectionsRequest{
@@ -990,13 +978,12 @@ func (provider *OutscaleOAPI) readVpnConnections() []Object {
 		}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading vpn connections: %v\n", getErrorInfo(err, httpRes))
-		return vpnConnections
+		return nil, fmt.Errorf("read vpn connections: %w", getErrorInfo(err, httpRes))
 	}
 	for _, vpnConnection := range *read.VpnConnections {
 		vpnConnections = append(vpnConnections, *vpnConnection.VpnConnectionId)
 	}
-	return vpnConnections
+	return vpnConnections, nil
 }
 
 func (provider *OutscaleOAPI) deleteVpnConnections(vpnConnections []Object) {
@@ -1018,7 +1005,7 @@ func (provider *OutscaleOAPI) deleteVpnConnections(vpnConnections []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readVirtualGateways() []Object {
+func (provider *OutscaleOAPI) readVirtualGateways() ([]Object, error) {
 	virtualGateways := make([]Object, 0)
 	read, httpRes, err := provider.client.VirtualGatewayApi.ReadVirtualGateways(provider.context).
 		ReadVirtualGatewaysRequest(osc.ReadVirtualGatewaysRequest{
@@ -1030,13 +1017,12 @@ func (provider *OutscaleOAPI) readVirtualGateways() []Object {
 		}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading virtual gateways: %v\n", getErrorInfo(err, httpRes))
-		return virtualGateways
+		return nil, fmt.Errorf("read virtual gateways: %w", getErrorInfo(err, httpRes))
 	}
 	for _, virtualGateway := range *read.VirtualGateways {
 		virtualGateways = append(virtualGateways, *virtualGateway.VirtualGatewayId)
 	}
-	return virtualGateways
+	return virtualGateways, nil
 }
 
 func (provider *OutscaleOAPI) deleteVirtualGateways(virtualGateways []Object) {
@@ -1058,20 +1044,19 @@ func (provider *OutscaleOAPI) deleteVirtualGateways(virtualGateways []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readNics() []Object {
+func (provider *OutscaleOAPI) readNics() ([]Object, error) {
 	nics := make([]Object, 0)
 	read, httpRes, err := provider.client.NicApi.ReadNics(provider.context).
 		ReadNicsRequest(osc.ReadNicsRequest{}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading nics: %v\n", getErrorInfo(err, httpRes))
-		return nics
+		return nil, fmt.Errorf("read nics: %w", getErrorInfo(err, httpRes))
 	}
 	for i, nic := range *read.Nics {
 		nics = append(nics, *nic.NicId)
 		provider.cache.nics[*nic.NicId] = &(*read.Nics)[i]
 	}
-	return nics
+	return nics, nil
 }
 
 func (provider *OutscaleOAPI) unlinkNics(nics []Object) {
@@ -1122,21 +1107,20 @@ func (provider *OutscaleOAPI) deleteNics(nics []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readAccessKeys() []Object {
+func (provider *OutscaleOAPI) readAccessKeys() ([]Object, error) {
 	accessKeys := make([]Object, 0)
 	read, httpRes, err := provider.client.AccessKeyApi.ReadAccessKeys(provider.context).
 		ReadAccessKeysRequest(osc.ReadAccessKeysRequest{}).
 		Execute()
 	if err != nil {
-		log.Printf("Error while reading access keys: %v\n", getErrorInfo(err, httpRes))
-		return accessKeys
+		return nil, fmt.Errorf("read ak: %w", getErrorInfo(err, httpRes))
 	}
 	for _, accessKey := range *read.AccessKeys {
 		if *accessKey.State == "ACTIVE" {
 			accessKeys = append(accessKeys, *accessKey.AccessKeyId)
 		}
 	}
-	return accessKeys
+	return accessKeys, nil
 }
 
 func (provider *OutscaleOAPI) deleteAccessKeys(accessKeys []Object) {
@@ -1158,7 +1142,7 @@ func (provider *OutscaleOAPI) deleteAccessKeys(accessKeys []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readNetAccessPoints() []Object {
+func (provider *OutscaleOAPI) readNetAccessPoints() ([]Object, error) {
 	netAccessPoints := make([]Object, 0)
 	read, httpRes, err := provider.client.NetAccessPointApi.ReadNetAccessPoints(provider.context).
 		ReadNetAccessPointsRequest(osc.ReadNetAccessPointsRequest{
@@ -1170,16 +1154,12 @@ func (provider *OutscaleOAPI) readNetAccessPoints() []Object {
 		}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading net access points: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
-		return netAccessPoints
+		return nil, fmt.Errorf("read net access points: %w", getErrorInfo(err, httpRes))
 	}
 	for _, netAccessPoint := range *read.NetAccessPoints {
 		netAccessPoints = append(netAccessPoints, *netAccessPoint.NetAccessPointId)
 	}
-	return netAccessPoints
+	return netAccessPoints, nil
 }
 
 func (provider *OutscaleOAPI) deleteNetAccessPoints(netAccessPoints []Object) {
@@ -1204,7 +1184,7 @@ func (provider *OutscaleOAPI) deleteNetAccessPoints(netAccessPoints []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readNetPeerings() []Object {
+func (provider *OutscaleOAPI) readNetPeerings() ([]Object, error) {
 	netPeerings := make([]Object, 0)
 	read, httpRes, err := provider.client.NetPeeringApi.ReadNetPeerings(provider.context).
 		ReadNetPeeringsRequest(osc.ReadNetPeeringsRequest{
@@ -1216,16 +1196,12 @@ func (provider *OutscaleOAPI) readNetPeerings() []Object {
 		}).
 		Execute()
 	if err != nil {
-		log.Print("Error while reading net access points: ")
-		if httpRes != nil {
-			log.Println(httpRes.Status)
-		}
-		return nil
+		return nil, fmt.Errorf("read net peerings: %w", getErrorInfo(err, httpRes))
 	}
 	for _, netPeering := range *read.NetPeerings {
 		netPeerings = append(netPeerings, *netPeering.NetPeeringId)
 	}
-	return netPeerings
+	return netPeerings, nil
 }
 
 func (provider *OutscaleOAPI) deleteNetPeerings(netPeerings []Object) {

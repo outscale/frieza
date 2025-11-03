@@ -33,12 +33,16 @@ func SnapshotVersion() int {
 	return 0
 }
 
-func ReadObjects(provider *Provider) Objects {
+func ReadObjects(provider *Provider) (Objects, error) {
 	objects := make(Objects)
 	for _, typeName := range (*provider).Types() {
-		objects[typeName] = (*provider).ReadObjects(typeName)
+		var err error
+		objects[typeName], err = (*provider).ReadObjects(typeName)
+		if err != nil {
+			return objects, err
+		}
 	}
-	return objects
+	return objects, nil
 }
 
 func FiltersObjects(objects *Objects, resourceFilter ResourceFilter) Objects {
@@ -51,15 +55,19 @@ func FiltersObjects(objects *Objects, resourceFilter ResourceFilter) Objects {
 	return filteredObjects
 }
 
-func ReadNonEmptyObjects(provider *Provider, nonEmpy Objects) Objects {
+func ReadNonEmptyObjects(provider *Provider, nonEmpy Objects) (Objects, error) {
 	objects := make(Objects)
 	for _, typeName := range (*provider).Types() {
 		if len(nonEmpy[typeName]) == 0 {
 			continue
 		}
-		objects[typeName] = (*provider).ReadObjects(typeName)
+		var err error
+		objects[typeName], err = (*provider).ReadObjects(typeName)
+		if err != nil {
+			return objects, err
+		}
 	}
-	return objects
+	return objects, nil
 }
 
 func DeleteObjects(provider *Provider, objects Objects) {
