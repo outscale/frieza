@@ -545,7 +545,7 @@ func (provider *OutscaleOAPI) readVolumes() ([]Object, error) {
 	read, err := provider.client.ReadVolumes(context.Background(), osc.ReadVolumesRequest{
 		Filters: &osc.FiltersVolume{
 			VolumeStates: &[]string{
-				"creating", "available", "in-use", "error", // skip deleting
+				"creating", "available", "in-use", "error",
 			},
 		},
 	})
@@ -553,6 +553,11 @@ func (provider *OutscaleOAPI) readVolumes() ([]Object, error) {
 		return nil, fmt.Errorf("read volumes: %w", getErrorInfo(err))
 	}
 	for _, volume := range *read.Volumes {
+		// When a volume created from a snapshot is in the deleting state,
+		// it will be returned even if the "deleting" filter is missing from Filters.VolumeStates
+		if volume.State != nil && *volume.State == "deleting" {
+			continue
+		}
 		volumes = append(volumes, *volume.VolumeId)
 	}
 	return volumes, nil
