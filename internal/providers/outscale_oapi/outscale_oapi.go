@@ -79,7 +79,7 @@ func New(config ProviderConfig, debug bool) (*OutscaleOAPI, error) {
 
 	return &OutscaleOAPI{
 		client: client,
-		cache:  apiCache{},
+		cache:  newAPICache(),
 	}, nil
 }
 
