@@ -10,7 +10,7 @@ SPDX-FileCopyrightText = "2025 Outscale SAS <opensource@outscale.com>"
 SPDX-License-Identifier = "CC-BY-4.0"
 
 [[annotations]]
-path = ["cmd/**", "**.mod", "**.sum", "Makefile", "internal/common/**.go", "internal/providers/outscale_oapi/**", "docs/providers.sh", "internal/providers/provider_example/**", "internal/providers/s3/**", "internal/providers/fs/**", ".github/**", ".goreleaser.yml", "version", ".gitignore"]
+path = ["cmd/**", "**.mod", "**.sum", "Makefile", "internal/common/**.go", "internal/providers/outscale_*/**", "docs/providers.sh", "internal/providers/provider_example/**", "internal/providers/s3/**", "internal/providers/fs/**", ".github/**", ".goreleaser.yml", "version", ".gitignore"]
 precedence = "aggregate"
 SPDX-FileCopyrightText = "2025 Outscale SAS <opensource@outscale.com>"
 SPDX-License-Identifier = "BSD-3-Clause"
