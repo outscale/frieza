@@ -35,6 +35,11 @@ const (
 	typeAccessKey       = "access_key"
 	typeNetAccessPoint  = "net_access_point"
 	typeNetPeering      = "net_peering"
+	typeUser            = "user"
+	typeUserAccessKey   = "user_access_key"
+	typePolicy          = "policy"
+	typePolicyLink      = "policy_link"
+	typePolicyVersion   = "policy_version"
 )
 
 type OutscaleOAPI struct {
@@ -104,6 +109,11 @@ func Types() []ObjectType {
 		typeSnapshot,
 		typeKeypair,
 		typeAccessKey,
+		typeUserAccessKey,
+		typeUser,
+		typePolicyLink,
+		typePolicy,
+		typePolicyVersion,
 	}
 	return object_types
 }
@@ -168,6 +178,16 @@ func (provider *OutscaleOAPI) ReadObjects(typeName string) ([]Object, error) {
 		return provider.readNetAccessPoints()
 	case typeNetPeering:
 		return provider.readNetPeerings()
+	case typeUser:
+		return provider.readUsers()
+	case typeUserAccessKey:
+		return provider.readUserAccessKeys()
+	case typePolicy:
+		return provider.readPolicies()
+	case typePolicyLink:
+		return provider.readPolicyLinks()
+	case typePolicyVersion:
+		return provider.readPolicyVersions()
 	}
 	return []Object{}, nil
 }
@@ -212,6 +232,16 @@ func (provider *OutscaleOAPI) DeleteObjects(typeName string, objects []Object) {
 		provider.deleteNetAccessPoints(objects)
 	case typeNetPeering:
 		provider.deleteNetPeerings(objects)
+	case typeUser:
+		provider.deleteUsers(objects)
+	case typeUserAccessKey:
+		provider.deleteUserAccessKeys(objects)
+	case typePolicy:
+		provider.deletePolicies(objects)
+	case typePolicyLink:
+		provider.deletePolicyLinks(objects)
+	case typePolicyVersion:
+		provider.deletePolicyVersions(objects)
 	}
 }
 
@@ -1126,9 +1156,244 @@ func (provider *OutscaleOAPI) deleteNetPeerings(netPeerings []Object) {
 		deletionOpts := osc.DeleteNetPeeringRequest{NetPeeringId: netPeering}
 		_, err := provider.client.DeleteNetPeering(context.Background(), deletionOpts)
 		if err != nil {
-			log.Print("Error while deleting net peering: ")
+			log.Print("Error while deleting net peering: %w", err)
 		} else {
 			log.Println("OK")
 		}
+	}
+}
+
+func (provider *OutscaleOAPI) readUsers() ([]Object, error) {
+	users := make([]Object, 0)
+	read, err := provider.client.ReadUsers(context.Background(), osc.ReadUsersRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("read users: %w", getErrorInfo(err))
+	}
+	for _, user := range *read.Users {
+		users = append(users, *user.UserName)
+	}
+	return users, nil
+}
+
+func (provider *OutscaleOAPI) deleteUsers(users []Object) {
+	if len(users) == 0 {
+		return
+	}
+	for _, user := range users {
+		log.Printf("Deleting user %s... ", user)
+		deleteOpts := osc.DeleteUserRequest{UserName: user}
+		_, err := provider.client.DeleteUser(context.Background(), deleteOpts)
+		if err != nil {
+			log.Print("Error while deleting user: %w", err)
+		} else {
+			log.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readUserAccessKeys() ([]Object, error) {
+	accessKeys := make([]Object, 0)
+
+	readUser, err := provider.client.ReadUsers(context.Background(), osc.ReadUsersRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("read users: %w", getErrorInfo(err))
+	}
+
+	for _, user := range *readUser.Users {
+		read, err := provider.client.ReadAccessKeys(
+			context.Background(),
+			osc.ReadAccessKeysRequest{UserName: user.UserName},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("read user ak: %w", getErrorInfo(err))
+		}
+		for _, accessKey := range *read.AccessKeys {
+			if *accessKey.State == "ACTIVE" {
+				composed := fmt.Sprintf("%s,%s", *user.UserName, *accessKey.AccessKeyId)
+				accessKeys = append(accessKeys, composed)
+			}
+		}
+	}
+	return accessKeys, nil
+}
+
+func (provider *OutscaleOAPI) deleteUserAccessKeys(accessKeys []Object) {
+	if len(accessKeys) == 0 {
+		return
+	}
+	for _, accessKey := range accessKeys {
+		var userName, accessKeyId string
+		log.Printf("Deleting user access key %s... ", accessKey)
+		_, err := fmt.Scanf("%s,%s", &userName, &accessKeyId)
+		if err != nil {
+			continue
+		}
+
+		deletionOpts := osc.DeleteAccessKeyRequest{AccessKeyId: accessKeyId, UserName: &userName}
+		_, err = provider.client.DeleteAccessKey(context.Background(), deletionOpts)
+		if err != nil {
+			log.Printf("Error while deleting user access key: %v\n", getErrorInfo(err))
+		} else {
+			log.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readPolicies() ([]Object, error) {
+	policies := make([]Object, 0)
+
+	read, err := provider.client.ReadPolicies(context.Background(), osc.ReadPoliciesRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("read policies: %w", getErrorInfo(err))
+	}
+	for _, policy := range *read.Policies {
+		policies = append(policies, *policy.Orn)
+	}
+	return policies, nil
+}
+
+func (provider *OutscaleOAPI) deletePolicies(policies []Object) {
+	if len(policies) == 0 {
+		return
+	}
+	for _, policy := range policies {
+		log.Printf("Deleting policy %s... ", policy)
+		deleteOpts := osc.DeletePolicyRequest{PolicyOrn: policy}
+		_, err := provider.client.DeletePolicy(context.Background(), deleteOpts)
+		if err != nil {
+			log.Print("Error while deleting policy: %w", err)
+		} else {
+			log.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readPolicyLinks() ([]Object, error) {
+	policyLinks := make([]Object, 0)
+
+	read, err := provider.client.ReadPolicies(context.Background(), osc.ReadPoliciesRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("read policies: %w", getErrorInfo(err))
+	}
+	for _, policy := range *read.Policies {
+		read, err := provider.client.ReadEntitiesLinkedToPolicy(
+			context.Background(),
+			osc.ReadEntitiesLinkedToPolicyRequest{
+				EntitiesType: &[]osc.ReadEntitiesLinkedToPolicyRequestEntitiesType{"USER", "GROUP"},
+				PolicyOrn:    policy.Orn,
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("read policy links: %w", getErrorInfo(err))
+		}
+		for _, policyLink := range *read.PolicyEntities.Groups {
+			policyLinks = append(
+				policyLinks,
+				fmt.Sprintf("GROUP,%s,%s", *policy.Orn, *policyLink.Name),
+			)
+		}
+		for _, policyLink := range *read.PolicyEntities.Users {
+			policyLinks = append(
+				policyLinks,
+				fmt.Sprintf("USER,%s,%s", *policy.Orn, *policyLink.Name),
+			)
+		}
+	}
+	return policyLinks, nil
+}
+
+func (provider *OutscaleOAPI) deletePolicyLinks(policyLinks []Object) {
+	if len(policyLinks) == 0 {
+		return
+	}
+
+	for _, policylink := range policyLinks {
+		var linkType, policyOrn, linkName string
+		log.Printf("Deleting policy link %s... ", policylink)
+		_, err := fmt.Scanf("%s,%s,%s", &linkType, &policyOrn, &linkName)
+		if err != nil {
+			continue
+		}
+
+		switch linkType {
+		case "USER":
+			deleteOpts := osc.UnlinkPolicyRequest{
+				PolicyOrn: policyOrn,
+				UserName:  linkName,
+			}
+			_, err := provider.client.UnlinkPolicy(context.Background(), deleteOpts)
+			if err != nil {
+				log.Print("Error while unlinking policy: %w", err)
+			}
+
+		case "GROUP":
+			deleteOpts := osc.UnlinkManagedPolicyFromUserGroupRequest{
+				PolicyOrn:     policyOrn,
+				UserGroupName: linkName,
+			}
+			_, err := provider.client.UnlinkManagedPolicyFromUserGroup(
+				context.Background(),
+				deleteOpts,
+			)
+			if err != nil {
+				log.Print("Error while unlinking policy: %w", err)
+			}
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readPolicyVersions() ([]Object, error) {
+	policyVersions := make([]Object, 0)
+
+	read, err := provider.client.ReadPolicies(context.Background(), osc.ReadPoliciesRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("read policies: %w", getErrorInfo(err))
+	}
+	for _, policy := range *read.Policies {
+		read, err := provider.client.ReadPolicyVersions(
+			context.Background(),
+			osc.ReadPolicyVersionsRequest{
+				PolicyOrn: *policy.Orn,
+			},
+		)
+		if err != nil {
+			return nil, fmt.Errorf("read policy version: %w", getErrorInfo(err))
+		}
+		for _, policyVersion := range *read.PolicyVersions {
+			if *policyVersion.DefaultVersion {
+				continue
+			}
+
+			policyVersions = append(
+				policyVersions,
+				fmt.Sprintf("%s,%s", *policy.Orn, *policyVersion.VersionId),
+			)
+		}
+	}
+	return policyVersions, nil
+}
+
+func (provider *OutscaleOAPI) deletePolicyVersions(policyVersions []Object) {
+	if len(policyVersions) == 0 {
+		return
+	}
+
+	for _, policyVersion := range policyVersions {
+		var policyOrn, version string
+		log.Printf("Deleting policy version %s... ", policyVersion)
+		_, err := fmt.Scanf("%s,%s", &policyOrn, &version)
+		if err != nil {
+			continue
+		}
+
+		deleteOpts := osc.DeletePolicyVersionRequest{
+			PolicyOrn: policyOrn,
+			VersionId: version,
+		}
+		_, err = provider.client.DeletePolicyVersion(context.Background(), deleteOpts)
+		if err != nil {
+			log.Print("Error while deleting policy version: %w", err)
+		}
+
 	}
 }
