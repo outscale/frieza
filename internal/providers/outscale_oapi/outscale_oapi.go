@@ -60,7 +60,7 @@ type apiCache struct {
 func New(config ProviderConfig, debug bool) (*OutscaleOAPI, error) {
 	profileName := config["profile"]
 	profilePath := config["path"]
-	profile, err := profile.NewProfileFromStrandardConfiguration(profileName, profilePath)
+	profile, err := profile.NewProfileFromStandardConfiguration(profileName, profilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -264,7 +264,7 @@ func (provider *OutscaleOAPI) readVms() ([]Object, error) {
 	vms := make([]Object, 0)
 	read, err := provider.client.ReadVms(context.Background(), osc.ReadVmsRequest{
 		Filters: &osc.FiltersVm{
-			VmStateNames: &[]string{
+			VmStateNames: &[]osc.VmState{
 				"pending", "running", "stopping", "stopped", "shutting-down", "quarantine", // skipping terminated
 			},
 		},
@@ -330,7 +330,7 @@ func (provider *OutscaleOAPI) readLoadBalancers() ([]Object, error) {
 		return nil, fmt.Errorf("read load balancers: %w", getErrorInfo(err))
 	}
 	for _, loadBalancer := range *read.LoadBalancers {
-		loadBalancers = append(loadBalancers, *loadBalancer.LoadBalancerName)
+		loadBalancers = append(loadBalancers, loadBalancer.LoadBalancerName)
 	}
 	return loadBalancers, nil
 }
@@ -357,7 +357,7 @@ func (provider *OutscaleOAPI) readNatServices() ([]Object, error) {
 		context.Background(),
 		osc.ReadNatServicesRequest{
 			Filters: &osc.FiltersNatService{
-				States: &[]string{
+				States: &[]osc.NatServiceState{
 					"pending", "available", // skipping deleting, deleted
 				},
 			},
@@ -524,8 +524,8 @@ func (provider *OutscaleOAPI) readPublicIps() ([]Object, error) {
 		return nil, fmt.Errorf("read public ips: %w", getErrorInfo(err))
 	}
 	for i, pip := range *read.PublicIps {
-		publicIps = append(publicIps, *pip.PublicIp)
-		provider.cache.publicIps[*pip.PublicIp] = &(*read.PublicIps)[i]
+		publicIps = append(publicIps, pip.PublicIp)
+		provider.cache.publicIps[pip.PublicIp] = &(*read.PublicIps)[i]
 	}
 	return publicIps, nil
 }
@@ -574,7 +574,7 @@ func (provider *OutscaleOAPI) readVolumes() ([]Object, error) {
 	volumes := make([]Object, 0)
 	read, err := provider.client.ReadVolumes(context.Background(), osc.ReadVolumesRequest{
 		Filters: &osc.FiltersVolume{
-			VolumeStates: &[]string{
+			VolumeStates: &[]osc.VolumeState{
 				"creating", "available", "in-use", "error",
 			},
 		},
@@ -585,10 +585,10 @@ func (provider *OutscaleOAPI) readVolumes() ([]Object, error) {
 	for _, volume := range *read.Volumes {
 		// When a volume created from a snapshot is in the deleting state,
 		// it will be returned even if the "deleting" filter is missing from Filters.VolumeStates
-		if volume.State != nil && *volume.State == "deleting" {
+		if volume.State == "deleting" {
 			continue
 		}
-		volumes = append(volumes, *volume.VolumeId)
+		volumes = append(volumes, volume.VolumeId)
 	}
 	return volumes, nil
 }
@@ -650,8 +650,8 @@ func (provider *OutscaleOAPI) readRouteTables() ([]Object, error) {
 		if provider.isMainRouteTable(&routeTable) {
 			continue
 		}
-		routeTables = append(routeTables, *routeTable.RouteTableId)
-		provider.cache.routeTables[*routeTable.RouteTableId] = &(*read.RouteTables)[i]
+		routeTables = append(routeTables, routeTable.RouteTableId)
+		provider.cache.routeTables[routeTable.RouteTableId] = &(*read.RouteTables)[i]
 	}
 	return routeTables, nil
 }
@@ -661,14 +661,14 @@ func (provider *OutscaleOAPI) unlinkRouteTable(RouteTableId string) error {
 	if routeTable == nil || routeTable.LinkRouteTables == nil {
 		return nil
 	}
-	for _, link := range *routeTable.LinkRouteTables {
-		if link.LinkRouteTableId == nil || *link.Main {
+	for _, link := range routeTable.LinkRouteTables {
+		if link.Main {
 			continue
 		}
-		linkId := *link.LinkRouteTableId
+		linkId := link.LinkRouteTableId
 		log.Printf("Unlinking route table %s (link %s)... ", RouteTableId, linkId)
 		unlinkOps := osc.UnlinkRouteTableRequest{
-			LinkRouteTableId: *link.LinkRouteTableId,
+			LinkRouteTableId: link.LinkRouteTableId,
 		}
 		_, err := provider.client.UnlinkRouteTable(context.Background(), unlinkOps)
 		if err != nil {
@@ -687,8 +687,8 @@ func (provider *OutscaleOAPI) unlinkRouteTable(RouteTableId string) error {
 }
 
 func (provider *OutscaleOAPI) isMainRouteTable(routeTable *osc.RouteTable) bool {
-	for _, link := range *routeTable.LinkRouteTables {
-		if *link.Main {
+	for _, link := range routeTable.LinkRouteTables {
+		if link.Main {
 			return true
 		}
 	}
@@ -801,7 +801,7 @@ func (provider *OutscaleOAPI) readNets() ([]Object, error) {
 	nets := make([]Object, 0)
 	read, err := provider.client.ReadNets(context.Background(), osc.ReadNetsRequest{
 		Filters: &osc.FiltersNet{
-			States: &[]string{"pending", "available"}, // skipping deleting
+			States: &[]osc.NetState{"pending", "available"}, // skipping deleting
 		},
 	})
 	if err != nil {
@@ -862,7 +862,7 @@ func (provider *OutscaleOAPI) readImages() ([]Object, error) {
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error while reading images: %v\n", getErrorInfo(err))
-		return nil, fmt.Errorf("read images: %w")
+		return nil, fmt.Errorf("read images: %w", err)
 	}
 	for _, image := range *read.Images {
 		images = append(images, image.ImageId)
@@ -897,7 +897,7 @@ func (provider *OutscaleOAPI) readSnapshots() ([]Object, error) {
 	read, err := provider.client.ReadSnapshots(context.Background(), osc.ReadSnapshotsRequest{
 		Filters: &osc.FiltersSnapshot{
 			AccountIds: &accountIds,
-			States: &[]string{
+			States: &[]osc.SnapshotState{
 				"in-queue", "pending", "completed", "error", // skipping deleting
 			},
 		},
@@ -1095,7 +1095,7 @@ func (provider *OutscaleOAPI) readNetAccessPoints() ([]Object, error) {
 		context.Background(),
 		osc.ReadNetAccessPointsRequest{
 			Filters: &osc.FiltersNetAccessPoint{
-				States: &[]string{
+				States: &[]osc.NetAccessPointState{
 					"pending", "available", // skipping deleting, deleted
 				},
 			},
@@ -1132,7 +1132,7 @@ func (provider *OutscaleOAPI) readNetPeerings() ([]Object, error) {
 		context.Background(),
 		osc.ReadNetPeeringsRequest{
 			Filters: &osc.FiltersNetPeering{
-				StateNames: &[]string{
+				StateNames: &[]osc.NetPeeringStateName{
 					"pending-acceptance", "active", "rejected", "failed", "expired", // skipping deleted
 				},
 			},
