@@ -291,7 +291,11 @@ func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) {
 			vmsToForce = append(vmsToForce, vmId)
 		}
 	}
-	log.Printf("Shutting down virtual machines: %s...\n", vmsToForce)
+	if len(vmsToForce) == 0 {
+		return
+	}
+
+	log.Printf("Shutting down virtual machines: %v...\n", vmsToForce)
 	forceStop := true
 	stopOpts := osc.StopVmsRequest{
 		VmIds:     vmsToForce,
@@ -862,7 +866,7 @@ func (provider *OutscaleOAPI) readImages() ([]Object, error) {
 	})
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "Error while reading images: %v\n", getErrorInfo(err))
-		return nil, fmt.Errorf("read images: %w")
+		return nil, fmt.Errorf("read images: %w", err)
 	}
 	for _, image := range *read.Images {
 		images = append(images, image.ImageId)
