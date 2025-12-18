@@ -291,7 +291,11 @@ func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) {
 			vmsToForce = append(vmsToForce, vmId)
 		}
 	}
-	log.Printf("Shutting down virtual machines: %s...\n", vmsToForce)
+	if len(vmsToForce) == 0 {
+		return
+	}
+
+	log.Printf("Shutting down virtual machines: %v...\n", vmsToForce)
 	forceStop := true
 	stopOpts := osc.StopVmsRequest{
 		VmIds:     vmsToForce,
