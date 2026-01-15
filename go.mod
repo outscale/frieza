@@ -6,7 +6,7 @@ toolchain go1.24.5
 
 require (
 	github.com/aws/aws-sdk-go v1.55.8
-	github.com/outscale/osc-sdk-go/v3 v3.0.0-beta.2
+	github.com/outscale/osc-sdk-go/v3 v3.0.0-beta.3
 	github.com/teris-io/cli v1.0.1
 )
 

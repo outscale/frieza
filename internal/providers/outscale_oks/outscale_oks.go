@@ -29,7 +29,7 @@ func (provider *OutscaleOKS) StringObject(object string, typeName string) string
 func New(config ProviderConfig, debug bool) (*OutscaleOKS, error) {
 	profileName := config["profile"]
 	profilePath := config["path"]
-	profile, err := profile.NewProfileFromStandardConfiguration(profileName, profilePath)
+	profile, err := profile.NewFrom(profileName, profilePath)
 	if err != nil {
 		return nil, err
 	}

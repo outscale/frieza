@@ -61,7 +61,7 @@ type apiCache struct {
 func New(config ProviderConfig, debug bool) (*OutscaleOAPI, error) {
 	profileName := config["profile"]
 	profilePath := config["path"]
-	profile, err := profile.NewProfileFromStandardConfiguration(profileName, profilePath)
+	profile, err := profile.NewFrom(profileName, profilePath)
 	if err != nil {
 		return nil, err
 	}
@@ -1055,8 +1055,8 @@ func (provider *OutscaleOAPI) readNics() ([]Object, error) {
 		return nil, fmt.Errorf("read nics: %w", getErrorInfo(err))
 	}
 	for i, nic := range *read.Nics {
-		nics = append(nics, *nic.NicId)
-		provider.cache.nics[*nic.NicId] = &(*read.Nics)[i]
+		nics = append(nics, nic.NicId)
+		provider.cache.nics[nic.NicId] = &(*read.Nics)[i]
 	}
 	return nics, nil
 }
@@ -1067,16 +1067,16 @@ func (provider *OutscaleOAPI) unlinkNics(nics []Object) {
 		if nic == nil {
 			continue
 		}
-		switch *nic.State {
+		switch nic.State {
 		case "attaching", "in-use":
 		default:
 			continue
 		}
-		if nic.LinkNic == nil || nic.LinkNic.LinkNicId == nil {
+		if nic.LinkNic == nil {
 			continue
 		}
 		log.Printf("Unlinking nic %s... ", nicId)
-		unlinkOpts := osc.UnlinkNicRequest{LinkNicId: *nic.LinkNic.LinkNicId}
+		unlinkOpts := osc.UnlinkNicRequest{LinkNicId: nic.LinkNic.LinkNicId}
 		_, err := provider.client.UnlinkNic(context.Background(), unlinkOpts)
 		if err != nil {
 			log.Printf("Error while unlinking nic: %v\n", getErrorInfo(err))
