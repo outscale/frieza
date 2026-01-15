@@ -31,6 +31,7 @@ const (
 	typeSnapshot        = "snapshot"
 	typeVpnConnection   = "vpn_connection"
 	typeVirtualGateway  = "virtual_gateway"
+	typeClientGateway   = "client_gateway"
 	typeNic             = "nic"
 	typeAccessKey       = "access_key"
 	typeNetAccessPoint  = "net_access_point"
@@ -99,6 +100,7 @@ func Types() []ObjectType {
 		typeNic,
 		typeVpnConnection,
 		typeVirtualGateway,
+		typeClientGateway,
 		typePublicIp,
 		typeNetAccessPoint,
 		typeNetPeering,
@@ -170,6 +172,8 @@ func (provider *OutscaleOAPI) ReadObjects(typeName string) ([]Object, error) {
 		return provider.readVpnConnections()
 	case typeVirtualGateway:
 		return provider.readVirtualGateways()
+	case typeClientGateway:
+		return provider.readClientGateways()
 	case typeNic:
 		return provider.readNics()
 	case typeAccessKey:
@@ -224,6 +228,8 @@ func (provider *OutscaleOAPI) DeleteObjects(typeName string, objects []Object) {
 		provider.deleteVpnConnections(objects)
 	case typeVirtualGateway:
 		provider.deleteVirtualGateways(objects)
+	case typeClientGateway:
+		provider.deleteClientGateways(objects)
 	case typeNic:
 		provider.deleteNics(objects)
 	case typeAccessKey:
@@ -999,6 +1005,43 @@ func (provider *OutscaleOAPI) deleteVirtualGateways(virtualGateways []Object) {
 		_, err := provider.client.DeleteVirtualGateway(context.Background(), deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting virtual gateway: %v\n", getErrorInfo(err))
+		} else {
+			log.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readClientGateways() ([]Object, error) {
+	clientGateways := make([]Object, 0)
+	read, err := provider.client.ReadClientGateways(
+		context.Background(),
+		osc.ReadClientGatewaysRequest{
+			Filters: &osc.FiltersClientGateway{
+				States: &[]string{
+					"pending", "available", // skipping deleting, deleted
+				},
+			},
+		},
+	)
+	if err != nil {
+		return nil, fmt.Errorf("read client gateways: %w", getErrorInfo(err))
+	}
+	for _, clientGateway := range *read.ClientGateways {
+		clientGateways = append(clientGateways, *clientGateway.ClientGatewayId)
+	}
+	return clientGateways, nil
+}
+
+func (provider *OutscaleOAPI) deleteClientGateways(clientGateways []Object) {
+	if len(clientGateways) == 0 {
+		return
+	}
+	for _, clientGateway := range clientGateways {
+		log.Printf("Deleting client gateway %s... ", clientGateway)
+		deletionOpts := osc.DeleteClientGatewayRequest{ClientGatewayId: clientGateway}
+		_, err := provider.client.DeleteClientGateway(context.Background(), deletionOpts)
+		if err != nil {
+			log.Printf("Error while deleting client gateway: %v\n", getErrorInfo(err))
 		} else {
 			log.Println("OK")
 		}
