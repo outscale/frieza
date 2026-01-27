@@ -41,6 +41,7 @@ const (
 	typePolicy          = "policy"
 	typePolicyLink      = "policy_link"
 	typePolicyVersion   = "policy_version"
+	typeFlexibleGpu     = "flexible_gpu"
 )
 
 type OutscaleOAPI struct {
@@ -56,6 +57,7 @@ type apiCache struct {
 	nics             map[Object]*osc.Nic
 	routeTables      map[Object]*osc.RouteTable
 	securityGroups   map[Object]*osc.SecurityGroup
+	flexibleGpus     map[Object]*osc.FlexibleGpu
 }
 
 func New(config ProviderConfig, debug bool) (*OutscaleOAPI, error) {
@@ -116,6 +118,7 @@ func Types() []ObjectType {
 		typePolicyLink,
 		typePolicy,
 		typePolicyVersion,
+		typeFlexibleGpu,
 	}
 	return object_types
 }
@@ -192,6 +195,8 @@ func (provider *OutscaleOAPI) ReadObjects(typeName string) ([]Object, error) {
 		return provider.readPolicyLinks()
 	case typePolicyVersion:
 		return provider.readPolicyVersions()
+	case typeFlexibleGpu:
+		return provider.readFlexibleGpus()
 	}
 	return []Object{}, nil
 }
@@ -248,6 +253,8 @@ func (provider *OutscaleOAPI) DeleteObjects(typeName string, objects []Object) {
 		provider.deletePolicyLinks(objects)
 	case typePolicyVersion:
 		provider.deletePolicyVersions(objects)
+	case typeFlexibleGpu:
+		provider.deleteFlexibleGpus(objects)
 	}
 }
 
@@ -1442,5 +1449,58 @@ func (provider *OutscaleOAPI) deletePolicyVersions(policyVersions []Object) {
 			log.Print("Error while deleting policy version: %w", err)
 		}
 
+	}
+}
+
+func (provider *OutscaleOAPI) readFlexibleGpus() ([]Object, error) {
+	flexibleGpus := make([]Object, 0)
+
+	read, err := provider.client.ReadFlexibleGpus(context.Background(), osc.ReadFlexibleGpusRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("read flexible gpus: %w", getErrorInfo(err))
+	}
+	for i, gpu := range *read.FlexibleGpus {
+		flexibleGpus = append(flexibleGpus, *gpu.FlexibleGpuId)
+		provider.cache.flexibleGpus[*gpu.FlexibleGpuId] = &(*read.FlexibleGpus)[i]
+	}
+	return flexibleGpus, nil
+}
+
+func (provider *OutscaleOAPI) unlinkFlexibleGpus(flexibleGpus []Object) {
+	for _, gpuObj := range flexibleGpus {
+		gpu := provider.cache.flexibleGpus[gpuObj]
+		if gpu == nil {
+			continue
+		}
+		switch *gpu.State {
+		case "attaching", "attached":
+		default:
+			continue
+		}
+		log.Printf("Unlinking flexible gpu %s... ", *gpu.FlexibleGpuId)
+		unlinkOpts := osc.UnlinkFlexibleGpuRequest{FlexibleGpuId: *gpu.FlexibleGpuId}
+		_, err := provider.client.UnlinkFlexibleGpu(context.Background(), unlinkOpts)
+		if err != nil {
+			log.Printf("Error while unlinking flexible gpu: %v\n", getErrorInfo(err))
+			continue
+		}
+		log.Println("OK")
+	}
+}
+
+func (provider *OutscaleOAPI) deleteFlexibleGpus(flexibleGpus []Object) {
+	if len(flexibleGpus) == 0 {
+		return
+	}
+	provider.unlinkFlexibleGpus(flexibleGpus)
+	for _, gpu := range flexibleGpus {
+		log.Printf("Releasing flexible gpu %s... ", gpu)
+		deleteOpts := osc.DeleteFlexibleGpuRequest{FlexibleGpuId: gpu}
+		_, err := provider.client.DeleteFlexibleGpu(context.Background(), deleteOpts)
+		if err != nil {
+			log.Print("Error while deleting flexible gpu: %w", err)
+		} else {
+			log.Println("OK")
+		}
 	}
 }
