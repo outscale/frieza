@@ -270,6 +270,7 @@ func newAPICache() apiCache {
 		nics:             make(map[string]*osc.Nic),
 		routeTables:      make(map[string]*osc.RouteTable),
 		securityGroups:   make(map[string]*osc.SecurityGroup),
+		flexibleGpus:     make(map[string]*osc.FlexibleGpu),
 	}
 }
 
