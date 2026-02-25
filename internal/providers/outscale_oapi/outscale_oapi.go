@@ -750,7 +750,7 @@ func (provider *OutscaleOAPI) readInternetServices() ([]Object, error) {
 
 func (provider *OutscaleOAPI) unlinkInternetSevice(internetServiceId string) error {
 	internetService := provider.cache.internetServices[internetServiceId]
-	if internetService == nil {
+	if internetService == nil || internetService.NetId == "" {
 		return nil
 	}
 	log.Printf("Unlinking internet service %s... ", internetServiceId)
