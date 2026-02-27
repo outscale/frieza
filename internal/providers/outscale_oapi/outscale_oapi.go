@@ -16,32 +16,34 @@ import (
 const (
 	Name = "outscale_oapi"
 
-	typeVm              = "vm"
-	typeLoadBalancer    = "load_balancer"
-	typeNatService      = "nat_service"
-	typeSecurityGroup   = "security_group"
-	typePublicIp        = "public_ip"
-	typeVolume          = "volume"
-	typeKeypair         = "keypair"
-	typeRouteTable      = "route_table"
-	typeInternetService = "internet_service"
-	typeSubnet          = "subnet"
-	typeNet             = "net"
-	typeImage           = "image"
-	typeSnapshot        = "snapshot"
-	typeVpnConnection   = "vpn_connection"
-	typeVirtualGateway  = "virtual_gateway"
-	typeClientGateway   = "client_gateway"
-	typeNic             = "nic"
-	typeAccessKey       = "access_key"
-	typeNetAccessPoint  = "net_access_point"
-	typeNetPeering      = "net_peering"
-	typeUser            = "user"
-	typeUserAccessKey   = "user_access_key"
-	typePolicy          = "policy"
-	typePolicyLink      = "policy_link"
-	typePolicyVersion   = "policy_version"
-	typeFlexibleGpu     = "flexible_gpu"
+	typeVm                = "vm"
+	typeLoadBalancer      = "load_balancer"
+	typeNatService        = "nat_service"
+	typeSecurityGroup     = "security_group"
+	typePublicIp          = "public_ip"
+	typeVolume            = "volume"
+	typeKeypair           = "keypair"
+	typeRouteTable        = "route_table"
+	typeInternetService   = "internet_service"
+	typeSubnet            = "subnet"
+	typeNet               = "net"
+	typeImage             = "image"
+	typeSnapshot          = "snapshot"
+	typeVpnConnection     = "vpn_connection"
+	typeVirtualGateway    = "virtual_gateway"
+	typeClientGateway     = "client_gateway"
+	typeNic               = "nic"
+	typeAccessKey         = "access_key"
+	typeNetAccessPoint    = "net_access_point"
+	typeNetPeering        = "net_peering"
+	typeUser              = "user"
+	typeUserAccessKey     = "user_access_key"
+	typePolicy            = "policy"
+	typePolicyLink        = "policy_link"
+	typePolicyVersion     = "policy_version"
+	typeFlexibleGpu       = "flexible_gpu"
+	typeCa                = "ca"
+	typeServerCertificate = "server_certificate"
 )
 
 type OutscaleOAPI struct {
@@ -119,6 +121,8 @@ func Types() []ObjectType {
 		typePolicy,
 		typePolicyVersion,
 		typeFlexibleGpu,
+		typeCa,
+		typeServerCertificate,
 	}
 	return object_types
 }
@@ -197,6 +201,10 @@ func (provider *OutscaleOAPI) ReadObjects(typeName string) ([]Object, error) {
 		return provider.readPolicyVersions()
 	case typeFlexibleGpu:
 		return provider.readFlexibleGpus()
+	case typeCa:
+		return provider.readCas()
+	case typeServerCertificate:
+		return provider.readServerCertificates()
 	}
 	return []Object{}, nil
 }
@@ -255,6 +263,10 @@ func (provider *OutscaleOAPI) DeleteObjects(typeName string, objects []Object) {
 		provider.deletePolicyVersions(objects)
 	case typeFlexibleGpu:
 		provider.deleteFlexibleGpus(objects)
+	case typeCa:
+		provider.deleteCas(objects)
+	case typeServerCertificate:
+		provider.deleteServerCertificates(objects)
 	}
 }
 
@@ -1500,6 +1512,62 @@ func (provider *OutscaleOAPI) deleteFlexibleGpus(flexibleGpus []Object) {
 		_, err := provider.client.DeleteFlexibleGpu(context.Background(), deleteOpts)
 		if err != nil {
 			log.Print("Error while deleting flexible gpu: %w", err)
+		} else {
+			log.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readCas() ([]Object, error) {
+	cas := make([]Object, 0)
+	read, err := provider.client.ReadCas(context.Background(), osc.ReadCasRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("read cas: %w", getErrorInfo(err))
+	}
+	for _, ca := range *read.Cas {
+		cas = append(cas, *ca.CaId)
+	}
+	return cas, nil
+}
+
+func (provider *OutscaleOAPI) deleteCas(cas []Object) {
+	if len(cas) == 0 {
+		return
+	}
+	for _, ca := range cas {
+		log.Printf("Deleting CA %s... ", ca)
+		deleteOpts := osc.DeleteCaRequest{CaId: ca}
+		_, err := provider.client.DeleteCa(context.Background(), deleteOpts)
+		if err != nil {
+			log.Printf("Error while deleting CA: %v\n", getErrorInfo(err))
+		} else {
+			log.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readServerCertificates() ([]Object, error) {
+	serverCertificates := make([]Object, 0)
+	read, err := provider.client.ReadServerCertificates(context.Background(), osc.ReadServerCertificatesRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("read server certificates: %w", getErrorInfo(err))
+	}
+	for _, cert := range *read.ServerCertificates {
+		serverCertificates = append(serverCertificates, *cert.Name)
+	}
+	return serverCertificates, nil
+}
+
+func (provider *OutscaleOAPI) deleteServerCertificates(serverCertificates []Object) {
+	if len(serverCertificates) == 0 {
+		return
+	}
+	for _, cert := range serverCertificates {
+		log.Printf("Deleting server certificate %s... ", cert)
+		deleteOpts := osc.DeleteServerCertificateRequest{Name: cert}
+		_, err := provider.client.DeleteServerCertificate(context.Background(), deleteOpts)
+		if err != nil {
+			log.Printf("Error while deleting server certificate: %v\n", getErrorInfo(err))
 		} else {
 			log.Println("OK")
 		}
