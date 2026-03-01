@@ -6,14 +6,14 @@ toolchain go1.24.5
 
 require (
 	github.com/aws/aws-sdk-go v1.55.8
-	github.com/outscale/osc-sdk-go/v3 v3.0.0-beta.3
+	github.com/outscale/osc-sdk-go/v3 v3.0.0-beta.4
 	github.com/teris-io/cli v1.0.1
 )
 
 require (
 	dario.cat/mergo v1.0.2 // indirect
 	github.com/apapsch/go-jsonmerge/v2 v2.0.0 // indirect
-	github.com/aws/smithy-go/aws-http-auth v1.0.0 // indirect
+	github.com/aws/smithy-go/aws-http-auth v1.1.1 // indirect
 	github.com/benbjohnson/clock v1.3.0 // indirect
 	github.com/google/uuid v1.5.0 // indirect
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
