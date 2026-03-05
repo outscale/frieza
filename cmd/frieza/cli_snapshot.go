@@ -110,12 +110,14 @@ func snapshotNew(customConfigPath string, args []string) {
 		found := false
 		for _, profile := range config.Profiles {
 			if profileName == profile.Name {
-				provider, err := ProviderNew(profile)
+				profileProviders, err := ProviderNew(profile)
 				if err != nil {
 					log.Fatalf("Cannot initialize profile %s: %s", profile.Name, err.Error())
 				}
-				providers = append(providers, provider)
-				profiles = append(profiles, profile.Name)
+				providers = append(providers, profileProviders...)
+				for range profileProviders {
+					profiles = append(profiles, profile.Name)
+				}
 				found = true
 				break
 			}
@@ -144,8 +146,9 @@ func snapshotNew(customConfigPath string, args []string) {
 			log.Fatalf("Error reading objects: %v\n", err)
 		}
 		snapshot.Data = append(snapshot.Data, SnapshotData{
-			Profile: profiles[i],
-			Objects: objs,
+			Profile:  profiles[i],
+			Provider: provider.Name(),
+			Objects:  objs,
 		})
 	}
 	if err = snapshot.Write(); err != nil {
@@ -185,9 +188,6 @@ func snapshotDescribe(customConfigPath string, snapshotName *string) {
 	config, err := ConfigLoadWithDefault(configPath)
 	if err != nil {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
-	}
-	if err != nil {
-		log.Fatalf("Error while reading snapshots: %s", err.Error())
 	}
 	snapshot, err := SnapshotLoad(*snapshotName, config)
 	if err != nil {
@@ -233,43 +233,45 @@ func snapshotUpdate(customConfigPath string, snapshotName *string, incrementalUp
 		if err != nil {
 			log.Fatalf("Error while getting profile %s: %s", data.Profile, err.Error())
 		}
-		provider, err := ProviderNew(*profile)
+		providers, err := ProviderNew(*profile)
 		if err != nil {
 			log.Fatalf("Error intializing profile %s: %s", data.Profile, err.Error())
 		}
 
-		if err := provider.AuthTest(); err != nil {
-			log.Fatalf("Provider test failed for profile %s: %s", profile.Name, err.Error())
-		}
-
-		objects, err := ReadObjects(&provider)
-		if err != nil {
-			log.Fatalf("Error reading objects: %v\n", err)
-		}
-		diff := NewDiff()
-		diff.Build(&data.Objects, &objects)
-		for key, value := range diff.Created {
-			var objectToAdd []string
-			if incrementalUpdate {
-				incrementObject, err := incrementalChoice(key, value)
-				if err != nil {
-					log.Fatalf("Snapshot failed: %s", err.Error())
-				}
-
-				if incrementObject == nil {
-					log.Fatalf("Snapshot update cancels")
-				}
-				objectToAdd = append(objectToAdd, (*incrementObject)...)
-			} else {
-				objectToAdd = value
+		for _, provider := range providers {
+			if err := provider.AuthTest(); err != nil {
+				log.Fatalf("Provider %s test failed for profile %s: %s", provider.Name(), profile.Name, err.Error())
 			}
 
-			if snapshotValue, ok := data.Objects[key]; ok {
-				data.Objects[key] = append(snapshotValue, objectToAdd...)
-			} else {
-				data.Objects[key] = objectToAdd
+			objects, err := ReadObjects(&provider)
+			if err != nil {
+				log.Fatalf("Error reading objects: %v\n", err)
 			}
+			diff := NewDiff()
+			diff.Build(&data.Objects, &objects)
+			for key, value := range diff.Created {
+				var objectToAdd []string
+				if incrementalUpdate {
+					incrementObject, err := incrementalChoice(key, value)
+					if err != nil {
+						log.Fatalf("Snapshot failed: %s", err.Error())
+					}
 
+					if incrementObject == nil {
+						log.Fatalf("Snapshot update cancels")
+					}
+					objectToAdd = append(objectToAdd, (*incrementObject)...)
+				} else {
+					objectToAdd = value
+				}
+
+				if snapshotValue, ok := data.Objects[key]; ok {
+					data.Objects[key] = append(snapshotValue, objectToAdd...)
+				} else {
+					data.Objects[key] = objectToAdd
+				}
+
+			}
 		}
 	}
 

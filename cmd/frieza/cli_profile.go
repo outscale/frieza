@@ -2,6 +2,7 @@ package main
 
 import (
 	"log"
+	"slices"
 
 	. "github.com/outscale/frieza/internal/common"
 	"github.com/teris-io/cli"
@@ -13,7 +14,9 @@ func cliProfile() cli.Command {
 		WithCommand(cliProfileDescribe()).
 		WithCommand(cliProfileNew()).
 		WithCommand(cliProfileRm()).
-		WithCommand(cliProfileTest())
+		WithCommand(cliProfileTest()).
+		WithCommand(cliProfileAddProvider()).
+		WithCommand(cliProfileRemoveProvider())
 }
 
 func cliProfileLs() cli.Command {
@@ -51,9 +54,9 @@ func cliProfileNew() cli.Command {
 			WithAction(func(args []string, options map[string]string) int {
 				setupDebug(options)
 				profile := Profile{
-					Name:     args[0],
-					Provider: name,
-					Config:   options,
+					Name:      args[0],
+					Providers: []string{name},
+					Config:    options,
 				}
 				profileNew(options["config"], profile)
 				return 0
@@ -178,17 +181,20 @@ func profileTest(customConfigPath string, profileName *string) {
 
 	for _, profile := range config.Profiles {
 		if *profileName == profile.Name {
-			p, err := ProviderNew(profile)
+			providers, err := ProviderNew(profile)
 			if err != nil {
 				log.Fatalf(
-					"Cannot initialize provider %s with profile %s: %s",
-					profile.Provider,
+					"Cannot initialize providers for profile %s: %s",
 					profile.Name,
 					err.Error(),
 				)
 			}
-			if err := p.AuthTest(); err != nil {
-				log.Fatalf("Provider test failed: %s", err.Error())
+			for _, p := range providers {
+				log.Printf("Testing provider %s...", p.Name())
+				if err := p.AuthTest(); err != nil {
+					log.Fatalf("Provider %s test failed: %s", p.Name(), err.Error())
+				}
+				log.Printf("Provider %s test passed", p.Name())
 			}
 			return
 		}
@@ -198,4 +204,115 @@ func profileTest(customConfigPath string, profileName *string) {
 
 func removeProfileIndex(s []Profile, index int) []Profile {
 	return append(s[:index], s[index+1:]...)
+}
+
+func cliProfileAddProvider() cli.Command {
+	cmd := cli.NewCommand("add-provider", "add a provider to an existing profile")
+
+	for _, providerCli := range providersCli {
+		providerName, _ := providerCli()
+		subCmd := cli.NewCommand(providerName, "add "+providerName+" provider").
+			WithArg(cli.NewArg("profile_name", "profile's name")).
+			WithOption(cliConfigPath()).
+			WithOption(cliDebug()).
+			WithAction(func(args []string, options map[string]string) int {
+				setupDebug(options)
+				profileName := args[0]
+				profileAddProvider(options["config"], profileName, providerName)
+				return 0
+			})
+		cmd.WithCommand(subCmd)
+	}
+	return cmd
+}
+
+func cliProfileRemoveProvider() cli.Command {
+	cmd := cli.NewCommand("remove-provider", "remove a provider from a profile")
+
+	for _, providerCli := range providersCli {
+		providerName, _ := providerCli()
+		subCmd := cli.NewCommand(providerName, "remove "+providerName+" provider").
+			WithArg(cli.NewArg("profile_name", "profile's name")).
+			WithOption(cliConfigPath()).
+			WithOption(cliDebug()).
+			WithAction(func(args []string, options map[string]string) int {
+				setupDebug(options)
+				profileName := args[0]
+				profileRemoveProvider(options["config"], profileName, providerName)
+				return 0
+			})
+		cmd.WithCommand(subCmd)
+	}
+	return cmd
+}
+
+func profileAddProvider(customConfigPath string, profileName string, providerName string) {
+	var configPath *string
+	if len(customConfigPath) > 0 {
+		configPath = &customConfigPath
+	}
+	config, err := ConfigLoadWithDefault(configPath)
+	if err != nil {
+		log.Fatalf("Cannot load configuration: %s", err.Error())
+	}
+
+	for i := range config.Profiles {
+		profile := &config.Profiles[i]
+		if profileName == profile.Name {
+			currentProviders, err := profile.GetProviders()
+			if err != nil {
+				log.Fatalf("Error reading profile providers: %s", err.Error())
+			}
+
+			if slices.Contains(currentProviders, providerName) {
+				log.Fatalf("Provider %s already exists in profile %s", providerName, profileName)
+			}
+			profile.Provider = ""
+			profile.Providers = append(currentProviders, providerName)
+			if err := config.Write(configPath); err != nil {
+				log.Fatalf("Failed to write config: %s", err.Error())
+			}
+			log.Printf("Added provider %s to profile %s", providerName, profileName)
+			return
+		}
+	}
+	log.Fatal("Profile not found")
+}
+
+func profileRemoveProvider(customConfigPath string, profileName string, providerName string) {
+	var configPath *string
+	if len(customConfigPath) > 0 {
+		configPath = &customConfigPath
+	}
+	config, err := ConfigLoadWithDefault(configPath)
+	if err != nil {
+		log.Fatalf("Cannot load configuration: %s", err.Error())
+	}
+
+	for i := range config.Profiles {
+		profile := &config.Profiles[i]
+		if profileName == profile.Name {
+			currentProviders, err := profile.GetProviders()
+			if err != nil {
+				log.Fatalf("Error reading profile providers: %s", err.Error())
+			}
+
+			newProviders := slices.DeleteFunc(currentProviders, func(p string) bool { return p == providerName })
+			if len(newProviders) == len(currentProviders) {
+				log.Fatalf("Provider %s not found in profile %s", providerName, profileName)
+			}
+			if len(newProviders) == 0 {
+				log.Fatalf("Cannot remove the last provider from profile %s. Delete the profile instead.", profileName)
+			}
+
+			profile.Provider = ""
+			profile.Providers = newProviders
+			if err := config.Write(configPath); err != nil {
+				log.Fatalf("Failed to write config: %s", err.Error())
+			}
+			log.Printf("Removed provider %s from profile %s", providerName, profileName)
+			return
+		}
+	}
+	log.Fatal("Profile not found")
 }

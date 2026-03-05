@@ -19,8 +19,9 @@ type Snapshot struct {
 }
 
 type SnapshotData struct {
-	Profile string  `json:"profile"`
-	Objects Objects `json:"objects"`
+	Profile  string  `json:"profile"`
+	Provider string  `json:"provider"`
+	Objects  Objects `json:"objects"`
 }
 
 type Diff struct {
