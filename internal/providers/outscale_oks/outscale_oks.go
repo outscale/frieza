@@ -6,8 +6,8 @@ import (
 
 	. "github.com/outscale/frieza/internal/common"
 	"github.com/outscale/osc-sdk-go/v3/pkg/oks"
+	"github.com/outscale/osc-sdk-go/v3/pkg/options"
 	"github.com/outscale/osc-sdk-go/v3/pkg/profile"
-	oscutils "github.com/outscale/osc-sdk-go/v3/pkg/utils"
 	"github.com/teris-io/cli"
 )
 
@@ -46,7 +46,7 @@ func New(config ProviderConfig, debug bool) (*OutscaleOKS, error) {
 		profile.Region = region
 	}
 
-	client, err := oks.NewClient(profile, oscutils.WithUseragent("frieza/"+FullVersion()))
+	client, err := oks.NewClient(profile, options.WithUseragent("frieza/"+FullVersion()))
 	if err != nil {
 		return nil, err
 	}

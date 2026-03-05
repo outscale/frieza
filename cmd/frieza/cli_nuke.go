@@ -79,18 +79,20 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 		if err != nil {
 			cliFatalf(jsonOutput, "Error while getting profile %s: %s", profileName, err.Error())
 		}
-		provider, err := ProviderNew(*profile)
+		providers, err := ProviderNew(*profile)
 		if err != nil {
 			cliFatalf(jsonOutput, "Error intializing profile %s: %s", profileName, err.Error())
 		}
-		objectsToDelete, err := ReadObjects(&provider)
-		if err != nil {
-			log.Fatalf("Error reading objects: %v", err)
+		for _, provider := range providers {
+			objectsToDelete, err := ReadObjects(&provider)
+			if err != nil {
+				log.Fatalf("Error reading objects: %v", err)
+			}
+			if resourceFilter != nil {
+				objectsToDelete = FiltersObjects(&objectsToDelete, resourceFilter)
+			}
+			destroyer.add(profile, &provider, &objectsToDelete)
 		}
-		if resourceFilter != nil {
-			objectsToDelete = FiltersObjects(&objectsToDelete, resourceFilter)
-		}
-		destroyer.add(profile, &provider, &objectsToDelete)
 	}
 
 	destroyer.print(jsonOutput)

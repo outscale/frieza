@@ -38,7 +38,7 @@ func (destroyer *Destroyer) add(profile *Profile, provider *Provider, objectsToD
 		profile: profile,
 		JsonProfile: &DestroyerProfile{
 			Name:     profile.Name,
-			Provider: profile.Provider,
+			Provider: (*provider).Name(),
 		},
 		provider: provider,
 		Objects:  objectsToDelete,
@@ -57,7 +57,7 @@ func (destroyer *Destroyer) print(json bool) {
 func (destroyer *Destroyer) print_human() {
 	count := len(destroyer.Targets)
 	totalObjectCount := 0
-	for i := 0; i < count; i++ {
+	for i := range count {
 		target := destroyer.Targets[i]
 		log.Printf(
 			"Objects to delete in profile %s (%s):\n",

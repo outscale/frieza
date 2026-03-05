@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"log"
+	"slices"
 	"strings"
 
 	. "github.com/outscale/frieza/internal/common"
@@ -71,26 +72,38 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 
 	destroyer := NewDestroyer()
 	objectsCount := 0
+
 	for _, data := range snapshot.Data {
 		profile, err := config.GetProfile(data.Profile)
 		if err != nil {
 			cliFatalf(jsonOutput, "Error while getting profile %s: %s", data.Profile, err.Error())
 		}
-		provider, err := ProviderNew(*profile)
+
+		providers, err := ProviderNew(*profile)
 		if err != nil {
-			cliFatalf(jsonOutput, "Error intializing profile %s: %s", data.Profile, err.Error())
+			cliFatalf(jsonOutput, "Error initializing profile %s: %s", data.Profile, err.Error())
 		}
-		objects, err := ReadObjects(&provider)
+
+		idx := slices.IndexFunc(providers, func(p Provider) bool {
+			return p.Name() == data.Provider
+		})
+		if idx == -1 {
+			continue
+		}
+
+		provider := &providers[idx]
+		currentObjects, err := ReadObjects(provider)
 		if err != nil {
 			log.Fatalf("Error reading objects: %v", err)
 		}
 		if resourcesFilter != nil {
-			objects = FiltersObjects(&objects, resourcesFilter)
+			currentObjects = FiltersObjects(&currentObjects, resourcesFilter)
 		}
+
 		diff := NewDiff()
-		diff.Build(&data.Objects, &objects)
+		diff.Build(&data.Objects, &currentObjects)
 		objectsCount += ObjectsCount(&diff.Created)
-		destroyer.add(profile, &provider, &diff.Created)
+		destroyer.add(profile, provider, &diff.Created)
 	}
 
 	destroyer.print(jsonOutput)
