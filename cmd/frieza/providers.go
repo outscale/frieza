@@ -7,6 +7,7 @@ import (
 	"github.com/outscale/frieza/internal/providers/fs"
 	oapi "github.com/outscale/frieza/internal/providers/outscale_oapi"
 	oks "github.com/outscale/frieza/internal/providers/outscale_oks"
+	oos "github.com/outscale/frieza/internal/providers/outscale_oos"
 	"github.com/outscale/frieza/internal/providers/s3"
 	"github.com/teris-io/cli"
 )
@@ -29,6 +30,8 @@ func ProviderNew(profile Profile) ([]Provider, error) {
 			provider, err = fs.New(profile.Config, GlobalCliOptions.debug)
 		case oks.Name:
 			provider, err = oks.New(profile.Config, GlobalCliOptions.debug)
+		case oos.Name:
+			provider, err = oos.New(profile.Config, GlobalCliOptions.debug)
 		default:
 			return nil, fmt.Errorf("provider %s not found", providerName)
 		}
@@ -48,6 +51,7 @@ var providersCli = []func() (string, cli.Command){
 	s3.Cli,
 	fs.Cli,
 	oks.Cli,
+	oos.Cli,
 }
 
 var providersTypes = map[string][]ObjectType{
@@ -55,4 +59,5 @@ var providersTypes = map[string][]ObjectType{
 	oks.Name:  oks.Types(),
 	s3.Name:   s3.Types(),
 	fs.Name:   fs.Types(),
+	oos.Name:  oos.Types(),
 }
