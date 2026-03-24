@@ -973,7 +973,7 @@ func (provider *OutscaleOAPI) readVpnConnections() ([]Object, error) {
 		return nil, fmt.Errorf("read vpn connections: %w", getErrorInfo(err))
 	}
 	for _, vpnConnection := range *read.VpnConnections {
-		vpnConnections = append(vpnConnections, *vpnConnection.VpnConnectionId)
+		vpnConnections = append(vpnConnections, vpnConnection.VpnConnectionId)
 	}
 	return vpnConnections, nil
 }
@@ -1010,7 +1010,7 @@ func (provider *OutscaleOAPI) readVirtualGateways() ([]Object, error) {
 		return nil, fmt.Errorf("read virtual gateways: %w", getErrorInfo(err))
 	}
 	for _, virtualGateway := range *read.VirtualGateways {
-		virtualGateways = append(virtualGateways, *virtualGateway.VirtualGatewayId)
+		virtualGateways = append(virtualGateways, virtualGateway.VirtualGatewayId)
 	}
 	return virtualGateways, nil
 }
@@ -1047,7 +1047,7 @@ func (provider *OutscaleOAPI) readClientGateways() ([]Object, error) {
 		return nil, fmt.Errorf("read client gateways: %w", getErrorInfo(err))
 	}
 	for _, clientGateway := range *read.ClientGateways {
-		clientGateways = append(clientGateways, *clientGateway.ClientGatewayId)
+		clientGateways = append(clientGateways, clientGateway.ClientGatewayId)
 	}
 	return clientGateways, nil
 }
@@ -1172,7 +1172,7 @@ func (provider *OutscaleOAPI) readNetAccessPoints() ([]Object, error) {
 		return nil, fmt.Errorf("read net access points: %w", getErrorInfo(err))
 	}
 	for _, netAccessPoint := range *read.NetAccessPoints {
-		netAccessPoints = append(netAccessPoints, *netAccessPoint.NetAccessPointId)
+		netAccessPoints = append(netAccessPoints, netAccessPoint.NetAccessPointId)
 	}
 	return netAccessPoints, nil
 }
