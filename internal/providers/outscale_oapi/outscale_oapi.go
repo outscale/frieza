@@ -354,7 +354,13 @@ func (provider *OutscaleOAPI) readLoadBalancers() ([]Object, error) {
 	loadBalancers := make([]Object, 0)
 	read, err := provider.client.ReadLoadBalancers(
 		context.Background(),
-		osc.ReadLoadBalancersRequest{},
+		osc.ReadLoadBalancersRequest{
+			Filters: &osc.FiltersLoadBalancer{
+				States: &[]osc.LoadBalancerState{ // skipping deleted, deleting
+					osc.LoadBalancerStateActive, osc.LoadBalancerStateProvisioning, osc.LoadBalancerStateReconfiguring, osc.LoadBalancerStateReloading, osc.LoadBalancerStateStarting,
+				},
+			},
+		},
 	)
 	if err != nil {
 		return nil, fmt.Errorf("read load balancers: %w", getErrorInfo(err))
