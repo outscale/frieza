@@ -102,6 +102,9 @@ func (provider *OutscaleOKS) readCluster() ([]Object, error) {
 	}
 
 	for _, cluster := range read.Clusters {
+		if cluster.Statuses.Status != nil && *cluster.Statuses.Status == "failed" {
+			continue
+		}
 		clusters = append(clusters, cluster.Id)
 	}
 
@@ -116,6 +119,9 @@ func (provider *OutscaleOKS) readProject() ([]Object, error) {
 	}
 
 	for _, project := range read.Projects {
+		if project.Status == oks.ProjectStatusFailed {
+			continue
+		}
 		projectcs = append(projectcs, project.Id)
 	}
 
