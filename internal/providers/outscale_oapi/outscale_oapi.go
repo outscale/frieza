@@ -6,6 +6,7 @@ import (
 	"log"
 	"os"
 	"strings"
+	"time"
 
 	. "github.com/outscale/frieza/internal/common"
 	"github.com/outscale/osc-sdk-go/v3/pkg/options"
@@ -1141,6 +1142,10 @@ func (provider *OutscaleOAPI) readAccessKeys() ([]Object, error) {
 	}
 	for _, accessKey := range *read.AccessKeys {
 		if *accessKey.State == "ACTIVE" {
+			// skip expired access keys that cannot be deleted
+			if time.Now().After(accessKey.ExpirationDate.Time) {
+				continue
+			}
 			accessKeys = append(accessKeys, *accessKey.AccessKeyId)
 		}
 	}
