@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"strings"
 
 	. "github.com/outscale/frieza/internal/common"
 	"github.com/outscale/osc-sdk-go/v3/pkg/options"
@@ -1295,15 +1296,15 @@ func (provider *OutscaleOAPI) deleteUserAccessKeys(accessKeys []Object) {
 		return
 	}
 	for _, accessKey := range accessKeys {
-		var userName, accessKeyId string
 		log.Printf("Deleting user access key %s... ", accessKey)
-		_, err := fmt.Scanf("%s,%s", &userName, &accessKeyId)
-		if err != nil {
+		parts := strings.SplitN(string(accessKey), ",", 2)
+		if len(parts) != 2 {
+			log.Printf("Invalid access key format: %s", accessKey)
 			continue
 		}
 
-		deletionOpts := osc.DeleteAccessKeyRequest{AccessKeyId: accessKeyId, UserName: &userName}
-		_, err = provider.client.DeleteAccessKey(context.Background(), deletionOpts)
+		deletionOpts := osc.DeleteAccessKeyRequest{AccessKeyId: parts[1], UserName: &parts[0]}
+		_, err := provider.client.DeleteAccessKey(context.Background(), deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting user access key: %v\n", getErrorInfo(err))
 		} else {
@@ -1381,12 +1382,15 @@ func (provider *OutscaleOAPI) deletePolicyLinks(policyLinks []Object) {
 	}
 
 	for _, policylink := range policyLinks {
-		var linkType, policyOrn, linkName string
 		log.Printf("Deleting policy link %s... ", policylink)
-		_, err := fmt.Scanf("%s,%s,%s", &linkType, &policyOrn, &linkName)
-		if err != nil {
+		parts := strings.SplitN(string(policylink), ",", 3)
+		if len(parts) != 3 {
+			log.Printf("Invalid policy link format: %s", policylink)
 			continue
 		}
+		linkType := parts[0]
+		policyOrn := parts[1]
+		linkName := parts[2]
 
 		switch linkType {
 		case "USER":
@@ -1452,18 +1456,18 @@ func (provider *OutscaleOAPI) deletePolicyVersions(policyVersions []Object) {
 	}
 
 	for _, policyVersion := range policyVersions {
-		var policyOrn, version string
 		log.Printf("Deleting policy version %s... ", policyVersion)
-		_, err := fmt.Scanf("%s,%s", &policyOrn, &version)
-		if err != nil {
+		parts := strings.SplitN(string(policyVersion), ",", 2)
+		if len(parts) != 2 {
+			log.Printf("Invalid policy version format: %s", policyVersion)
 			continue
 		}
 
 		deleteOpts := osc.DeletePolicyVersionRequest{
-			PolicyOrn: policyOrn,
-			VersionId: version,
+			PolicyOrn: parts[0],
+			VersionId: parts[1],
 		}
-		_, err = provider.client.DeletePolicyVersion(context.Background(), deleteOpts)
+		_, err := provider.client.DeletePolicyVersion(context.Background(), deleteOpts)
 		if err != nil {
 			log.Print("Error while deleting policy version: %w", err)
 		}
