@@ -4,10 +4,10 @@ go 1.26.0
 
 require (
 	github.com/aws/aws-sdk-go v1.55.8
-	github.com/aws/aws-sdk-go-v2 v1.39.6
+	github.com/aws/aws-sdk-go-v2 v1.41.6
 	github.com/aws/aws-sdk-go-v2/config v1.31.21
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.91.0
-	github.com/aws/smithy-go v1.24.2
+	github.com/aws/smithy-go v1.25.0
 	github.com/outscale/osc-sdk-go/v3 v3.0.0-rc.1.0.20260325152615-8ac3c57fdae9
 	github.com/teris-io/cli v1.0.1
 )
