@@ -29,22 +29,18 @@ func cliNuke() cli.Command {
 			if len(options["timeout"]) > 0 {
 				timeout = options["timeout"]
 			}
-			var resourcesTypeFilterPtr ResourceFilter = nil
+
+			var resourcesTypeFilterPtr *ResourceFilterEnvelope
 			if len(options["only-resource-types"]) > 0 && len(options["exclude-resource-types"]) > 0 {
 				cliFatalf(true, "Cannot use --only-resource-types option with --exclude-resource-types")
 			}
 			if len(options["only-resource-types"]) > 0 {
-				resourcesTypeFilter := strings.Split(options["only-resource-types"], ",")
-				resourcesTypeFilterPtr = OnlyFilter{
-					SelectedType: &resourcesTypeFilter,
-				}
+				resourcesTypeFilterPtr = NewResourceFilterOnly(strings.Split(options["only-resource-types"], ","))
 			}
 			if len(options["exclude-resource-types"]) > 0 {
-				resourcesTypeFilter := strings.Split(options["exclude-resource-types"], ",")
-				resourcesTypeFilterPtr = ExcludeFilter{
-					ExcludedType: &resourcesTypeFilter,
-				}
+				resourcesTypeFilterPtr = NewResourceFilterExclude(strings.Split(options["exclude-resource-types"], ","))
 			}
+
 			nuke(options["config"], args, plan, autoApprove, jsonOutput, timeout, resourcesTypeFilterPtr)
 			return 0
 		})
@@ -84,12 +80,9 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 			cliFatalf(jsonOutput, "Error intializing profile %s: %s", profileName, err.Error())
 		}
 		for _, provider := range providers {
-			objectsToDelete, err := ReadObjects(&provider)
+			objectsToDelete, err := ReadObjects(&provider, resourceFilter)
 			if err != nil {
 				log.Fatalf("Error reading objects: %v", err)
-			}
-			if resourceFilter != nil {
-				objectsToDelete = FiltersObjects(&objectsToDelete, resourceFilter)
 			}
 			destroyer.add(profile, &provider, &objectsToDelete)
 		}
