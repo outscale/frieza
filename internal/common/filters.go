@@ -1,30 +1,46 @@
 package common
 
+import (
+	"slices"
+)
+
 type ResourceFilter interface {
-	Select(TypeName string) bool
+	Select(typeName string) bool
 }
 
-type ExcludeFilter struct {
-	ExcludedType *[]ObjectType
-}
-type OnlyFilter struct {
-	SelectedType *[]ObjectType
+type FilterKind string
+
+const (
+	FilterKindExclude FilterKind = "exclude"
+	FilterKindOnly    FilterKind = "only"
+)
+
+type ResourceFilterEnvelope struct {
+	Kind  FilterKind   `json:"kind"`
+	Types []ObjectType `json:"types,omitempty"`
 }
 
-func contains(source []ObjectType, value ObjectType) bool {
-	for _, el := range source {
-		if el == value {
-			return true
-		}
+func NewResourceFilterExclude(excluded []ObjectType) *ResourceFilterEnvelope {
+	return &ResourceFilterEnvelope{
+		Kind:  FilterKindExclude,
+		Types: excluded,
 	}
-	return false
 }
 
-func (f OnlyFilter) Select(TypeName ObjectType) bool {
-	return contains(*f.SelectedType, TypeName)
+func NewResourceFilterOnly(included []ObjectType) *ResourceFilterEnvelope {
+	return &ResourceFilterEnvelope{
+		Kind:  FilterKindOnly,
+		Types: included,
+	}
 }
 
-func (f ExcludeFilter) Select(TypeName string) bool {
-	return !contains(*f.ExcludedType, TypeName)
-
+func (f *ResourceFilterEnvelope) Select(typeName ObjectType) bool {
+	switch f.Kind {
+	case FilterKindExclude:
+		return !slices.Contains(f.Types, typeName)
+	case FilterKindOnly:
+		return slices.Contains(f.Types, typeName)
+	default:
+		return false
+	}
 }

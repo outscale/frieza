@@ -23,12 +23,14 @@ func cliSnapshot() cli.Command {
 func cliSnapshotNew() cli.Command {
 	return cli.NewCommand("new", "create new snapshot containing all resource ids").
 		WithArg(cli.NewArg("snapshot_name", "snapshot name")).
+		WithOption(cli.NewOption("only-resource-types", "Remove only theses resource types (separated by ','). You can see all resource types in the description of the provider.").WithType(cli.TypeString)).
+		WithOption(cli.NewOption("exclude-resource-types", "Remove all except theses resource types (separated by ','). You can see all resource types in the description of the provider.").WithType(cli.TypeString)).
 		WithOption(cliConfigPath()).
 		WithOption(cliDebug()).
 		WithArg(cli.NewArg("profile", "one or more profile to snapshot").AsOptional()).
 		WithAction(func(args []string, options map[string]string) int {
 			setupDebug(options)
-			snapshotNew(options["config"], args)
+			snapshotNew(options["config"], args, options)
 			return 0
 		})
 }
@@ -86,7 +88,7 @@ func cliSnapshotUpdate() cli.Command {
 		})
 }
 
-func snapshotNew(customConfigPath string, args []string) {
+func snapshotNew(customConfigPath string, args []string, options map[string]string) {
 	if len(args) < 2 {
 		log.Fatal("No profile has been chosen to be snapshoted")
 	}
@@ -102,6 +104,17 @@ func snapshotNew(customConfigPath string, args []string) {
 	}
 	if _, err = SnapshotLoad(snapshotName, config); err == nil {
 		log.Fatalf("Snapshot %s already exist", snapshotName)
+	}
+
+	var resourcesTypeFilterPtr *ResourceFilterEnvelope
+	if len(options["only-resource-types"]) > 0 && len(options["exclude-resource-types"]) > 0 {
+		cliFatalf(true, "Cannot use --only-resource-types option with --exclude-resource-types")
+	}
+	if len(options["only-resource-types"]) > 0 {
+		resourcesTypeFilterPtr = NewResourceFilterOnly(strings.Split(options["only-resource-types"], ","))
+	}
+	if len(options["exclude-resource-types"]) > 0 {
+		resourcesTypeFilterPtr = NewResourceFilterExclude(strings.Split(options["exclude-resource-types"], ","))
 	}
 
 	var providers []Provider
@@ -139,9 +152,10 @@ func snapshotNew(customConfigPath string, args []string) {
 		Name:    snapshotName,
 		Date:    date,
 		Config:  config,
+		Filters: resourcesTypeFilterPtr,
 	}
 	for i, provider := range providers {
-		objs, err := ReadObjects(&provider)
+		objs, err := ReadObjects(&provider, resourcesTypeFilterPtr)
 		if err != nil {
 			log.Fatalf("Error reading objects: %v\n", err)
 		}
@@ -243,7 +257,7 @@ func snapshotUpdate(customConfigPath string, snapshotName *string, incrementalUp
 				log.Fatalf("Provider %s test failed for profile %s: %s", provider.Name(), profile.Name, err.Error())
 			}
 
-			objects, err := ReadObjects(&provider)
+			objects, err := ReadObjects(&provider, snapshot.Filters)
 			if err != nil {
 				log.Fatalf("Error reading objects: %v\n", err)
 			}

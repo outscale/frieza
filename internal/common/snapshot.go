@@ -11,11 +11,12 @@ import (
 type Objects = map[ObjectType][]Object
 
 type Snapshot struct {
-	Version int            `json:"version"`
-	Name    string         `json:"name"`
-	Date    string         `json:"date"`
-	Data    []SnapshotData `json:"data"`
-	Config  *Config        `json:"-"`
+	Version int                     `json:"version"`
+	Name    string                  `json:"name"`
+	Date    string                  `json:"date"`
+	Data    []SnapshotData          `json:"data"`
+	Filters *ResourceFilterEnvelope `json:"filters"`
+	Config  *Config                 `json:"-"`
 }
 
 type SnapshotData struct {
@@ -34,9 +35,13 @@ func SnapshotVersion() int {
 	return 0
 }
 
-func ReadObjects(provider *Provider) (Objects, error) {
+func ReadObjects(provider *Provider, filters ResourceFilter) (Objects, error) {
 	objects := make(Objects)
 	for _, typeName := range (*provider).Types() {
+		if filters != nil && !filters.Select(typeName) {
+			continue
+		}
+
 		var err error
 		objects[typeName], err = (*provider).ReadObjects(typeName)
 		if err != nil {
@@ -44,16 +49,6 @@ func ReadObjects(provider *Provider) (Objects, error) {
 		}
 	}
 	return objects, nil
-}
-
-func FiltersObjects(objects *Objects, resourceFilter ResourceFilter) Objects {
-	filteredObjects := make(Objects)
-	for typeName, value := range *objects {
-		if resourceFilter.Select(typeName) {
-			filteredObjects[typeName] = value
-		}
-	}
-	return filteredObjects
 }
 
 func ReadNonEmptyObjects(provider *Provider, nonEmpy Objects) (Objects, error) {
