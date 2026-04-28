@@ -46,7 +46,7 @@ func cliNuke() cli.Command {
 		})
 }
 
-func nuke(customConfigPath string, profiles []string, plan bool, autoApprove bool, jsonOutput bool, timeout string, resourceFilter ResourceFilter) {
+func nuke(customConfigPath string, profiles []string, plan bool, autoApprove bool, jsonOutput bool, timeout string, resourceFilter *ResourceFilterEnvelope) {
 	if jsonOutput && !autoApprove {
 		cliFatalf(true, "Cannot use --json option without --auto-approve")
 	}
