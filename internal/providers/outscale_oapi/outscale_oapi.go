@@ -46,6 +46,7 @@ const (
 	typeFlexibleGpu       = "flexible_gpu"
 	typeCa                = "ca"
 	typeServerCertificate = "server_certificate"
+	typeDhcpOption        = "dhcp_option"
 )
 
 type OutscaleOAPI struct {
@@ -125,6 +126,7 @@ func Types() []ObjectType {
 		typeFlexibleGpu,
 		typeCa,
 		typeServerCertificate,
+		typeDhcpOption,
 	}
 	return object_types
 }
@@ -207,6 +209,8 @@ func (provider *OutscaleOAPI) ReadObjects(typeName string) ([]Object, error) {
 		return provider.readCas()
 	case typeServerCertificate:
 		return provider.readServerCertificates()
+	case typeDhcpOption:
+		return provider.readDhcpOptions()
 	}
 	return []Object{}, nil
 }
@@ -269,6 +273,8 @@ func (provider *OutscaleOAPI) DeleteObjects(typeName string, objects []Object) {
 		provider.deleteCas(objects)
 	case typeServerCertificate:
 		provider.deleteServerCertificates(objects)
+	case typeDhcpOption:
+		provider.deleteDhcpOptions(objects)
 	}
 }
 
@@ -1583,6 +1589,34 @@ func (provider *OutscaleOAPI) deleteServerCertificates(serverCertificates []Obje
 		_, err := provider.client.DeleteServerCertificate(context.Background(), deleteOpts)
 		if err != nil {
 			log.Printf("Error while deleting server certificate: %v\n", getErrorInfo(err))
+		} else {
+			log.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readDhcpOptions() ([]Object, error) {
+	dhcpOptions := make([]Object, 0)
+	read, err := provider.client.ReadDhcpOptions(context.Background(), osc.ReadDhcpOptionsRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("read dhcp options: %w", getErrorInfo(err))
+	}
+	for _, option := range *read.DhcpOptionsSets {
+		dhcpOptions = append(dhcpOptions, *option.DhcpOptionsSetId)
+	}
+	return dhcpOptions, nil
+}
+
+func (provider *OutscaleOAPI) deleteDhcpOptions(dhcpOptions []Object) {
+	if len(dhcpOptions) == 0 {
+		return
+	}
+	for _, option := range dhcpOptions {
+		log.Printf("Deleting DHCP option %s... ", option)
+		deleteOpts := osc.DeleteDhcpOptionsRequest{DhcpOptionsSetId: option}
+		_, err := provider.client.DeleteDhcpOptions(context.Background(), deleteOpts)
+		if err != nil {
+			log.Printf("Error while deleting DHCP option: %v\n", getErrorInfo(err))
 		} else {
 			log.Println("OK")
 		}
