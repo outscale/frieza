@@ -4,10 +4,6 @@ import (
 	"slices"
 )
 
-type ResourceFilter interface {
-	Select(typeName string) bool
-}
-
 type FilterKind string
 
 const (

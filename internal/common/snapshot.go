@@ -35,7 +35,7 @@ func SnapshotVersion() int {
 	return 0
 }
 
-func ReadObjects(provider *Provider, filters ResourceFilter) (Objects, error) {
+func ReadObjects(provider *Provider, filters *ResourceFilterEnvelope) (Objects, error) {
 	objects := make(Objects)
 	for _, typeName := range (*provider).Types() {
 		if filters != nil && !filters.Select(typeName) {
