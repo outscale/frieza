@@ -4,6 +4,7 @@
 package provider_example
 
 import (
+	"context"
 	"errors"
 	"log"
 
@@ -54,25 +55,25 @@ func (provider *ProviderExample) Types() []ObjectType {
 	return Types()
 }
 
-func (provider *ProviderExample) AuthTest() error {
+func (provider *ProviderExample) AuthTest(ctx context.Context) error {
 	if provider.apiKey != "123" {
 		return errors.New("cannot authenticate with API Key")
 	}
 	return nil
 }
 
-func (provider *ProviderExample) ReadObjects(typeName string) []Object {
+func (provider *ProviderExample) ReadObjects(ctx context.Context, typeName string) ([]Object, error) {
 	switch typeName {
 	case typeMyResource:
-		return provider.readMyResources()
+		return provider.readMyResources(ctx)
 	}
-	return []Object{}
+	return []Object{}, nil
 }
 
-func (provider *ProviderExample) DeleteObjects(typeName string, objects []Object) {
+func (provider *ProviderExample) DeleteObjects(ctx context.Context, typeName string, objects []Object) {
 	switch typeName {
 	case typeMyResource:
-		provider.deleteMyResources(objects)
+		provider.deleteMyResources(ctx, objects)
 	}
 }
 
@@ -80,16 +81,16 @@ func (provider *ProviderExample) StringObject(object string, typeName string) st
 	return object
 }
 
-func (provider *ProviderExample) readMyResources() []Object {
-	MyResources := make([]Object, 0)
+func (provider *ProviderExample) readMyResources(ctx context.Context) ([]Object, error) {
+	MyResources := make([]Object, 0, 2)
 	// Get remote objects
 	// ...
 	MyResources = append(MyResources, "MyResource-id-1")
 	MyResources = append(MyResources, "MyResource-id-2")
-	return MyResources
+	return MyResources, nil
 }
 
-func (provider *ProviderExample) deleteMyResources(MyResources []Object) {
-	log.Printf("Deleting MyResources: %s ... ", MyResources)
+func (provider *ProviderExample) deleteMyResources(ctx context.Context, myResources []Object) {
+	log.Printf("Deleting MyResources: %s ... ", myResources)
 	log.Println("OK")
 }

@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
 	"slices"
+	"time"
 
 	. "github.com/outscale/frieza/internal/common"
 	"github.com/teris-io/cli"
@@ -50,6 +51,8 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 		cliFatalf(jsonOutput, "Error load snapshot %s: %s", *snapshotName, err.Error())
 	}
 
+	ctx := context.Background()
+
 	destroyer := NewDestroyer()
 	objectsCount := 0
 
@@ -72,7 +75,7 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 		}
 
 		provider := &providers[idx]
-		currentObjects, err := ReadObjects(provider, snapshot.Filters)
+		currentObjects, err := ReadObjects(ctx, provider, snapshot.Filters)
 		if err != nil {
 			log.Fatalf("Error reading objects: %v", err)
 		}
@@ -90,11 +93,18 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 	if jsonOutput {
 		disableLogs()
 	}
-	message := fmt.Sprintf("Do you really want to delete newly created resources?\n" +
-		"  Frieza will delete all resources shown above.")
+	message := "Do you really want to delete newly created resources?\n" +
+		"  Frieza will delete all resources shown above."
 	if !confirmAction(&message, autoApprove) {
 		log.Fatal("Clean canceled")
 	}
-	go timeoutRunner(timeout, jsonOutput)
-	destroyer.run()
+
+	tout, err := time.ParseDuration(timeout)
+	if err != nil {
+		log.Fatal("Could not parse timeout: %w", err)
+	}
+	ctx, cancel := context.WithTimeout(ctx, tout)
+	defer cancel()
+
+	destroyer.run(ctx)
 }

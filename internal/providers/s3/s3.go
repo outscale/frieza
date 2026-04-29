@@ -1,6 +1,7 @@
 package s3
 
 import (
+	"context"
 	"encoding/base64"
 	"errors"
 	"fmt"
@@ -95,30 +96,30 @@ func (provider *S3) Types() []ObjectType {
 	return Types()
 }
 
-func (provider *S3) AuthTest() error {
-	_, err := provider.client.ListBuckets(nil)
+func (provider *S3) AuthTest(ctx context.Context) error {
+	_, err := provider.client.ListBucketsWithContext(ctx, nil)
 	if err != nil {
 		return errors.New("unable to list buckets")
 	}
 	return nil
 }
 
-func (provider *S3) ReadObjects(typeName string) ([]Object, error) {
+func (provider *S3) ReadObjects(ctx context.Context, typeName string) ([]Object, error) {
 	switch typeName {
 	case typeBucketObject:
-		return provider.readBucketObjects()
+		return provider.readBucketObjects(ctx)
 	case typeBucket:
-		return provider.readBuckets()
+		return provider.readBuckets(ctx)
 	}
 	return []Object{}, nil
 }
 
-func (provider *S3) DeleteObjects(typeName string, objects []Object) {
+func (provider *S3) DeleteObjects(ctx context.Context, typeName string, objects []Object) {
 	switch typeName {
 	case typeBucketObject:
-		provider.deleteBucketObjects(objects)
+		provider.deleteBucketObjects(ctx, objects)
 	case typeBucket:
-		provider.deleteBuckets(objects)
+		provider.deleteBuckets(ctx, objects)
 	}
 }
 
@@ -163,14 +164,14 @@ func decodeBucketobject(encodedObject *string) (string, string, error) {
 	return bucketName, key, nil
 }
 
-func (provider *S3) readBucketObjects() ([]Object, error) {
+func (provider *S3) readBucketObjects(ctx context.Context) ([]Object, error) {
 	objects := make([]Object, 0)
-	result, err := provider.client.ListBuckets(nil)
+	result, err := provider.client.ListBucketsWithContext(ctx, &s3.ListBucketsInput{})
 	if err != nil {
 		return nil, err
 	}
 	for _, bucket := range result.Buckets {
-		result, err := provider.client.ListObjects(&s3.ListObjectsInput{
+		result, err := provider.client.ListObjectsWithContext(ctx, &s3.ListObjectsInput{
 			Bucket: bucket.Name,
 		})
 		if err != nil {
@@ -183,7 +184,7 @@ func (provider *S3) readBucketObjects() ([]Object, error) {
 	return objects, nil
 }
 
-func (provider *S3) deleteBucketObjects(bucketObjects []Object) {
+func (provider *S3) deleteBucketObjects(ctx context.Context, bucketObjects []Object) {
 	for _, encodedBucketObject := range bucketObjects {
 		log.Printf(
 			"Deleting object: %s ... ",
@@ -193,7 +194,7 @@ func (provider *S3) deleteBucketObjects(bucketObjects []Object) {
 		if err != nil {
 			log.Println("Error while reading object details: ", err.Error())
 		}
-		_, err = provider.client.DeleteObject(&s3.DeleteObjectInput{
+		_, err = provider.client.DeleteObjectWithContext(ctx, &s3.DeleteObjectInput{
 			Bucket: &bucketName,
 			Key:    &key,
 		})
@@ -218,9 +219,9 @@ func decodeBucket(b64Bucket *string) (string, error) {
 	return bucketName, nil
 }
 
-func (provider *S3) readBuckets() ([]Object, error) {
+func (provider *S3) readBuckets(ctx context.Context) ([]Object, error) {
 	buckets := make([]Object, 0)
-	result, err := provider.client.ListBuckets(nil)
+	result, err := provider.client.ListBucketsWithContext(ctx, &s3.ListBucketsInput{})
 	if err != nil {
 		return nil, fmt.Errorf("read buckets: %w", err)
 	}
@@ -230,14 +231,14 @@ func (provider *S3) readBuckets() ([]Object, error) {
 	return buckets, nil
 }
 
-func (provider *S3) deleteBuckets(buckets []Object) {
+func (provider *S3) deleteBuckets(ctx context.Context, buckets []Object) {
 	for _, b64Bucket := range buckets {
 		BucketName, err := decodeBucket(&b64Bucket)
 		if err != nil {
 			continue
 		}
 		log.Printf("Deleting bucket: %s ... ", BucketName)
-		_, err = provider.client.DeleteBucket(&s3.DeleteBucketInput{
+		_, err = provider.client.DeleteBucketWithContext(ctx, &s3.DeleteBucketInput{
 			Bucket: &BucketName,
 		})
 		if err != nil {

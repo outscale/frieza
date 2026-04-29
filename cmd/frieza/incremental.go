@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"errors"
 	"fmt"
 	"log"
 	"os"
@@ -50,7 +51,7 @@ func retrieveNextUserInput(message string, currentStage int, numberStage int) st
 			fmt.Sprintf(InfoColor, "(%d/%d) Add this resource [%v]? "),
 			currentStage,
 			numberStage,
-			strings.Join(acceptedChar[:], ","),
+			strings.Join(acceptedChar, ","),
 		)
 
 		reader := bufio.NewReader(os.Stdin)
@@ -95,7 +96,7 @@ func incrementalChoice(typeName ObjectType, values []Object) (*[]Object, error) 
 		case SKIP_TYPE:
 			return &selectObjects, nil
 		default:
-			return nil, fmt.Errorf("internal error")
+			return nil, errors.New("internal error")
 		}
 	}
 	return &selectObjects, nil

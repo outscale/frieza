@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"os"
 	"strings"
@@ -140,8 +141,10 @@ func snapshotNew(customConfigPath string, args []string, options map[string]stri
 		}
 	}
 
+	ctx := context.Background()
+
 	for i, provider := range providers {
-		if err := provider.AuthTest(); err != nil {
+		if err := provider.AuthTest(ctx); err != nil {
 			log.Fatalf("Provider test failed for profile %s: %s", profiles[i], err.Error())
 		}
 	}
@@ -155,7 +158,7 @@ func snapshotNew(customConfigPath string, args []string, options map[string]stri
 		Filters: resourcesTypeFilterPtr,
 	}
 	for i, provider := range providers {
-		objs, err := ReadObjects(&provider, resourcesTypeFilterPtr)
+		objs, err := ReadObjects(ctx, &provider, resourcesTypeFilterPtr)
 		if err != nil {
 			log.Fatalf("Error reading objects: %v\n", err)
 		}
@@ -242,6 +245,8 @@ func snapshotUpdate(customConfigPath string, snapshotName *string, incrementalUp
 		log.Fatalf("Snapshot %s does not exist", *snapshotName)
 	}
 
+	ctx := context.Background()
+
 	for _, data := range snapshot.Data {
 		profile, err := config.GetProfile(data.Profile)
 		if err != nil {
@@ -253,11 +258,11 @@ func snapshotUpdate(customConfigPath string, snapshotName *string, incrementalUp
 		}
 
 		for _, provider := range providers {
-			if err := provider.AuthTest(); err != nil {
+			if err := provider.AuthTest(ctx); err != nil {
 				log.Fatalf("Provider %s test failed for profile %s: %s", provider.Name(), profile.Name, err.Error())
 			}
 
-			objects, err := ReadObjects(&provider, snapshot.Filters)
+			objects, err := ReadObjects(ctx, &provider, snapshot.Filters)
 			if err != nil {
 				log.Fatalf("Error reading objects: %v\n", err)
 			}
@@ -284,7 +289,6 @@ func snapshotUpdate(customConfigPath string, snapshotName *string, incrementalUp
 				} else {
 					data.Objects[key] = objectToAdd
 				}
-
 			}
 		}
 	}
