@@ -2,6 +2,7 @@ package main
 
 import (
 	"bufio"
+	"context"
 	"encoding/json"
 	"fmt"
 	"log"
@@ -84,7 +85,7 @@ func (destroyer *Destroyer) print_json() {
 	log.Print(string(json_bytes))
 }
 
-func (destroyer *Destroyer) run() {
+func (destroyer *Destroyer) run(ctx context.Context) {
 	var objects []*Objects
 	for i := range destroyer.Targets {
 		objects = append(objects, destroyer.Targets[i].Objects)
@@ -116,19 +117,25 @@ func (destroyer *Destroyer) run() {
 			if !hasObjectsLeft[i] {
 				continue
 			}
-			DeleteObjects(target.provider, *objects[i])
+			DeleteObjects(ctx, target.provider, *objects[i])
 			time.Sleep(100 * time.Millisecond)
 		}
 		for i, target := range destroyer.Targets {
 			diff := NewDiff()
-			remaining, err := ReadNonEmptyObjects(target.provider, *objects[i])
+			remaining, err := ReadNonEmptyObjects(ctx, target.provider, *objects[i])
 			if err != nil {
 				fmt.Fprintf(os.Stderr, "Error reading: %v\n", err)
 			}
 			diff.Build(&remaining, objects[i])
 			objects[i] = &diff.Retained
 		}
-		time.Sleep(time.Second)
+
+		select {
+		case <-ctx.Done():
+			log.Printf("Operation cancelled: %v\n", ctx.Err())
+			return
+		case <-time.After(time.Second):
+		}
 	}
 }
 

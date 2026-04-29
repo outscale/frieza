@@ -146,135 +146,135 @@ func (provider *OutscaleOAPI) Types() []ObjectType {
 	return Types()
 }
 
-func (provider *OutscaleOAPI) AuthTest() error {
-	_, err := provider.readAccountId()
+func (provider *OutscaleOAPI) AuthTest(ctx context.Context) error {
+	_, err := provider.readAccountId(ctx)
 	return err
 }
 
-func (provider *OutscaleOAPI) ReadObjects(typeName string) ([]Object, error) {
+func (provider *OutscaleOAPI) ReadObjects(ctx context.Context, typeName string) ([]Object, error) {
 	switch typeName {
 	case typeVm:
-		return provider.readVms()
+		return provider.readVms(ctx)
 	case typeLoadBalancer:
-		return provider.readLoadBalancers()
+		return provider.readLoadBalancers(ctx)
 	case typeNatService:
-		return provider.readNatServices()
+		return provider.readNatServices(ctx)
 	case typeSecurityGroup:
-		return provider.readSecurityGroups()
+		return provider.readSecurityGroups(ctx)
 	case typePublicIp:
-		return provider.readPublicIps()
+		return provider.readPublicIps(ctx)
 	case typeVolume:
-		return provider.readVolumes()
+		return provider.readVolumes(ctx)
 	case typeKeypair:
-		return provider.readKeypairs()
+		return provider.readKeypairs(ctx)
 	case typeRouteTable:
-		return provider.readRouteTables()
+		return provider.readRouteTables(ctx)
 	case typeInternetService:
-		return provider.readInternetServices()
+		return provider.readInternetServices(ctx)
 	case typeSubnet:
-		return provider.readSubnets()
+		return provider.readSubnets(ctx)
 	case typeNet:
-		return provider.readNets()
+		return provider.readNets(ctx)
 	case typeImage:
-		return provider.readImages()
+		return provider.readImages(ctx)
 	case typeSnapshot:
-		return provider.readSnapshots()
+		return provider.readSnapshots(ctx)
 	case typeVpnConnection:
-		return provider.readVpnConnections()
+		return provider.readVpnConnections(ctx)
 	case typeVirtualGateway:
-		return provider.readVirtualGateways()
+		return provider.readVirtualGateways(ctx)
 	case typeClientGateway:
-		return provider.readClientGateways()
+		return provider.readClientGateways(ctx)
 	case typeNic:
-		return provider.readNics()
+		return provider.readNics(ctx)
 	case typeAccessKey:
-		return provider.readAccessKeys()
+		return provider.readAccessKeys(ctx)
 	case typeNetAccessPoint:
-		return provider.readNetAccessPoints()
+		return provider.readNetAccessPoints(ctx)
 	case typeNetPeering:
-		return provider.readNetPeerings()
+		return provider.readNetPeerings(ctx)
 	case typeUser:
-		return provider.readUsers()
+		return provider.readUsers(ctx)
 	case typeUserAccessKey:
-		return provider.readUserAccessKeys()
+		return provider.readUserAccessKeys(ctx)
 	case typePolicy:
-		return provider.readPolicies()
+		return provider.readPolicies(ctx)
 	case typePolicyLink:
-		return provider.readPolicyLinks()
+		return provider.readPolicyLinks(ctx)
 	case typePolicyVersion:
-		return provider.readPolicyVersions()
+		return provider.readPolicyVersions(ctx)
 	case typeFlexibleGpu:
-		return provider.readFlexibleGpus()
+		return provider.readFlexibleGpus(ctx)
 	case typeCa:
-		return provider.readCas()
+		return provider.readCas(ctx)
 	case typeServerCertificate:
-		return provider.readServerCertificates()
+		return provider.readServerCertificates(ctx)
 	case typeDhcpOption:
-		return provider.readDhcpOptions()
+		return provider.readDhcpOptions(ctx)
 	}
 	return []Object{}, nil
 }
 
-func (provider *OutscaleOAPI) DeleteObjects(typeName string, objects []Object) {
+func (provider *OutscaleOAPI) DeleteObjects(ctx context.Context, typeName string, objects []Object) {
 	switch typeName {
 	case typeVm:
-		provider.deleteVms(objects)
+		provider.deleteVms(ctx, objects)
 	case typeLoadBalancer:
-		provider.deleteLoadBalancers(objects)
+		provider.deleteLoadBalancers(ctx, objects)
 	case typeNatService:
-		provider.deleteNatServices(objects)
+		provider.deleteNatServices(ctx, objects)
 	case typeSecurityGroup:
-		provider.deleteSecurityGroups(objects)
+		provider.deleteSecurityGroups(ctx, objects)
 	case typePublicIp:
-		provider.deletePublicIps(objects)
+		provider.deletePublicIps(ctx, objects)
 	case typeVolume:
-		provider.deleteVolumes(objects)
+		provider.deleteVolumes(ctx, objects)
 	case typeKeypair:
-		provider.deleteKeypairs(objects)
+		provider.deleteKeypairs(ctx, objects)
 	case typeRouteTable:
-		provider.deleteRouteTables(objects)
+		provider.deleteRouteTables(ctx, objects)
 	case typeInternetService:
-		provider.deleteInternetServices(objects)
+		provider.deleteInternetServices(ctx, objects)
 	case typeSubnet:
-		provider.deleteSubnets(objects)
+		provider.deleteSubnets(ctx, objects)
 	case typeNet:
-		provider.deleteNets(objects)
+		provider.deleteNets(ctx, objects)
 	case typeImage:
-		provider.deleteImages(objects)
+		provider.deleteImages(ctx, objects)
 	case typeSnapshot:
-		provider.deleteSnapshots(objects)
+		provider.deleteSnapshots(ctx, objects)
 	case typeVpnConnection:
-		provider.deleteVpnConnections(objects)
+		provider.deleteVpnConnections(ctx, objects)
 	case typeVirtualGateway:
-		provider.deleteVirtualGateways(objects)
+		provider.deleteVirtualGateways(ctx, objects)
 	case typeClientGateway:
-		provider.deleteClientGateways(objects)
+		provider.deleteClientGateways(ctx, objects)
 	case typeNic:
-		provider.deleteNics(objects)
+		provider.deleteNics(ctx, objects)
 	case typeAccessKey:
-		provider.deleteAccessKeys(objects)
+		provider.deleteAccessKeys(ctx, objects)
 	case typeNetAccessPoint:
-		provider.deleteNetAccessPoints(objects)
+		provider.deleteNetAccessPoints(ctx, objects)
 	case typeNetPeering:
-		provider.deleteNetPeerings(objects)
+		provider.deleteNetPeerings(ctx, objects)
 	case typeUser:
-		provider.deleteUsers(objects)
+		provider.deleteUsers(ctx, objects)
 	case typeUserAccessKey:
-		provider.deleteUserAccessKeys(objects)
+		provider.deleteUserAccessKeys(ctx, objects)
 	case typePolicy:
-		provider.deletePolicies(objects)
+		provider.deletePolicies(ctx, objects)
 	case typePolicyLink:
-		provider.deletePolicyLinks(objects)
+		provider.deletePolicyLinks(ctx, objects)
 	case typePolicyVersion:
-		provider.deletePolicyVersions(objects)
+		provider.deletePolicyVersions(ctx, objects)
 	case typeFlexibleGpu:
-		provider.deleteFlexibleGpus(objects)
+		provider.deleteFlexibleGpus(ctx, objects)
 	case typeCa:
-		provider.deleteCas(objects)
+		provider.deleteCas(ctx, objects)
 	case typeServerCertificate:
-		provider.deleteServerCertificates(objects)
+		provider.deleteServerCertificates(ctx, objects)
 	case typeDhcpOption:
-		provider.deleteDhcpOptions(objects)
+		provider.deleteDhcpOptions(ctx, objects)
 	}
 }
 
@@ -294,9 +294,9 @@ func newAPICache() apiCache {
 	}
 }
 
-func (provider *OutscaleOAPI) readVms() ([]Object, error) {
+func (provider *OutscaleOAPI) readVms(ctx context.Context) ([]Object, error) {
 	vms := make([]Object, 0)
-	read, err := provider.client.ReadVms(context.Background(), osc.ReadVmsRequest{
+	read, err := provider.client.ReadVms(ctx, osc.ReadVmsRequest{
 		Filters: &osc.FiltersVm{
 			VmStateNames: &[]osc.VmState{
 				"pending", "running", "stopping", "stopped", "shutting-down", "quarantine", // skipping terminated
@@ -313,7 +313,7 @@ func (provider *OutscaleOAPI) readVms() ([]Object, error) {
 	return vms, nil
 }
 
-func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) {
+func (provider *OutscaleOAPI) forceShutdownVms(ctx context.Context, vms []Object) {
 	var vmsToForce []Object
 	for _, vmId := range vms {
 		vm := provider.cache.vms[vmId]
@@ -335,7 +335,7 @@ func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) {
 		VmIds:     vmsToForce,
 		ForceStop: &forceStop,
 	}
-	_, err := provider.client.StopVms(context.Background(), stopOpts)
+	_, err := provider.client.StopVms(ctx, stopOpts)
 	if err != nil {
 		log.Printf("Error while shutting down vms: %v\n", getErrorInfo(err))
 		return
@@ -343,14 +343,14 @@ func (provider *OutscaleOAPI) forceShutdownVms(vms []Object) {
 	log.Println("OK")
 }
 
-func (provider *OutscaleOAPI) deleteVms(vms []Object) {
+func (provider *OutscaleOAPI) deleteVms(ctx context.Context, vms []Object) {
 	if len(vms) == 0 {
 		return
 	}
-	provider.forceShutdownVms(vms)
+	provider.forceShutdownVms(ctx, vms)
 	log.Printf("Deleting virtual machines: %s ... ", vms)
 	deletionOpts := osc.DeleteVmsRequest{VmIds: vms}
-	_, err := provider.client.DeleteVms(context.Background(), deletionOpts)
+	_, err := provider.client.DeleteVms(ctx, deletionOpts)
 	if err != nil {
 		log.Printf("Error while deleting vms: %v\n", getErrorInfo(err))
 	} else {
@@ -358,10 +358,10 @@ func (provider *OutscaleOAPI) deleteVms(vms []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readLoadBalancers() ([]Object, error) {
+func (provider *OutscaleOAPI) readLoadBalancers(ctx context.Context) ([]Object, error) {
 	loadBalancers := make([]Object, 0)
 	read, err := provider.client.ReadLoadBalancers(
-		context.Background(),
+		ctx,
 		osc.ReadLoadBalancersRequest{
 			Filters: &osc.FiltersLoadBalancer{
 				States: &[]osc.LoadBalancerState{ // skipping deleted, deleting
@@ -379,14 +379,14 @@ func (provider *OutscaleOAPI) readLoadBalancers() ([]Object, error) {
 	return loadBalancers, nil
 }
 
-func (provider *OutscaleOAPI) deleteLoadBalancers(loadBalancers []Object) {
+func (provider *OutscaleOAPI) deleteLoadBalancers(ctx context.Context, loadBalancers []Object) {
 	if len(loadBalancers) == 0 {
 		return
 	}
 	for _, loadBalancer := range loadBalancers {
 		log.Printf("Deleting load balancer %s... ", loadBalancer)
 		deletionOpts := osc.DeleteLoadBalancerRequest{LoadBalancerName: loadBalancer}
-		_, err := provider.client.DeleteLoadBalancer(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteLoadBalancer(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting load balancer: %v\n", getErrorInfo(err))
 		} else {
@@ -395,10 +395,10 @@ func (provider *OutscaleOAPI) deleteLoadBalancers(loadBalancers []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readNatServices() ([]Object, error) {
+func (provider *OutscaleOAPI) readNatServices(ctx context.Context) ([]Object, error) {
 	natServices := make([]Object, 0)
 	read, err := provider.client.ReadNatServices(
-		context.Background(),
+		ctx,
 		osc.ReadNatServicesRequest{
 			Filters: &osc.FiltersNatService{
 				States: &[]osc.NatServiceState{
@@ -416,14 +416,14 @@ func (provider *OutscaleOAPI) readNatServices() ([]Object, error) {
 	return natServices, nil
 }
 
-func (provider *OutscaleOAPI) deleteNatServices(natServices []Object) {
+func (provider *OutscaleOAPI) deleteNatServices(ctx context.Context, natServices []Object) {
 	if len(natServices) == 0 {
 		return
 	}
 	for _, natService := range natServices {
 		log.Printf("Deleting nat service %s... ", natService)
 		deletionOpts := osc.DeleteNatServiceRequest{NatServiceId: natService}
-		_, err := provider.client.DeleteNatService(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteNatService(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting nat service: %v\n", getErrorInfo(err))
 		} else {
@@ -432,10 +432,10 @@ func (provider *OutscaleOAPI) deleteNatServices(natServices []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readSecurityGroups() ([]Object, error) {
+func (provider *OutscaleOAPI) readSecurityGroups(ctx context.Context) ([]Object, error) {
 	securityGroups := make([]Object, 0)
 	read, err := provider.client.ReadSecurityGroups(
-		context.Background(),
+		ctx,
 		osc.ReadSecurityGroupsRequest{},
 	)
 	if err != nil {
@@ -452,11 +452,7 @@ func (provider *OutscaleOAPI) readSecurityGroups() ([]Object, error) {
 	return securityGroups, nil
 }
 
-func ptrString(value string) *string {
-	return &value
-}
-
-func (provider *OutscaleOAPI) deleteSecurityGroupRules(securityGroupId string) error {
+func (provider *OutscaleOAPI) deleteSecurityGroupRules(ctx context.Context, securityGroupId string) error {
 	securityGroup := provider.cache.securityGroups[securityGroupId]
 	if securityGroup == nil ||
 		(securityGroup.InboundRules == nil && securityGroup.OutboundRules == nil) {
@@ -472,14 +468,13 @@ func (provider *OutscaleOAPI) deleteSecurityGroupRules(securityGroupId string) e
 
 			targetSecurityGroupMember := []osc.SecurityGroupsMember{}
 			for _, sgMember := range rule.SecurityGroupsMembers {
-				sgMember.AccountId = ptrString("")
-				sgMember.SecurityGroupName = ptrString("")
+				sgMember.AccountId = new(string)
+				sgMember.SecurityGroupName = new(string)
 				targetSecurityGroupMember = append(targetSecurityGroupMember, sgMember)
 			}
 
 			rule.SecurityGroupsMembers = targetSecurityGroupMember
 			targetRules = append(targetRules, rule)
-
 		}
 		log.Printf("Deleting inbound security group rule from %s... ", securityGroupId)
 		delete := osc.DeleteSecurityGroupRuleRequest{
@@ -488,7 +483,7 @@ func (provider *OutscaleOAPI) deleteSecurityGroupRules(securityGroupId string) e
 			SecurityGroupId: securityGroupId,
 		}
 
-		_, err := provider.client.DeleteSecurityGroupRule(context.Background(), delete)
+		_, err := provider.client.DeleteSecurityGroupRule(ctx, delete)
 		if err != nil {
 			log.Printf(
 				"Error while deleting inbound rules of security group route %s: ",
@@ -509,14 +504,13 @@ func (provider *OutscaleOAPI) deleteSecurityGroupRules(securityGroupId string) e
 
 			targetSecurityGroupMember := []osc.SecurityGroupsMember{}
 			for _, sgMember := range rule.SecurityGroupsMembers {
-				sgMember.AccountId = ptrString("")
-				sgMember.SecurityGroupName = ptrString("")
+				sgMember.AccountId = new(string)
+				sgMember.SecurityGroupName = new(string)
 				targetSecurityGroupMember = append(targetSecurityGroupMember, sgMember)
 			}
 
 			rule.SecurityGroupsMembers = targetSecurityGroupMember
 			targetRules = append(targetRules, rule)
-
 		}
 		log.Printf("Deleting outbound security group rule from %s... ", securityGroupId)
 		delete := osc.DeleteSecurityGroupRuleRequest{
@@ -525,7 +519,7 @@ func (provider *OutscaleOAPI) deleteSecurityGroupRules(securityGroupId string) e
 			SecurityGroupId: securityGroupId,
 		}
 
-		_, err := provider.client.DeleteSecurityGroupRule(context.Background(), delete)
+		_, err := provider.client.DeleteSecurityGroupRule(ctx, delete)
 		if err != nil {
 			log.Printf(
 				"Error while deleting outbound rules of security group route %s: ",
@@ -539,17 +533,17 @@ func (provider *OutscaleOAPI) deleteSecurityGroupRules(securityGroupId string) e
 	return nil
 }
 
-func (provider *OutscaleOAPI) deleteSecurityGroups(securityGroups []Object) {
+func (provider *OutscaleOAPI) deleteSecurityGroups(ctx context.Context, securityGroups []Object) {
 	if len(securityGroups) == 0 {
 		return
 	}
 	for _, sg := range securityGroups {
-		if provider.deleteSecurityGroupRules(sg) != nil {
+		if provider.deleteSecurityGroupRules(ctx, sg) != nil {
 			continue
 		}
 		log.Printf("Deleting security group %s... ", sg)
 		deletionOpts := osc.DeleteSecurityGroupRequest{SecurityGroupId: &sg}
-		_, err := provider.client.DeleteSecurityGroup(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteSecurityGroup(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting security groups: %v\n", getErrorInfo(err))
 		} else {
@@ -558,10 +552,10 @@ func (provider *OutscaleOAPI) deleteSecurityGroups(securityGroups []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readPublicIps() ([]Object, error) {
+func (provider *OutscaleOAPI) readPublicIps(ctx context.Context) ([]Object, error) {
 	publicIps := make([]Object, 0)
 	read, err := provider.client.ReadPublicIps(
-		context.Background(),
+		ctx,
 		osc.ReadPublicIpsRequest{},
 	)
 	if err != nil {
@@ -574,7 +568,7 @@ func (provider *OutscaleOAPI) readPublicIps() ([]Object, error) {
 	return publicIps, nil
 }
 
-func (provider *OutscaleOAPI) unlinkPublicIp(publicIP *string) error {
+func (provider *OutscaleOAPI) unlinkPublicIp(ctx context.Context, publicIP *string) error {
 	cache := provider.cache.publicIps[*publicIP]
 	if cache == nil {
 		return nil
@@ -586,7 +580,7 @@ func (provider *OutscaleOAPI) unlinkPublicIp(publicIP *string) error {
 	}
 	log.Printf("Unlinking public ip %s... ", *publicIP)
 	unlinkOpts := osc.UnlinkPublicIpRequest{PublicIp: publicIP}
-	_, err := provider.client.UnlinkPublicIp(context.Background(), unlinkOpts)
+	_, err := provider.client.UnlinkPublicIp(ctx, unlinkOpts)
 	if err != nil {
 		log.Printf("Error while unlinking public ip: %v\n", getErrorInfo(err))
 		return err
@@ -595,17 +589,17 @@ func (provider *OutscaleOAPI) unlinkPublicIp(publicIP *string) error {
 	return nil
 }
 
-func (provider *OutscaleOAPI) deletePublicIps(publicIps []Object) {
+func (provider *OutscaleOAPI) deletePublicIps(ctx context.Context, publicIps []Object) {
 	if len(publicIps) == 0 {
 		return
 	}
 	for _, publicIP := range publicIps {
-		if provider.unlinkPublicIp(&publicIP) != nil {
+		if provider.unlinkPublicIp(ctx, &publicIP) != nil {
 			continue
 		}
 		log.Printf("Deleting public ip %s... ", publicIP)
 		deletionOpts := osc.DeletePublicIpRequest{PublicIp: &publicIP}
-		_, err := provider.client.DeletePublicIp(context.Background(), deletionOpts)
+		_, err := provider.client.DeletePublicIp(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting public ip: %v\n", getErrorInfo(err))
 		} else {
@@ -614,9 +608,9 @@ func (provider *OutscaleOAPI) deletePublicIps(publicIps []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readVolumes() ([]Object, error) {
+func (provider *OutscaleOAPI) readVolumes(ctx context.Context) ([]Object, error) {
 	volumes := make([]Object, 0)
-	read, err := provider.client.ReadVolumes(context.Background(), osc.ReadVolumesRequest{
+	read, err := provider.client.ReadVolumes(ctx, osc.ReadVolumesRequest{
 		Filters: &osc.FiltersVolume{
 			VolumeStates: &[]osc.VolumeState{
 				"creating", "available", "in-use", "error",
@@ -637,14 +631,14 @@ func (provider *OutscaleOAPI) readVolumes() ([]Object, error) {
 	return volumes, nil
 }
 
-func (provider *OutscaleOAPI) deleteVolumes(volumes []Object) {
+func (provider *OutscaleOAPI) deleteVolumes(ctx context.Context, volumes []Object) {
 	if len(volumes) == 0 {
 		return
 	}
 	for _, volume := range volumes {
 		log.Printf("Deleting volume %s... ", volume)
 		deletionOpts := osc.DeleteVolumeRequest{VolumeId: volume}
-		_, err := provider.client.DeleteVolume(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteVolume(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting volume: %v\n", getErrorInfo(err))
 		} else {
@@ -653,9 +647,9 @@ func (provider *OutscaleOAPI) deleteVolumes(volumes []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readKeypairs() ([]Object, error) {
+func (provider *OutscaleOAPI) readKeypairs(ctx context.Context) ([]Object, error) {
 	keypairs := make([]Object, 0)
-	read, err := provider.client.ReadKeypairs(context.Background(), osc.ReadKeypairsRequest{})
+	read, err := provider.client.ReadKeypairs(ctx, osc.ReadKeypairsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("read key pairs: %w", getErrorInfo(err))
 	}
@@ -665,14 +659,14 @@ func (provider *OutscaleOAPI) readKeypairs() ([]Object, error) {
 	return keypairs, nil
 }
 
-func (provider *OutscaleOAPI) deleteKeypairs(keypairs []Object) {
+func (provider *OutscaleOAPI) deleteKeypairs(ctx context.Context, keypairs []Object) {
 	if len(keypairs) == 0 {
 		return
 	}
 	for _, keypair := range keypairs {
 		log.Printf("Deleting keypair %s... ", keypair)
 		deletionOpts := osc.DeleteKeypairRequest{KeypairName: &keypair}
-		_, err := provider.client.DeleteKeypair(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteKeypair(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting keypair: %v\n", getErrorInfo(err))
 		} else {
@@ -681,10 +675,10 @@ func (provider *OutscaleOAPI) deleteKeypairs(keypairs []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readRouteTables() ([]Object, error) {
+func (provider *OutscaleOAPI) readRouteTables(ctx context.Context) ([]Object, error) {
 	routeTables := make([]Object, 0)
 	read, err := provider.client.ReadRouteTables(
-		context.Background(),
+		ctx,
 		osc.ReadRouteTablesRequest{},
 	)
 	if err != nil {
@@ -700,8 +694,8 @@ func (provider *OutscaleOAPI) readRouteTables() ([]Object, error) {
 	return routeTables, nil
 }
 
-func (provider *OutscaleOAPI) unlinkRouteTable(RouteTableId string) error {
-	routeTable := provider.cache.routeTables[RouteTableId]
+func (provider *OutscaleOAPI) unlinkRouteTable(ctx context.Context, routeTableId string) error {
+	routeTable := provider.cache.routeTables[routeTableId]
 	if routeTable == nil || routeTable.LinkRouteTables == nil {
 		return nil
 	}
@@ -710,15 +704,15 @@ func (provider *OutscaleOAPI) unlinkRouteTable(RouteTableId string) error {
 			continue
 		}
 		linkId := link.LinkRouteTableId
-		log.Printf("Unlinking route table %s (link %s)... ", RouteTableId, linkId)
+		log.Printf("Unlinking route table %s (link %s)... ", routeTableId, linkId)
 		unlinkOps := osc.UnlinkRouteTableRequest{
 			LinkRouteTableId: link.LinkRouteTableId,
 		}
-		_, err := provider.client.UnlinkRouteTable(context.Background(), unlinkOps)
+		_, err := provider.client.UnlinkRouteTable(ctx, unlinkOps)
 		if err != nil {
 			log.Printf(
 				"Error while unlinking route table %s (links %s): %v\n",
-				RouteTableId,
+				routeTableId,
 				linkId,
 				getErrorInfo(err),
 			)
@@ -739,17 +733,17 @@ func (provider *OutscaleOAPI) isMainRouteTable(routeTable *osc.RouteTable) bool 
 	return false
 }
 
-func (provider *OutscaleOAPI) deleteRouteTables(routeTables []Object) {
+func (provider *OutscaleOAPI) deleteRouteTables(ctx context.Context, routeTables []Object) {
 	if len(routeTables) == 0 {
 		return
 	}
 	for _, routeTable := range routeTables {
-		if provider.unlinkRouteTable(routeTable) != nil {
+		if provider.unlinkRouteTable(ctx, routeTable) != nil {
 			continue
 		}
 		log.Printf("Deleting route table %s... ", routeTable)
 		deletionOpts := osc.DeleteRouteTableRequest{RouteTableId: routeTable}
-		_, err := provider.client.DeleteRouteTable(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteRouteTable(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting route table: %v\n", getErrorInfo(err))
 		} else {
@@ -758,10 +752,10 @@ func (provider *OutscaleOAPI) deleteRouteTables(routeTables []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readInternetServices() ([]Object, error) {
+func (provider *OutscaleOAPI) readInternetServices(ctx context.Context) ([]Object, error) {
 	internetServices := make([]Object, 0)
 	read, err := provider.client.ReadInternetServices(
-		context.Background(),
+		ctx,
 		osc.ReadInternetServicesRequest{},
 	)
 	if err != nil {
@@ -774,7 +768,7 @@ func (provider *OutscaleOAPI) readInternetServices() ([]Object, error) {
 	return internetServices, nil
 }
 
-func (provider *OutscaleOAPI) unlinkInternetSevice(internetServiceId string) error {
+func (provider *OutscaleOAPI) unlinkInternetSevice(ctx context.Context, internetServiceId string) error {
 	internetService := provider.cache.internetServices[internetServiceId]
 	if internetService == nil || internetService.NetId == "" {
 		return nil
@@ -784,7 +778,7 @@ func (provider *OutscaleOAPI) unlinkInternetSevice(internetServiceId string) err
 		InternetServiceId: internetServiceId,
 		NetId:             internetService.NetId,
 	}
-	_, err := provider.client.UnlinkInternetService(context.Background(), unlinkOps)
+	_, err := provider.client.UnlinkInternetService(ctx, unlinkOps)
 	if err != nil {
 		log.Printf("Error while unlinking internet service: %v\n", getErrorInfo(err))
 		return err
@@ -794,17 +788,17 @@ func (provider *OutscaleOAPI) unlinkInternetSevice(internetServiceId string) err
 	return nil
 }
 
-func (provider *OutscaleOAPI) deleteInternetServices(internetServices []Object) {
+func (provider *OutscaleOAPI) deleteInternetServices(ctx context.Context, internetServices []Object) {
 	if len(internetServices) == 0 {
 		return
 	}
 	for _, internetService := range internetServices {
-		if provider.unlinkInternetSevice(internetService) != nil {
+		if provider.unlinkInternetSevice(ctx, internetService) != nil {
 			continue
 		}
 		log.Printf("Deleting internet service %s... ", internetService)
 		deletionOpts := osc.DeleteInternetServiceRequest{InternetServiceId: internetService}
-		_, err := provider.client.DeleteInternetService(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteInternetService(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting internet service: %v\n", getErrorInfo(err))
 		} else {
@@ -813,9 +807,9 @@ func (provider *OutscaleOAPI) deleteInternetServices(internetServices []Object) 
 	}
 }
 
-func (provider *OutscaleOAPI) readSubnets() ([]Object, error) {
+func (provider *OutscaleOAPI) readSubnets(ctx context.Context) ([]Object, error) {
 	subnets := make([]Object, 0)
-	read, err := provider.client.ReadSubnets(context.Background(), osc.ReadSubnetsRequest{})
+	read, err := provider.client.ReadSubnets(ctx, osc.ReadSubnetsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("read subnets: %w", getErrorInfo(err))
 	}
@@ -825,14 +819,14 @@ func (provider *OutscaleOAPI) readSubnets() ([]Object, error) {
 	return subnets, nil
 }
 
-func (provider *OutscaleOAPI) deleteSubnets(subnets []Object) {
+func (provider *OutscaleOAPI) deleteSubnets(ctx context.Context, subnets []Object) {
 	if len(subnets) == 0 {
 		return
 	}
 	for _, subnet := range subnets {
 		log.Printf("Deleting subnet %s... ", subnet)
 		deletionOpts := osc.DeleteSubnetRequest{SubnetId: subnet}
-		_, err := provider.client.DeleteSubnet(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteSubnet(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting subnet: %v\n", getErrorInfo(err))
 		} else {
@@ -841,9 +835,9 @@ func (provider *OutscaleOAPI) deleteSubnets(subnets []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readNets() ([]Object, error) {
+func (provider *OutscaleOAPI) readNets(ctx context.Context) ([]Object, error) {
 	nets := make([]Object, 0)
-	read, err := provider.client.ReadNets(context.Background(), osc.ReadNetsRequest{
+	read, err := provider.client.ReadNets(ctx, osc.ReadNetsRequest{
 		Filters: &osc.FiltersNet{
 			States: &[]osc.NetState{"pending", "available"}, // skipping deleting
 		},
@@ -857,14 +851,14 @@ func (provider *OutscaleOAPI) readNets() ([]Object, error) {
 	return nets, nil
 }
 
-func (provider *OutscaleOAPI) deleteNets(nets []Object) {
+func (provider *OutscaleOAPI) deleteNets(ctx context.Context, nets []Object) {
 	if len(nets) == 0 {
 		return
 	}
 	for _, net := range nets {
 		log.Printf("Deleting net %s... ", net)
 		deletionOpts := osc.DeleteNetRequest{NetId: net}
-		_, err := provider.client.DeleteNet(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteNet(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting net: %v\n", getErrorInfo(err))
 		} else {
@@ -873,10 +867,10 @@ func (provider *OutscaleOAPI) deleteNets(nets []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readAccountId() (*string, error) {
+func (provider *OutscaleOAPI) readAccountId(ctx context.Context) (*string, error) {
 	if provider.cache.accountId == nil {
 		read, err := provider.client.ReadAccounts(
-			context.Background(),
+			ctx,
 			osc.ReadAccountsRequest{},
 		)
 		if err != nil {
@@ -891,15 +885,15 @@ func (provider *OutscaleOAPI) readAccountId() (*string, error) {
 	return provider.cache.accountId, nil
 }
 
-func (provider *OutscaleOAPI) readImages() ([]Object, error) {
+func (provider *OutscaleOAPI) readImages(ctx context.Context) ([]Object, error) {
 	images := make([]Object, 0)
-	accountId, err := provider.readAccountId()
+	accountId, err := provider.readAccountId(ctx)
 	if err != nil {
 		return images, nil
 	}
 	var accountIds []string
 	accountIds = append(accountIds, *accountId)
-	read, err := provider.client.ReadImages(context.Background(), osc.ReadImagesRequest{
+	read, err := provider.client.ReadImages(ctx, osc.ReadImagesRequest{
 		Filters: &osc.FiltersImage{
 			AccountIds: &accountIds,
 		},
@@ -914,14 +908,14 @@ func (provider *OutscaleOAPI) readImages() ([]Object, error) {
 	return images, nil
 }
 
-func (provider *OutscaleOAPI) deleteImages(images []Object) {
+func (provider *OutscaleOAPI) deleteImages(ctx context.Context, images []Object) {
 	if len(images) == 0 {
 		return
 	}
 	for _, image := range images {
 		log.Printf("Deleting image %s... ", image)
 		deletionOpts := osc.DeleteImageRequest{ImageId: image}
-		_, err := provider.client.DeleteImage(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteImage(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting image: %v\n", getErrorInfo(err))
 		} else {
@@ -930,15 +924,15 @@ func (provider *OutscaleOAPI) deleteImages(images []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readSnapshots() ([]Object, error) {
+func (provider *OutscaleOAPI) readSnapshots(ctx context.Context) ([]Object, error) {
 	snapshots := make([]Object, 0)
-	accountId, err := provider.readAccountId()
+	accountId, err := provider.readAccountId(ctx)
 	if err != nil {
 		return snapshots, nil
 	}
 	var accountIds []string
 	accountIds = append(accountIds, *accountId)
-	read, err := provider.client.ReadSnapshots(context.Background(), osc.ReadSnapshotsRequest{
+	read, err := provider.client.ReadSnapshots(ctx, osc.ReadSnapshotsRequest{
 		Filters: &osc.FiltersSnapshot{
 			AccountIds: &accountIds,
 			States: &[]osc.SnapshotState{
@@ -955,14 +949,14 @@ func (provider *OutscaleOAPI) readSnapshots() ([]Object, error) {
 	return snapshots, nil
 }
 
-func (provider *OutscaleOAPI) deleteSnapshots(snapshots []Object) {
+func (provider *OutscaleOAPI) deleteSnapshots(ctx context.Context, snapshots []Object) {
 	if len(snapshots) == 0 {
 		return
 	}
 	for _, snapshot := range snapshots {
 		log.Printf("Deleting snapshot %s... ", snapshot)
 		deletionOpts := osc.DeleteSnapshotRequest{SnapshotId: snapshot}
-		_, err := provider.client.DeleteSnapshot(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteSnapshot(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting snapshot: %v\n", getErrorInfo(err))
 		} else {
@@ -971,10 +965,10 @@ func (provider *OutscaleOAPI) deleteSnapshots(snapshots []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readVpnConnections() ([]Object, error) {
+func (provider *OutscaleOAPI) readVpnConnections(ctx context.Context) ([]Object, error) {
 	vpnConnections := make([]Object, 0)
 	read, err := provider.client.ReadVpnConnections(
-		context.Background(),
+		ctx,
 		osc.ReadVpnConnectionsRequest{
 			Filters: &osc.FiltersVpnConnection{
 				States: &[]string{
@@ -992,14 +986,14 @@ func (provider *OutscaleOAPI) readVpnConnections() ([]Object, error) {
 	return vpnConnections, nil
 }
 
-func (provider *OutscaleOAPI) deleteVpnConnections(vpnConnections []Object) {
+func (provider *OutscaleOAPI) deleteVpnConnections(ctx context.Context, vpnConnections []Object) {
 	if len(vpnConnections) == 0 {
 		return
 	}
 	for _, vpnConnection := range vpnConnections {
 		log.Printf("Deleting vpn connection %s... ", vpnConnection)
 		deletionOpts := osc.DeleteVpnConnectionRequest{VpnConnectionId: vpnConnection}
-		_, err := provider.client.DeleteVpnConnection(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteVpnConnection(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting vpn connection: %v\n", getErrorInfo(err))
 		} else {
@@ -1008,10 +1002,10 @@ func (provider *OutscaleOAPI) deleteVpnConnections(vpnConnections []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readVirtualGateways() ([]Object, error) {
+func (provider *OutscaleOAPI) readVirtualGateways(ctx context.Context) ([]Object, error) {
 	virtualGateways := make([]Object, 0)
 	read, err := provider.client.ReadVirtualGateways(
-		context.Background(),
+		ctx,
 		osc.ReadVirtualGatewaysRequest{
 			Filters: &osc.FiltersVirtualGateway{
 				States: &[]string{
@@ -1029,14 +1023,14 @@ func (provider *OutscaleOAPI) readVirtualGateways() ([]Object, error) {
 	return virtualGateways, nil
 }
 
-func (provider *OutscaleOAPI) deleteVirtualGateways(virtualGateways []Object) {
+func (provider *OutscaleOAPI) deleteVirtualGateways(ctx context.Context, virtualGateways []Object) {
 	if len(virtualGateways) == 0 {
 		return
 	}
 	for _, virtualGateway := range virtualGateways {
 		log.Printf("Deleting virtual gateway %s... ", virtualGateway)
 		deletionOpts := osc.DeleteVirtualGatewayRequest{VirtualGatewayId: virtualGateway}
-		_, err := provider.client.DeleteVirtualGateway(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteVirtualGateway(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting virtual gateway: %v\n", getErrorInfo(err))
 		} else {
@@ -1045,10 +1039,10 @@ func (provider *OutscaleOAPI) deleteVirtualGateways(virtualGateways []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readClientGateways() ([]Object, error) {
+func (provider *OutscaleOAPI) readClientGateways(ctx context.Context) ([]Object, error) {
 	clientGateways := make([]Object, 0)
 	read, err := provider.client.ReadClientGateways(
-		context.Background(),
+		ctx,
 		osc.ReadClientGatewaysRequest{
 			Filters: &osc.FiltersClientGateway{
 				States: &[]string{
@@ -1066,14 +1060,14 @@ func (provider *OutscaleOAPI) readClientGateways() ([]Object, error) {
 	return clientGateways, nil
 }
 
-func (provider *OutscaleOAPI) deleteClientGateways(clientGateways []Object) {
+func (provider *OutscaleOAPI) deleteClientGateways(ctx context.Context, clientGateways []Object) {
 	if len(clientGateways) == 0 {
 		return
 	}
 	for _, clientGateway := range clientGateways {
 		log.Printf("Deleting client gateway %s... ", clientGateway)
 		deletionOpts := osc.DeleteClientGatewayRequest{ClientGatewayId: clientGateway}
-		_, err := provider.client.DeleteClientGateway(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteClientGateway(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting client gateway: %v\n", getErrorInfo(err))
 		} else {
@@ -1082,9 +1076,9 @@ func (provider *OutscaleOAPI) deleteClientGateways(clientGateways []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readNics() ([]Object, error) {
+func (provider *OutscaleOAPI) readNics(ctx context.Context) ([]Object, error) {
 	nics := make([]Object, 0)
-	read, err := provider.client.ReadNics(context.Background(), osc.ReadNicsRequest{})
+	read, err := provider.client.ReadNics(ctx, osc.ReadNicsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("read nics: %w", getErrorInfo(err))
 	}
@@ -1095,7 +1089,7 @@ func (provider *OutscaleOAPI) readNics() ([]Object, error) {
 	return nics, nil
 }
 
-func (provider *OutscaleOAPI) unlinkNics(nics []Object) {
+func (provider *OutscaleOAPI) unlinkNics(ctx context.Context, nics []Object) {
 	for _, nicId := range nics {
 		nic := provider.cache.nics[nicId]
 		if nic == nil {
@@ -1111,7 +1105,7 @@ func (provider *OutscaleOAPI) unlinkNics(nics []Object) {
 		}
 		log.Printf("Unlinking nic %s... ", nicId)
 		unlinkOpts := osc.UnlinkNicRequest{LinkNicId: nic.LinkNic.LinkNicId}
-		_, err := provider.client.UnlinkNic(context.Background(), unlinkOpts)
+		_, err := provider.client.UnlinkNic(ctx, unlinkOpts)
 		if err != nil {
 			log.Printf("Error while unlinking nic: %v\n", getErrorInfo(err))
 			continue
@@ -1120,15 +1114,15 @@ func (provider *OutscaleOAPI) unlinkNics(nics []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) deleteNics(nics []Object) {
+func (provider *OutscaleOAPI) deleteNics(ctx context.Context, nics []Object) {
 	if len(nics) == 0 {
 		return
 	}
-	provider.unlinkNics(nics)
+	provider.unlinkNics(ctx, nics)
 	for _, nicId := range nics {
 		log.Printf("Deleting nic %s... ", nicId)
 		deletionOpts := osc.DeleteNicRequest{NicId: nicId}
-		_, err := provider.client.DeleteNic(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteNic(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting nic: %v\n", getErrorInfo(err))
 		} else {
@@ -1137,10 +1131,10 @@ func (provider *OutscaleOAPI) deleteNics(nics []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readAccessKeys() ([]Object, error) {
+func (provider *OutscaleOAPI) readAccessKeys(ctx context.Context) ([]Object, error) {
 	accessKeys := make([]Object, 0)
 	read, err := provider.client.ReadAccessKeys(
-		context.Background(),
+		ctx,
 		osc.ReadAccessKeysRequest{},
 	)
 	if err != nil {
@@ -1158,14 +1152,14 @@ func (provider *OutscaleOAPI) readAccessKeys() ([]Object, error) {
 	return accessKeys, nil
 }
 
-func (provider *OutscaleOAPI) deleteAccessKeys(accessKeys []Object) {
+func (provider *OutscaleOAPI) deleteAccessKeys(ctx context.Context, accessKeys []Object) {
 	if len(accessKeys) == 0 {
 		return
 	}
 	for _, accessKey := range accessKeys {
 		log.Printf("Deleting access key %s... ", accessKey)
 		deletionOpts := osc.DeleteAccessKeyRequest{AccessKeyId: accessKey}
-		_, err := provider.client.DeleteAccessKey(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteAccessKey(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting access key: %v\n", getErrorInfo(err))
 		} else {
@@ -1174,10 +1168,10 @@ func (provider *OutscaleOAPI) deleteAccessKeys(accessKeys []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readNetAccessPoints() ([]Object, error) {
+func (provider *OutscaleOAPI) readNetAccessPoints(ctx context.Context) ([]Object, error) {
 	netAccessPoints := make([]Object, 0)
 	read, err := provider.client.ReadNetAccessPoints(
-		context.Background(),
+		ctx,
 		osc.ReadNetAccessPointsRequest{
 			Filters: &osc.FiltersNetAccessPoint{
 				States: &[]osc.NetAccessPointState{
@@ -1195,14 +1189,14 @@ func (provider *OutscaleOAPI) readNetAccessPoints() ([]Object, error) {
 	return netAccessPoints, nil
 }
 
-func (provider *OutscaleOAPI) deleteNetAccessPoints(netAccessPoints []Object) {
+func (provider *OutscaleOAPI) deleteNetAccessPoints(ctx context.Context, netAccessPoints []Object) {
 	if len(netAccessPoints) == 0 {
 		return
 	}
 	for _, netAccessPoint := range netAccessPoints {
 		log.Printf("Deleting net access point %s... ", netAccessPoint)
 		deletionOpts := osc.DeleteNetAccessPointRequest{NetAccessPointId: netAccessPoint}
-		_, err := provider.client.DeleteNetAccessPoint(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteNetAccessPoint(ctx, deletionOpts)
 		if err != nil {
 			log.Print("Error while deleting net access point: ")
 		} else {
@@ -1211,10 +1205,10 @@ func (provider *OutscaleOAPI) deleteNetAccessPoints(netAccessPoints []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readNetPeerings() ([]Object, error) {
+func (provider *OutscaleOAPI) readNetPeerings(ctx context.Context) ([]Object, error) {
 	netPeerings := make([]Object, 0)
 	read, err := provider.client.ReadNetPeerings(
-		context.Background(),
+		ctx,
 		osc.ReadNetPeeringsRequest{
 			Filters: &osc.FiltersNetPeering{
 				StateNames: &[]osc.NetPeeringStateName{
@@ -1232,14 +1226,14 @@ func (provider *OutscaleOAPI) readNetPeerings() ([]Object, error) {
 	return netPeerings, nil
 }
 
-func (provider *OutscaleOAPI) deleteNetPeerings(netPeerings []Object) {
+func (provider *OutscaleOAPI) deleteNetPeerings(ctx context.Context, netPeerings []Object) {
 	if len(netPeerings) == 0 {
 		return
 	}
 	for _, netPeering := range netPeerings {
 		log.Printf("Deleting net peering %s... ", netPeering)
 		deletionOpts := osc.DeleteNetPeeringRequest{NetPeeringId: netPeering}
-		_, err := provider.client.DeleteNetPeering(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteNetPeering(ctx, deletionOpts)
 		if err != nil {
 			log.Print("Error while deleting net peering: %w", err)
 		} else {
@@ -1248,9 +1242,9 @@ func (provider *OutscaleOAPI) deleteNetPeerings(netPeerings []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readUsers() ([]Object, error) {
+func (provider *OutscaleOAPI) readUsers(ctx context.Context) ([]Object, error) {
 	users := make([]Object, 0)
-	read, err := provider.client.ReadUsers(context.Background(), osc.ReadUsersRequest{})
+	read, err := provider.client.ReadUsers(ctx, osc.ReadUsersRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("read users: %w", getErrorInfo(err))
 	}
@@ -1260,14 +1254,14 @@ func (provider *OutscaleOAPI) readUsers() ([]Object, error) {
 	return users, nil
 }
 
-func (provider *OutscaleOAPI) deleteUsers(users []Object) {
+func (provider *OutscaleOAPI) deleteUsers(ctx context.Context, users []Object) {
 	if len(users) == 0 {
 		return
 	}
 	for _, user := range users {
 		log.Printf("Deleting user %s... ", user)
 		deleteOpts := osc.DeleteUserRequest{UserName: user}
-		_, err := provider.client.DeleteUser(context.Background(), deleteOpts)
+		_, err := provider.client.DeleteUser(ctx, deleteOpts)
 		if err != nil {
 			log.Print("Error while deleting user: %w", err)
 		} else {
@@ -1276,17 +1270,17 @@ func (provider *OutscaleOAPI) deleteUsers(users []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readUserAccessKeys() ([]Object, error) {
+func (provider *OutscaleOAPI) readUserAccessKeys(ctx context.Context) ([]Object, error) {
 	accessKeys := make([]Object, 0)
 
-	readUser, err := provider.client.ReadUsers(context.Background(), osc.ReadUsersRequest{})
+	readUser, err := provider.client.ReadUsers(ctx, osc.ReadUsersRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("read users: %w", getErrorInfo(err))
 	}
 
 	for _, user := range *readUser.Users {
 		read, err := provider.client.ReadAccessKeys(
-			context.Background(),
+			ctx,
 			osc.ReadAccessKeysRequest{UserName: user.UserName},
 		)
 		if err != nil {
@@ -1302,7 +1296,7 @@ func (provider *OutscaleOAPI) readUserAccessKeys() ([]Object, error) {
 	return accessKeys, nil
 }
 
-func (provider *OutscaleOAPI) deleteUserAccessKeys(accessKeys []Object) {
+func (provider *OutscaleOAPI) deleteUserAccessKeys(ctx context.Context, accessKeys []Object) {
 	if len(accessKeys) == 0 {
 		return
 	}
@@ -1315,7 +1309,7 @@ func (provider *OutscaleOAPI) deleteUserAccessKeys(accessKeys []Object) {
 		}
 
 		deletionOpts := osc.DeleteAccessKeyRequest{AccessKeyId: parts[1], UserName: &parts[0]}
-		_, err := provider.client.DeleteAccessKey(context.Background(), deletionOpts)
+		_, err := provider.client.DeleteAccessKey(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting user access key: %v\n", getErrorInfo(err))
 		} else {
@@ -1324,10 +1318,10 @@ func (provider *OutscaleOAPI) deleteUserAccessKeys(accessKeys []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readPolicies() ([]Object, error) {
+func (provider *OutscaleOAPI) readPolicies(ctx context.Context) ([]Object, error) {
 	policies := make([]Object, 0)
 
-	read, err := provider.client.ReadPolicies(context.Background(), osc.ReadPoliciesRequest{})
+	read, err := provider.client.ReadPolicies(ctx, osc.ReadPoliciesRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("read policies: %w", getErrorInfo(err))
 	}
@@ -1337,14 +1331,14 @@ func (provider *OutscaleOAPI) readPolicies() ([]Object, error) {
 	return policies, nil
 }
 
-func (provider *OutscaleOAPI) deletePolicies(policies []Object) {
+func (provider *OutscaleOAPI) deletePolicies(ctx context.Context, policies []Object) {
 	if len(policies) == 0 {
 		return
 	}
 	for _, policy := range policies {
 		log.Printf("Deleting policy %s... ", policy)
 		deleteOpts := osc.DeletePolicyRequest{PolicyOrn: policy}
-		_, err := provider.client.DeletePolicy(context.Background(), deleteOpts)
+		_, err := provider.client.DeletePolicy(ctx, deleteOpts)
 		if err != nil {
 			log.Print("Error while deleting policy: %w", err)
 		} else {
@@ -1353,16 +1347,16 @@ func (provider *OutscaleOAPI) deletePolicies(policies []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readPolicyLinks() ([]Object, error) {
+func (provider *OutscaleOAPI) readPolicyLinks(ctx context.Context) ([]Object, error) {
 	policyLinks := make([]Object, 0)
 
-	read, err := provider.client.ReadPolicies(context.Background(), osc.ReadPoliciesRequest{})
+	read, err := provider.client.ReadPolicies(ctx, osc.ReadPoliciesRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("read policies: %w", getErrorInfo(err))
 	}
 	for _, policy := range *read.Policies {
 		read, err := provider.client.ReadEntitiesLinkedToPolicy(
-			context.Background(),
+			ctx,
 			osc.ReadEntitiesLinkedToPolicyRequest{
 				EntitiesType: &[]osc.ReadEntitiesLinkedToPolicyRequestEntitiesType{"USER", "GROUP"},
 				PolicyOrn:    *policy.Orn,
@@ -1387,7 +1381,7 @@ func (provider *OutscaleOAPI) readPolicyLinks() ([]Object, error) {
 	return policyLinks, nil
 }
 
-func (provider *OutscaleOAPI) deletePolicyLinks(policyLinks []Object) {
+func (provider *OutscaleOAPI) deletePolicyLinks(ctx context.Context, policyLinks []Object) {
 	if len(policyLinks) == 0 {
 		return
 	}
@@ -1409,7 +1403,7 @@ func (provider *OutscaleOAPI) deletePolicyLinks(policyLinks []Object) {
 				PolicyOrn: policyOrn,
 				UserName:  linkName,
 			}
-			_, err := provider.client.UnlinkPolicy(context.Background(), deleteOpts)
+			_, err := provider.client.UnlinkPolicy(ctx, deleteOpts)
 			if err != nil {
 				log.Print("Error while unlinking policy: %w", err)
 			}
@@ -1420,7 +1414,7 @@ func (provider *OutscaleOAPI) deletePolicyLinks(policyLinks []Object) {
 				UserGroupName: linkName,
 			}
 			_, err := provider.client.UnlinkManagedPolicyFromUserGroup(
-				context.Background(),
+				ctx,
 				deleteOpts,
 			)
 			if err != nil {
@@ -1430,16 +1424,16 @@ func (provider *OutscaleOAPI) deletePolicyLinks(policyLinks []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readPolicyVersions() ([]Object, error) {
+func (provider *OutscaleOAPI) readPolicyVersions(ctx context.Context) ([]Object, error) {
 	policyVersions := make([]Object, 0)
 
-	read, err := provider.client.ReadPolicies(context.Background(), osc.ReadPoliciesRequest{})
+	read, err := provider.client.ReadPolicies(ctx, osc.ReadPoliciesRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("read policies: %w", getErrorInfo(err))
 	}
 	for _, policy := range *read.Policies {
 		read, err := provider.client.ReadPolicyVersions(
-			context.Background(),
+			ctx,
 			osc.ReadPolicyVersionsRequest{
 				PolicyOrn: *policy.Orn,
 			},
@@ -1461,7 +1455,7 @@ func (provider *OutscaleOAPI) readPolicyVersions() ([]Object, error) {
 	return policyVersions, nil
 }
 
-func (provider *OutscaleOAPI) deletePolicyVersions(policyVersions []Object) {
+func (provider *OutscaleOAPI) deletePolicyVersions(ctx context.Context, policyVersions []Object) {
 	if len(policyVersions) == 0 {
 		return
 	}
@@ -1478,18 +1472,17 @@ func (provider *OutscaleOAPI) deletePolicyVersions(policyVersions []Object) {
 			PolicyOrn: parts[0],
 			VersionId: parts[1],
 		}
-		_, err := provider.client.DeletePolicyVersion(context.Background(), deleteOpts)
+		_, err := provider.client.DeletePolicyVersion(ctx, deleteOpts)
 		if err != nil {
 			log.Print("Error while deleting policy version: %w", err)
 		}
-
 	}
 }
 
-func (provider *OutscaleOAPI) readFlexibleGpus() ([]Object, error) {
+func (provider *OutscaleOAPI) readFlexibleGpus(ctx context.Context) ([]Object, error) {
 	flexibleGpus := make([]Object, 0)
 
-	read, err := provider.client.ReadFlexibleGpus(context.Background(), osc.ReadFlexibleGpusRequest{})
+	read, err := provider.client.ReadFlexibleGpus(ctx, osc.ReadFlexibleGpusRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("read flexible gpus: %w", getErrorInfo(err))
 	}
@@ -1500,7 +1493,7 @@ func (provider *OutscaleOAPI) readFlexibleGpus() ([]Object, error) {
 	return flexibleGpus, nil
 }
 
-func (provider *OutscaleOAPI) unlinkFlexibleGpus(flexibleGpus []Object) {
+func (provider *OutscaleOAPI) unlinkFlexibleGpus(ctx context.Context, flexibleGpus []Object) {
 	for _, gpuObj := range flexibleGpus {
 		gpu := provider.cache.flexibleGpus[gpuObj]
 		if gpu == nil {
@@ -1513,7 +1506,7 @@ func (provider *OutscaleOAPI) unlinkFlexibleGpus(flexibleGpus []Object) {
 		}
 		log.Printf("Unlinking flexible gpu %s... ", *gpu.FlexibleGpuId)
 		unlinkOpts := osc.UnlinkFlexibleGpuRequest{FlexibleGpuId: *gpu.FlexibleGpuId}
-		_, err := provider.client.UnlinkFlexibleGpu(context.Background(), unlinkOpts)
+		_, err := provider.client.UnlinkFlexibleGpu(ctx, unlinkOpts)
 		if err != nil {
 			log.Printf("Error while unlinking flexible gpu: %v\n", getErrorInfo(err))
 			continue
@@ -1522,15 +1515,15 @@ func (provider *OutscaleOAPI) unlinkFlexibleGpus(flexibleGpus []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) deleteFlexibleGpus(flexibleGpus []Object) {
+func (provider *OutscaleOAPI) deleteFlexibleGpus(ctx context.Context, flexibleGpus []Object) {
 	if len(flexibleGpus) == 0 {
 		return
 	}
-	provider.unlinkFlexibleGpus(flexibleGpus)
+	provider.unlinkFlexibleGpus(ctx, flexibleGpus)
 	for _, gpu := range flexibleGpus {
 		log.Printf("Releasing flexible gpu %s... ", gpu)
 		deleteOpts := osc.DeleteFlexibleGpuRequest{FlexibleGpuId: gpu}
-		_, err := provider.client.DeleteFlexibleGpu(context.Background(), deleteOpts)
+		_, err := provider.client.DeleteFlexibleGpu(ctx, deleteOpts)
 		if err != nil {
 			log.Print("Error while deleting flexible gpu: %w", err)
 		} else {
@@ -1539,9 +1532,9 @@ func (provider *OutscaleOAPI) deleteFlexibleGpus(flexibleGpus []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readCas() ([]Object, error) {
+func (provider *OutscaleOAPI) readCas(ctx context.Context) ([]Object, error) {
 	cas := make([]Object, 0)
-	read, err := provider.client.ReadCas(context.Background(), osc.ReadCasRequest{})
+	read, err := provider.client.ReadCas(ctx, osc.ReadCasRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("read cas: %w", getErrorInfo(err))
 	}
@@ -1551,14 +1544,14 @@ func (provider *OutscaleOAPI) readCas() ([]Object, error) {
 	return cas, nil
 }
 
-func (provider *OutscaleOAPI) deleteCas(cas []Object) {
+func (provider *OutscaleOAPI) deleteCas(ctx context.Context, cas []Object) {
 	if len(cas) == 0 {
 		return
 	}
 	for _, ca := range cas {
 		log.Printf("Deleting CA %s... ", ca)
 		deleteOpts := osc.DeleteCaRequest{CaId: ca}
-		_, err := provider.client.DeleteCa(context.Background(), deleteOpts)
+		_, err := provider.client.DeleteCa(ctx, deleteOpts)
 		if err != nil {
 			log.Printf("Error while deleting CA: %v\n", getErrorInfo(err))
 		} else {
@@ -1567,9 +1560,9 @@ func (provider *OutscaleOAPI) deleteCas(cas []Object) {
 	}
 }
 
-func (provider *OutscaleOAPI) readServerCertificates() ([]Object, error) {
+func (provider *OutscaleOAPI) readServerCertificates(ctx context.Context) ([]Object, error) {
 	serverCertificates := make([]Object, 0)
-	read, err := provider.client.ReadServerCertificates(context.Background(), osc.ReadServerCertificatesRequest{})
+	read, err := provider.client.ReadServerCertificates(ctx, osc.ReadServerCertificatesRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("read server certificates: %w", getErrorInfo(err))
 	}
@@ -1579,14 +1572,14 @@ func (provider *OutscaleOAPI) readServerCertificates() ([]Object, error) {
 	return serverCertificates, nil
 }
 
-func (provider *OutscaleOAPI) deleteServerCertificates(serverCertificates []Object) {
+func (provider *OutscaleOAPI) deleteServerCertificates(ctx context.Context, serverCertificates []Object) {
 	if len(serverCertificates) == 0 {
 		return
 	}
 	for _, cert := range serverCertificates {
 		log.Printf("Deleting server certificate %s... ", cert)
 		deleteOpts := osc.DeleteServerCertificateRequest{Name: cert}
-		_, err := provider.client.DeleteServerCertificate(context.Background(), deleteOpts)
+		_, err := provider.client.DeleteServerCertificate(ctx, deleteOpts)
 		if err != nil {
 			log.Printf("Error while deleting server certificate: %v\n", getErrorInfo(err))
 		} else {
@@ -1595,9 +1588,9 @@ func (provider *OutscaleOAPI) deleteServerCertificates(serverCertificates []Obje
 	}
 }
 
-func (provider *OutscaleOAPI) readDhcpOptions() ([]Object, error) {
+func (provider *OutscaleOAPI) readDhcpOptions(ctx context.Context) ([]Object, error) {
 	dhcpOptions := make([]Object, 0)
-	read, err := provider.client.ReadDhcpOptions(context.Background(), osc.ReadDhcpOptionsRequest{})
+	read, err := provider.client.ReadDhcpOptions(ctx, osc.ReadDhcpOptionsRequest{})
 	if err != nil {
 		return nil, fmt.Errorf("read dhcp options: %w", getErrorInfo(err))
 	}
@@ -1607,14 +1600,14 @@ func (provider *OutscaleOAPI) readDhcpOptions() ([]Object, error) {
 	return dhcpOptions, nil
 }
 
-func (provider *OutscaleOAPI) deleteDhcpOptions(dhcpOptions []Object) {
+func (provider *OutscaleOAPI) deleteDhcpOptions(ctx context.Context, dhcpOptions []Object) {
 	if len(dhcpOptions) == 0 {
 		return
 	}
 	for _, option := range dhcpOptions {
 		log.Printf("Deleting DHCP option %s... ", option)
 		deleteOpts := osc.DeleteDhcpOptionsRequest{DhcpOptionsSetId: option}
-		_, err := provider.client.DeleteDhcpOptions(context.Background(), deleteOpts)
+		_, err := provider.client.DeleteDhcpOptions(ctx, deleteOpts)
 		if err != nil {
 			log.Printf("Error while deleting DHCP option: %v\n", getErrorInfo(err))
 		} else {

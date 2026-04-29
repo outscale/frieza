@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"io"
 	"log"
-	"time"
 
 	. "github.com/outscale/frieza/internal/common"
 	"github.com/teris-io/cli"
@@ -38,7 +37,7 @@ func cliJson() cli.Option {
 		WithType(cli.TypeBool)
 }
 
-func cliFatalf(json bool, format string, v ...interface{}) {
+func cliFatalf(json bool, format string, v ...any) {
 	msg := fmt.Sprintf(format, v...)
 	if json {
 		log.Fatalf("{\"error\": \"%s\"}", msg)
@@ -76,16 +75,4 @@ func ShortDescription() string {
 func disableLogs() {
 	log.SetFlags(0)
 	log.SetOutput(io.Discard)
-}
-
-func timeoutRunner(timeout string, json bool) {
-	if timeout == "-1" {
-		return
-	}
-	duration, err := time.ParseDuration(timeout)
-	if err != nil {
-		cliFatalf(json, "Bad format for --timeout")
-	}
-	time.Sleep(duration)
-	cliFatalf(json, "Frieza reached timeout")
 }
