@@ -1,9 +1,10 @@
 package main
 
 import (
-	"fmt"
+	"context"
 	"log"
 	"strings"
+	"time"
 
 	. "github.com/outscale/frieza/internal/common"
 	"github.com/teris-io/cli"
@@ -69,6 +70,8 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 		cliFatalf(jsonOutput, "Cannot load configuration: %s", err.Error())
 	}
 
+	ctx := context.Background()
+
 	destroyer := NewDestroyer()
 	for profileName := range uniqueProfiles {
 		profile, err := config.GetProfile(profileName)
@@ -80,7 +83,7 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 			cliFatalf(jsonOutput, "Error intializing profile %s: %s", profileName, err.Error())
 		}
 		for _, provider := range providers {
-			objectsToDelete, err := ReadObjects(&provider, resourceFilter)
+			objectsToDelete, err := ReadObjects(ctx, &provider, resourceFilter)
 			if err != nil {
 				log.Fatalf("Error reading objects: %v", err)
 			}
@@ -95,11 +98,18 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 	if jsonOutput {
 		disableLogs()
 	}
-	message := fmt.Sprintf("Do you really want to delete ALL resources?\n" +
-		"  Frieza will delete all resources shown above.")
+	message := "Do you really want to delete ALL resources?\n" +
+		"  Frieza will delete all resources shown above."
 	if !confirmAction(&message, autoApprove) {
 		log.Fatal("Nuke canceled")
 	}
-	go timeoutRunner(timeout, jsonOutput)
-	destroyer.run()
+
+	tout, err := time.ParseDuration(timeout)
+	if err != nil {
+		log.Fatal("Could not parse timeout: %w", err)
+	}
+	ctx, cancel := context.WithTimeout(ctx, tout)
+	defer cancel()
+
+	destroyer.run(ctx)
 }

@@ -1,15 +1,19 @@
 package common
 
-type ObjectType = string
-type Object = string
+import "context"
+
+type (
+	ObjectType = string
+	Object     = string
+)
 
 type ProviderConfig = map[string]string
 
 type Provider interface {
 	Name() string
 	Types() []ObjectType
-	AuthTest() error
-	ReadObjects(typeName string) ([]Object, error)
-	DeleteObjects(typeName string, objects []Object)
+	AuthTest(ctx context.Context) error
+	ReadObjects(ctx context.Context, typeName string) ([]Object, error)
+	DeleteObjects(ctx context.Context, typeName string, objects []Object)
 	StringObject(object string, typeName string) string
 }

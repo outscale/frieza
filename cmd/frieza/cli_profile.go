@@ -1,6 +1,7 @@
 package main
 
 import (
+	"context"
 	"log"
 	"slices"
 
@@ -179,6 +180,8 @@ func profileTest(customConfigPath string, profileName *string) {
 		log.Fatalf("Cannot load configuration: %s", err.Error())
 	}
 
+	ctx := context.Background()
+
 	for _, profile := range config.Profiles {
 		if *profileName == profile.Name {
 			providers, err := ProviderNew(profile)
@@ -191,7 +194,7 @@ func profileTest(customConfigPath string, profileName *string) {
 			}
 			for _, p := range providers {
 				log.Printf("Testing provider %s...", p.Name())
-				if err := p.AuthTest(); err != nil {
+				if err := p.AuthTest(ctx); err != nil {
 					log.Fatalf("Provider %s test failed: %s", p.Name(), err.Error())
 				}
 				log.Printf("Provider %s test passed", p.Name())
