@@ -78,25 +78,25 @@ func (provider *OutscaleOKS) Types() []ObjectType {
 	return Types()
 }
 
-func (provider *OutscaleOKS) AuthTest() error {
+func (provider *OutscaleOKS) AuthTest(ctx context.Context) error {
 	// TODO
 	return nil
 }
 
-func (provider *OutscaleOKS) ReadObjects(typeName string) ([]Object, error) {
+func (provider *OutscaleOKS) ReadObjects(ctx context.Context, typeName string) ([]Object, error) {
 	switch typeName {
 	case typeProject:
-		return provider.readProject()
+		return provider.readProject(ctx)
 	case typeCluster:
-		return provider.readCluster()
+		return provider.readCluster(ctx)
 	}
 
 	return []Object{}, nil
 }
 
-func (provider *OutscaleOKS) readCluster() ([]Object, error) {
+func (provider *OutscaleOKS) readCluster(ctx context.Context) ([]Object, error) {
 	clusters := make([]Object, 0)
-	read, err := provider.client.ListAllClusters(context.Background(), &oks.ListAllClustersParams{})
+	read, err := provider.client.ListAllClusters(ctx, &oks.ListAllClustersParams{})
 	if err != nil {
 		return clusters, err
 	}
@@ -111,9 +111,9 @@ func (provider *OutscaleOKS) readCluster() ([]Object, error) {
 	return clusters, nil
 }
 
-func (provider *OutscaleOKS) readProject() ([]Object, error) {
+func (provider *OutscaleOKS) readProject(ctx context.Context) ([]Object, error) {
 	projectcs := make([]Object, 0)
-	read, err := provider.client.ListProjects(context.Background(), &oks.ListProjectsParams{})
+	read, err := provider.client.ListProjects(ctx, &oks.ListProjectsParams{})
 	if err != nil {
 		return projectcs, err
 	}
@@ -128,21 +128,20 @@ func (provider *OutscaleOKS) readProject() ([]Object, error) {
 	return projectcs, nil
 }
 
-func (provider *OutscaleOKS) DeleteObjects(typeName string, objects []Object) {
+func (provider *OutscaleOKS) DeleteObjects(ctx context.Context, typeName string, objects []Object) {
 	switch typeName {
 	case typeProject:
-		provider.deleteProject(objects)
+		provider.deleteProject(ctx, objects)
 	case typeCluster:
-		provider.deleteCluster(objects)
+		provider.deleteCluster(ctx, objects)
 	}
 }
 
-func (provider *OutscaleOKS) deleteCluster(objects []Object) {
+func (provider *OutscaleOKS) deleteCluster(ctx context.Context, objects []Object) {
 	if len(objects) == 0 {
 		return
 	}
 
-	ctx := context.Background()
 	for _, clusterID := range objects {
 		log.Printf("Deleting cluster %s... ", clusterID)
 
@@ -155,12 +154,11 @@ func (provider *OutscaleOKS) deleteCluster(objects []Object) {
 	}
 }
 
-func (provider *OutscaleOKS) deleteProject(objects []Object) {
+func (provider *OutscaleOKS) deleteProject(ctx context.Context, objects []Object) {
 	if len(objects) == 0 {
 		return
 	}
 
-	ctx := context.Background()
 	for _, projectID := range objects {
 		log.Printf("Deleting project %s... ", projectID)
 

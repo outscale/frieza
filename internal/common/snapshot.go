@@ -1,11 +1,13 @@
 package common
 
 import (
+	"context"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"os"
 	"path"
+	"strings"
 )
 
 type Objects = map[ObjectType][]Object
@@ -35,7 +37,7 @@ func SnapshotVersion() int {
 	return 0
 }
 
-func ReadObjects(provider *Provider, filters *ResourceFilterEnvelope) (Objects, error) {
+func ReadObjects(ctx context.Context, provider *Provider, filters *ResourceFilterEnvelope) (Objects, error) {
 	objects := make(Objects)
 	for _, typeName := range (*provider).Types() {
 		if filters != nil && !filters.Select(typeName) {
@@ -43,7 +45,7 @@ func ReadObjects(provider *Provider, filters *ResourceFilterEnvelope) (Objects, 
 		}
 
 		var err error
-		objects[typeName], err = (*provider).ReadObjects(typeName)
+		objects[typeName], err = (*provider).ReadObjects(ctx, typeName)
 		if err != nil {
 			return objects, err
 		}
@@ -51,14 +53,14 @@ func ReadObjects(provider *Provider, filters *ResourceFilterEnvelope) (Objects, 
 	return objects, nil
 }
 
-func ReadNonEmptyObjects(provider *Provider, nonEmpy Objects) (Objects, error) {
+func ReadNonEmptyObjects(ctx context.Context, provider *Provider, nonEmpy Objects) (Objects, error) {
 	objects := make(Objects)
 	for _, typeName := range (*provider).Types() {
 		if len(nonEmpy[typeName]) == 0 {
 			continue
 		}
 		var err error
-		objects[typeName], err = (*provider).ReadObjects(typeName)
+		objects[typeName], err = (*provider).ReadObjects(ctx, typeName)
 		if err != nil {
 			return objects, err
 		}
@@ -66,13 +68,13 @@ func ReadNonEmptyObjects(provider *Provider, nonEmpy Objects) (Objects, error) {
 	return objects, nil
 }
 
-func DeleteObjects(provider *Provider, objects Objects) {
+func DeleteObjects(ctx context.Context, provider *Provider, objects Objects) {
 	for _, typeName := range (*provider).Types() {
 		objectList := objects[typeName]
 		if len(objectList) == 0 {
 			continue
 		}
-		(*provider).DeleteObjects(typeName, objectList)
+		(*provider).DeleteObjects(ctx, typeName, objectList)
 	}
 }
 
@@ -128,18 +130,17 @@ func ObjectsCount(objects *Objects) int {
 }
 
 func ObjectsPrint(provider *Provider, objects *Objects) string {
-	out := ""
+	var outBuilder strings.Builder
 	for objectType, objectIds := range *objects {
-
 		if len(objectIds) == 0 {
 			continue
 		}
-		out += fmt.Sprintf("%s:\n", objectType)
+		outBuilder.WriteString(objectType + ":\n")
 		for _, objectId := range objectIds {
-			out += fmt.Sprintf("  - %s\n", (*provider).StringObject(objectId, objectType))
+			fmt.Fprintf(&outBuilder, "  - %s\n", (*provider).StringObject(objectId, objectType))
 		}
 	}
-	return out
+	return outBuilder.String()
 }
 
 func (snapshot *Snapshot) Write() error {
@@ -179,16 +180,20 @@ func SnapshotLoad(name string, config *Config) (*Snapshot, error) {
 }
 
 func (snapshot Snapshot) String() string {
-	out := fmt.Sprintf("name: %v\n", snapshot.Name)
-	out += fmt.Sprintf("date: %v\n", snapshot.Date)
-	out += "profiles:\n"
+	var outBuilder strings.Builder
+
+	fmt.Fprintf(&outBuilder, "name: %v\n", snapshot.Name)
+	fmt.Fprintf(&outBuilder, "date: %v\n", snapshot.Date)
+	outBuilder.WriteString("profiles:\n")
+
 	for _, data := range snapshot.Data {
-		out += fmt.Sprintf("  - %v:\n", data.Profile)
+		fmt.Fprintf(&outBuilder, "  - %v:\n", data.Profile)
 		for objectType, objects := range data.Objects {
-			out += fmt.Sprintf("    - %s: %d\n", objectType, len(objects))
+			fmt.Fprintf(&outBuilder, "    - %s: %d\n", objectType, len(objects))
 		}
 	}
-	return out
+
+	return outBuilder.String()
 }
 
 func (snapshot Snapshot) Delete() error {

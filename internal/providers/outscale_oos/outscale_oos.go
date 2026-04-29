@@ -58,6 +58,8 @@ func New(config ProviderConfig, debug bool) (*OutscaleOOS, error) {
 			oos.WithUseragent(ua),
 		)
 	}
+	// Note: Creating client still needs a context, but this is during initialization
+	// In a future refactor, we could pass context to New() as well
 	client, err := oos.NewClient(context.Background(), profile, opts...)
 	if err != nil {
 		return nil, err
@@ -91,30 +93,30 @@ func (provider *OutscaleOOS) Types() []ObjectType {
 	return Types()
 }
 
-func (provider *OutscaleOOS) AuthTest() error {
-	_, err := provider.client.ListBuckets(context.Background(), &s3.ListBucketsInput{})
+func (provider *OutscaleOOS) AuthTest(ctx context.Context) error {
+	_, err := provider.client.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if err != nil {
 		return errors.New("unable to list buckets")
 	}
 	return nil
 }
 
-func (provider *OutscaleOOS) ReadObjects(typeName string) ([]Object, error) {
+func (provider *OutscaleOOS) ReadObjects(ctx context.Context, typeName string) ([]Object, error) {
 	switch typeName {
 	case typeBucketObject:
-		return provider.readBucketObjects()
+		return provider.readBucketObjects(ctx)
 	case typeBucket:
-		return provider.readBuckets()
+		return provider.readBuckets(ctx)
 	}
 	return []Object{}, nil
 }
 
-func (provider *OutscaleOOS) DeleteObjects(typeName string, objects []Object) {
+func (provider *OutscaleOOS) DeleteObjects(ctx context.Context, typeName string, objects []Object) {
 	switch typeName {
 	case typeBucketObject:
-		provider.deleteBucketObjects(objects)
+		provider.deleteBucketObjects(ctx, objects)
 	case typeBucket:
-		provider.deleteBuckets(objects)
+		provider.deleteBuckets(ctx, objects)
 	}
 }
 
@@ -158,14 +160,14 @@ func decodeBucketobject(encodedObject *string) (string, string, error) {
 	return bucketName, string(binkey), nil
 }
 
-func (provider *OutscaleOOS) readBucketObjects() ([]Object, error) {
+func (provider *OutscaleOOS) readBucketObjects(ctx context.Context) ([]Object, error) {
 	var objects []Object
-	result, err := provider.client.ListBuckets(context.Background(), &s3.ListBucketsInput{})
+	result, err := provider.client.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if err != nil {
 		return nil, err
 	}
 	for _, bucket := range result.Buckets {
-		result, err := provider.client.ListObjectsV2(context.Background(), &s3.ListObjectsV2Input{
+		result, err := provider.client.ListObjectsV2(ctx, &s3.ListObjectsV2Input{
 			Bucket: bucket.Name,
 		})
 		if err != nil {
@@ -178,7 +180,7 @@ func (provider *OutscaleOOS) readBucketObjects() ([]Object, error) {
 	return objects, nil
 }
 
-func (provider *OutscaleOOS) deleteBucketObjects(bucketObjects []Object) {
+func (provider *OutscaleOOS) deleteBucketObjects(ctx context.Context, bucketObjects []Object) {
 	for _, encodedBucketObject := range bucketObjects {
 		log.Printf(
 			"Deleting object: %s ... ",
@@ -188,7 +190,7 @@ func (provider *OutscaleOOS) deleteBucketObjects(bucketObjects []Object) {
 		if err != nil {
 			log.Println("Error while reading object details: ", err.Error())
 		}
-		_, err = provider.client.DeleteObject(context.Background(), &s3.DeleteObjectInput{
+		_, err = provider.client.DeleteObject(ctx, &s3.DeleteObjectInput{
 			Bucket: &bucketName,
 			Key:    &key,
 		})
@@ -213,9 +215,9 @@ func decodeBucket(b64Bucket *string) (string, error) {
 	return bucketName, nil
 }
 
-func (provider *OutscaleOOS) readBuckets() ([]Object, error) {
+func (provider *OutscaleOOS) readBuckets(ctx context.Context) ([]Object, error) {
 	var buckets []Object
-	result, err := provider.client.ListBuckets(context.Background(), &s3.ListBucketsInput{})
+	result, err := provider.client.ListBuckets(ctx, &s3.ListBucketsInput{})
 	if err != nil {
 		return nil, fmt.Errorf("read buckets: %w", err)
 	}
@@ -225,14 +227,14 @@ func (provider *OutscaleOOS) readBuckets() ([]Object, error) {
 	return buckets, nil
 }
 
-func (provider *OutscaleOOS) deleteBuckets(buckets []Object) {
+func (provider *OutscaleOOS) deleteBuckets(ctx context.Context, buckets []Object) {
 	for _, b64Bucket := range buckets {
 		bucketName, err := decodeBucket(&b64Bucket)
 		if err != nil {
 			continue
 		}
 		log.Printf("Deleting bucket: %s ... ", bucketName)
-		_, err = provider.client.DeleteBucket(context.Background(), &s3.DeleteBucketInput{
+		_, err = provider.client.DeleteBucket(ctx, &s3.DeleteBucketInput{
 			Bucket: &bucketName,
 		})
 		if err != nil {

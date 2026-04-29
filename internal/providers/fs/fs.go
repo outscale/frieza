@@ -1,6 +1,7 @@
 package fs
 
 import (
+	"context"
 	"errors"
 	"fmt"
 	"log"
@@ -13,8 +14,10 @@ import (
 
 const Name = "fs"
 
-const typeFile = "file"
-const typeFolder = "folder"
+const (
+	typeFile   = "file"
+	typeFolder = "folder"
+)
 
 type FileSystem struct {
 	Path string
@@ -37,8 +40,8 @@ func New(config ProviderConfig, debug bool) (*FileSystem, error) {
 }
 
 func Types() []ObjectType {
-	object_types := []ObjectType{typeFile, typeFolder}
-	return object_types
+	objectTypes := []ObjectType{typeFile, typeFolder}
+	return objectTypes
 }
 
 func Cli() (string, cli.Command) {
@@ -54,7 +57,7 @@ func (provider *FileSystem) Types() []ObjectType {
 	return Types()
 }
 
-func (provider *FileSystem) AuthTest() error {
+func (provider *FileSystem) AuthTest(ctx context.Context) error {
 	// Will test if we can access the folder
 	if _, err := os.ReadDir(provider.Path); err != nil {
 		return fmt.Errorf("cannot move to directory: %s", err.Error())
@@ -62,22 +65,22 @@ func (provider *FileSystem) AuthTest() error {
 	return nil
 }
 
-func (provider *FileSystem) ReadObjects(typeName string) ([]Object, error) {
+func (provider *FileSystem) ReadObjects(ctx context.Context, typeName string) ([]Object, error) {
 	switch typeName {
 	case typeFile:
-		return provider.readFiles()
+		return provider.readFiles(ctx)
 	case typeFolder:
-		return provider.readFolders()
+		return provider.readFolders(ctx)
 	}
 	return []Object{}, nil
 }
 
-func (provider *FileSystem) DeleteObjects(typeName string, objects []Object) {
+func (provider *FileSystem) DeleteObjects(ctx context.Context, typeName string, objects []Object) {
 	switch typeName {
 	case typeFile:
-		provider.deleteFiles(objects)
+		provider.deleteFiles(ctx, objects)
 	case typeFolder:
-		provider.deleteFolders(objects)
+		provider.deleteFolders(ctx, objects)
 	}
 }
 
@@ -85,7 +88,7 @@ func (provider *FileSystem) StringObject(object string, typeName string) string 
 	return object
 }
 
-func (provider *FileSystem) readFiles() ([]Object, error) {
+func (provider *FileSystem) readFiles(ctx context.Context) ([]Object, error) {
 	files := make([]Object, 0)
 
 	if err := os.Chdir(provider.Path); err != nil {
@@ -94,6 +97,10 @@ func (provider *FileSystem) readFiles() ([]Object, error) {
 
 	folderStack := []string{"."}
 	for len(folderStack) > 0 {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+
 		dirPath := folderStack[len(folderStack)-1]
 		folderStack = folderStack[:len(folderStack)-1]
 		dir, err := os.ReadDir(dirPath)
@@ -113,8 +120,12 @@ func (provider *FileSystem) readFiles() ([]Object, error) {
 	return files, nil
 }
 
-func (provider *FileSystem) deleteFiles(files []Object) {
+func (provider *FileSystem) deleteFiles(ctx context.Context, files []Object) {
 	for _, relativeFilePath := range files {
+		if ctx.Err() != nil {
+			return
+		}
+
 		filePath := path.Join(provider.Path, relativeFilePath)
 		log.Printf("Deleting file %s ... ", filePath)
 		if err := os.Remove(filePath); err != nil {
@@ -125,7 +136,7 @@ func (provider *FileSystem) deleteFiles(files []Object) {
 	}
 }
 
-func (provider *FileSystem) readFolders() ([]Object, error) {
+func (provider *FileSystem) readFolders(ctx context.Context) ([]Object, error) {
 	folders := make([]Object, 0)
 
 	if err := os.Chdir(provider.Path); err != nil {
@@ -134,6 +145,10 @@ func (provider *FileSystem) readFolders() ([]Object, error) {
 
 	folderStack := []string{"."}
 	for len(folderStack) > 0 {
+		if err := ctx.Err(); err != nil {
+			return nil, err
+		}
+
 		dirPath := folderStack[len(folderStack)-1]
 		folderStack = folderStack[:len(folderStack)-1]
 		dir, err := os.ReadDir(dirPath)
@@ -152,8 +167,12 @@ func (provider *FileSystem) readFolders() ([]Object, error) {
 	return folders, nil
 }
 
-func (provider *FileSystem) deleteFolders(folders []Object) {
+func (provider *FileSystem) deleteFolders(ctx context.Context, folders []Object) {
 	for _, relativeFolderPath := range folders {
+		if ctx.Err() != nil {
+			return
+		}
+
 		folderPath := path.Join(provider.Path, relativeFolderPath)
 		log.Printf("Deleting folder %s ... ", folderPath)
 		if err := os.Remove(folderPath); err != nil {

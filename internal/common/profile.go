@@ -3,6 +3,7 @@ package common
 import (
 	"errors"
 	"fmt"
+	"strings"
 )
 
 type Profile struct {
@@ -29,19 +30,23 @@ func (p *Profile) GetProviders() ([]string, error) {
 }
 
 func (profile Profile) String() string {
-	out := fmt.Sprintf("profile: %v\n", profile.Name)
+	var outBuilder strings.Builder
+
+	fmt.Fprintf(&outBuilder, "profile: %v\n", profile.Name)
 	providers, err := profile.GetProviders()
 	if err != nil {
-		out += fmt.Sprintf("ERROR: %v\n", err)
-		return out
+		fmt.Fprintf(&outBuilder, "ERROR: %v\n", err)
+		return outBuilder.String()
 	}
-	out += "providers:\n"
+
+	outBuilder.WriteString("providers:\n")
 	for _, provider := range providers {
-		out += fmt.Sprintf("  - %v\n", provider)
+		fmt.Fprintf(&outBuilder, "  - %v\n", provider)
 	}
-	out += "configuration:\n"
+
+	outBuilder.WriteString("configuration:\n")
 	for key, value := range profile.Config {
-		out += fmt.Sprintf("  - %v: %v\n", key, value)
+		fmt.Fprintf(&outBuilder, "  - %v: %v\n", key, value)
 	}
-	return out
+	return outBuilder.String()
 }
