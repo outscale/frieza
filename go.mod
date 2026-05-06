@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.31.21
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.91.0
 	github.com/aws/smithy-go v1.25.1
-	github.com/outscale/osc-sdk-go/v3 v3.0.0-rc.1.0.20260325152615-8ac3c57fdae9
+	github.com/outscale/osc-sdk-go/v3 v3.0.0-rc.2
 	github.com/teris-io/cli v1.0.1
 )
 
@@ -35,6 +35,6 @@ require (
 	github.com/hashicorp/go-cleanhttp v0.5.2 // indirect
 	github.com/hashicorp/go-retryablehttp v0.7.8 // indirect
 	github.com/jmespath/go-jmespath v0.4.0 // indirect
-	github.com/oapi-codegen/runtime v1.2.0 // indirect
+	github.com/oapi-codegen/runtime v1.3.1 // indirect
 	go.uber.org/ratelimit v0.3.1 // indirect
 )

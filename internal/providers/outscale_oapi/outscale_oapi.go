@@ -977,8 +977,8 @@ func (provider *OutscaleOAPI) readVpnConnections(ctx context.Context) ([]Object,
 		ctx,
 		osc.ReadVpnConnectionsRequest{
 			Filters: &osc.FiltersVpnConnection{
-				States: &[]string{
-					"pending", "available", // skipping deleting, deleted
+				States: &[]osc.VpnConnectionState{
+					osc.VpnConnectionStatePending, osc.VpnConnectionStateAvailable, // skipping deleting, deleted
 				},
 			},
 		},
@@ -1051,8 +1051,8 @@ func (provider *OutscaleOAPI) readClientGateways(ctx context.Context) ([]Object,
 		ctx,
 		osc.ReadClientGatewaysRequest{
 			Filters: &osc.FiltersClientGateway{
-				States: &[]string{
-					"pending", "available", // skipping deleting, deleted
+				States: &[]osc.ClientGatewayState{
+					osc.ClientGatewayStatePending, osc.ClientGatewayStateAvailable, // skipping deleting, deleted
 				},
 			},
 		},
@@ -1521,8 +1521,8 @@ func (provider *OutscaleOAPI) readFlexibleGpus(ctx context.Context) ([]Object, e
 		return nil, fmt.Errorf("read flexible gpus: %w", getErrorInfo(err))
 	}
 	for i, gpu := range *read.FlexibleGpus {
-		flexibleGpus = append(flexibleGpus, *gpu.FlexibleGpuId)
-		provider.cache.flexibleGpus[*gpu.FlexibleGpuId] = &(*read.FlexibleGpus)[i]
+		flexibleGpus = append(flexibleGpus, gpu.FlexibleGpuId)
+		provider.cache.flexibleGpus[gpu.FlexibleGpuId] = &(*read.FlexibleGpus)[i]
 	}
 	return flexibleGpus, nil
 }
@@ -1533,13 +1533,13 @@ func (provider *OutscaleOAPI) unlinkFlexibleGpus(ctx context.Context, flexibleGp
 		if gpu == nil {
 			continue
 		}
-		switch *gpu.State {
-		case "attaching", "attached":
+		switch gpu.State {
+		case osc.FlexibleGpuStateAttaching, osc.FlexibleGpuStateAttached:
 		default:
 			continue
 		}
-		log.Printf("Unlinking flexible gpu %s... ", *gpu.FlexibleGpuId)
-		unlinkOpts := osc.UnlinkFlexibleGpuRequest{FlexibleGpuId: *gpu.FlexibleGpuId}
+		log.Printf("Unlinking flexible gpu %s... ", gpu.FlexibleGpuId)
+		unlinkOpts := osc.UnlinkFlexibleGpuRequest{FlexibleGpuId: gpu.FlexibleGpuId}
 		_, err := provider.client.UnlinkFlexibleGpu(ctx, unlinkOpts)
 		if err != nil {
 			log.Printf("Error while unlinking flexible gpu: %v\n", getErrorInfo(err))
