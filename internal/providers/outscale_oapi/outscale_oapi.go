@@ -39,6 +39,7 @@ const (
 	typeNetAccessPoint    = "net_access_point"
 	typeNetPeering        = "net_peering"
 	typeUser              = "user"
+	typeUserGroup         = "user_group"
 	typeUserAccessKey     = "user_access_key"
 	typePolicy            = "policy"
 	typePolicyLink        = "policy_link"
@@ -120,6 +121,7 @@ func Types() []ObjectType {
 		typeAccessKey,
 		typeUserAccessKey,
 		typeUser,
+		typeUserGroup,
 		typePolicyLink,
 		typePolicy,
 		typePolicyVersion,
@@ -195,6 +197,8 @@ func (provider *OutscaleOAPI) ReadObjects(ctx context.Context, typeName string) 
 		return provider.readNetPeerings(ctx)
 	case typeUser:
 		return provider.readUsers(ctx)
+	case typeUserGroup:
+		return provider.readUserGroups(ctx)
 	case typeUserAccessKey:
 		return provider.readUserAccessKeys(ctx)
 	case typePolicy:
@@ -259,6 +263,8 @@ func (provider *OutscaleOAPI) DeleteObjects(ctx context.Context, typeName string
 		provider.deleteNetPeerings(ctx, objects)
 	case typeUser:
 		provider.deleteUsers(ctx, objects)
+	case typeUserGroup:
+		provider.deleteUserGroups(ctx, objects)
 	case typeUserAccessKey:
 		provider.deleteUserAccessKeys(ctx, objects)
 	case typePolicy:
@@ -1264,6 +1270,34 @@ func (provider *OutscaleOAPI) deleteUsers(ctx context.Context, users []Object) {
 		_, err := provider.client.DeleteUser(ctx, deleteOpts)
 		if err != nil {
 			log.Print("Error while deleting user: %w", err)
+		} else {
+			log.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readUserGroups(ctx context.Context) ([]Object, error) {
+	userGroups := make([]Object, 0)
+	read, err := provider.client.ReadUserGroups(ctx, osc.ReadUserGroupsRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("read user groups: %w", getErrorInfo(err))
+	}
+	for _, userGroup := range *read.UserGroups {
+		userGroups = append(userGroups, *userGroup.Name)
+	}
+	return userGroups, nil
+}
+
+func (provider *OutscaleOAPI) deleteUserGroups(ctx context.Context, userGroups []Object) {
+	if len(userGroups) == 0 {
+		return
+	}
+	for _, userGroup := range userGroups {
+		log.Printf("Deleting user group %s... ", userGroup)
+		deleteOpts := osc.DeleteUserGroupRequest{UserGroupName: userGroup}
+		_, err := provider.client.DeleteUserGroup(ctx, deleteOpts)
+		if err != nil {
+			log.Print("Error while deleting user group: %w", err)
 		} else {
 			log.Println("OK")
 		}
