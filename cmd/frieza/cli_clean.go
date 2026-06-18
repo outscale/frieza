@@ -24,7 +24,7 @@ func cliClean() cli.Command {
 			plan := options["plan"] == "true"
 			autoApprove := options["auto-approve"] == "true"
 			jsonOutput := options["json"] == "true"
-			timeout := "-1"
+			timeout := "10m"
 			if len(options["timeout"]) > 0 {
 				timeout = options["timeout"]
 			}
