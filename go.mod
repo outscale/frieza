@@ -8,7 +8,7 @@ require (
 	github.com/aws/aws-sdk-go-v2/config v1.31.21
 	github.com/aws/aws-sdk-go-v2/service/s3 v1.91.0
 	github.com/aws/smithy-go v1.25.1
-	github.com/outscale/osc-sdk-go/v3 v3.0.0-rc.2
+	github.com/outscale/osc-sdk-go/v3 v3.0.0-rc.3
 	github.com/teris-io/cli v1.0.1
 )
 
