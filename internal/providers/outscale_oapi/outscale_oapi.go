@@ -9,6 +9,7 @@ import (
 	"time"
 
 	. "github.com/outscale/frieza/internal/common"
+	"github.com/outscale/goutils/sdk/ptr"
 	"github.com/outscale/osc-sdk-go/v3/pkg/options"
 	"github.com/outscale/osc-sdk-go/v3/pkg/osc"
 	"github.com/outscale/osc-sdk-go/v3/pkg/profile"
@@ -64,6 +65,7 @@ type apiCache struct {
 	routeTables      map[Object]*osc.RouteTable
 	securityGroups   map[Object]*osc.SecurityGroup
 	flexibleGpus     map[Object]*osc.FlexibleGpu
+	virtualGateways  map[Object]*osc.VirtualGateway
 }
 
 func New(config ProviderConfig, debug bool) (*OutscaleOAPI, error) {
@@ -297,6 +299,7 @@ func newAPICache() apiCache {
 		routeTables:      make(map[string]*osc.RouteTable),
 		securityGroups:   make(map[string]*osc.SecurityGroup),
 		flexibleGpus:     make(map[string]*osc.FlexibleGpu),
+		virtualGateways:  make(map[string]*osc.VirtualGateway),
 	}
 }
 
@@ -645,9 +648,15 @@ func (provider *OutscaleOAPI) deleteVolumes(ctx context.Context, volumes []Objec
 		log.Printf("Deleting volume %s... ", volume)
 		deletionOpts := osc.DeleteVolumeRequest{VolumeId: volume}
 		_, err := provider.client.DeleteVolume(ctx, deletionOpts)
-		if err != nil {
+		switch {
+		case osc.HasErrorCode(err, []string{"6007"}):
+			_, err := provider.client.UnlinkVolume(ctx, osc.UnlinkVolumeRequest{VolumeId: volume, ForceUnlink: new(true)})
+			if err != nil {
+				log.Printf("Error while unlinking volume: %v\n", getErrorInfo(err))
+			}
+		case err != nil:
 			log.Printf("Error while deleting volume: %v\n", getErrorInfo(err))
-		} else {
+		default:
 			log.Println("OK")
 		}
 	}
@@ -1014,8 +1023,8 @@ func (provider *OutscaleOAPI) readVirtualGateways(ctx context.Context) ([]Object
 		ctx,
 		osc.ReadVirtualGatewaysRequest{
 			Filters: &osc.FiltersVirtualGateway{
-				States: &[]string{
-					"pending", "available", // skipping deleting, deleted
+				States: &[]osc.VirtualGatewayState{
+					osc.VirtualGatewayStatePending, osc.VirtualGatewayStateAvailable, // skipping deleting, deleted
 				},
 			},
 		},
@@ -1023,8 +1032,19 @@ func (provider *OutscaleOAPI) readVirtualGateways(ctx context.Context) ([]Object
 	if err != nil {
 		return nil, fmt.Errorf("read virtual gateways: %w", getErrorInfo(err))
 	}
+
 	for _, virtualGateway := range *read.VirtualGateways {
+		// ids := []string{virtualGateway.VirtualGatewayId}
+		// id := strings.Join(append(ids,
+		// 	lo.FilterMap(virtualGateway.NetToVirtualGatewayLinks, func(link osc.NetToVirtualGatewayLink, _ int) (string, bool) {
+		// 		netID := ptr.From(link.NetId)
+		// 		state := ptr.From(link.State)
+		// 		return netID, netID != "" && (state == osc.NetToVirtualGatewayLinkStateAttached || state == osc.NetToVirtualGatewayLinkStateAttaching)
+		// 	})...,
+		// ), "_")
+
 		virtualGateways = append(virtualGateways, virtualGateway.VirtualGatewayId)
+		provider.cache.virtualGateways[virtualGateway.VirtualGatewayId] = &virtualGateway
 	}
 	return virtualGateways, nil
 }
@@ -1033,11 +1053,31 @@ func (provider *OutscaleOAPI) deleteVirtualGateways(ctx context.Context, virtual
 	if len(virtualGateways) == 0 {
 		return
 	}
-	for _, virtualGateway := range virtualGateways {
-		log.Printf("Deleting virtual gateway %s... ", virtualGateway)
-		deletionOpts := osc.DeleteVirtualGatewayRequest{VirtualGatewayId: virtualGateway}
+	for _, id := range virtualGateways {
+		vgw := provider.cache.virtualGateways[id]
+		for _, link := range vgw.NetToVirtualGatewayLinks {
+			if *link.State == osc.NetToVirtualGatewayLinkStateDetached || *link.State == osc.NetToVirtualGatewayLinkStateDetaching {
+				continue
+			}
+
+			netID := ptr.From(link.NetId)
+			if netID != "" {
+				_, err := provider.client.UnlinkVirtualGateway(ctx, osc.UnlinkVirtualGatewayRequest{
+					VirtualGatewayId: id,
+					NetId:            netID,
+				})
+				if err != nil {
+					log.Printf("Error while unlinking virtual gateway from net: %v\n", getErrorInfo(err))
+				}
+			}
+		}
+
+		log.Printf("Deleting virtual gateway %s... ", id)
+		deletionOpts := osc.DeleteVirtualGatewayRequest{VirtualGatewayId: id}
 		_, err := provider.client.DeleteVirtualGateway(ctx, deletionOpts)
 		if err != nil {
+			if osc.HasErrorCode(err, []string{"1016"}) {
+			}
 			log.Printf("Error while deleting virtual gateway: %v\n", getErrorInfo(err))
 		} else {
 			log.Println("OK")
@@ -1342,8 +1382,17 @@ func (provider *OutscaleOAPI) deleteUserAccessKeys(ctx context.Context, accessKe
 			continue
 		}
 
+		_, err := provider.client.UpdateAccessKey(ctx, osc.UpdateAccessKeyRequest{
+			AccessKeyId: parts[1],
+			UserName:    &parts[0],
+			State:       new("INACTIVE"),
+		})
+		if err != nil {
+			log.Printf("Error while updating user access key to INACTIVE: %v\n", getErrorInfo(err))
+		}
+
 		deletionOpts := osc.DeleteAccessKeyRequest{AccessKeyId: parts[1], UserName: &parts[0]}
-		_, err := provider.client.DeleteAccessKey(ctx, deletionOpts)
+		_, err = provider.client.DeleteAccessKey(ctx, deletionOpts)
 		if err != nil {
 			log.Printf("Error while deleting user access key: %v\n", getErrorInfo(err))
 		} else {
