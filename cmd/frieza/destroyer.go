@@ -85,7 +85,7 @@ func (destroyer *Destroyer) print_json() {
 	log.Print(string(json_bytes))
 }
 
-func (destroyer *Destroyer) run(ctx context.Context) {
+func (destroyer *Destroyer) run(ctx context.Context, options DeleteOptions) {
 	var objects []*Objects
 	for i := range destroyer.Targets {
 		objects = append(objects, destroyer.Targets[i].Objects)
@@ -117,7 +117,7 @@ func (destroyer *Destroyer) run(ctx context.Context) {
 			if !hasObjectsLeft[i] {
 				continue
 			}
-			DeleteObjects(ctx, target.provider, *objects[i])
+			DeleteObjects(ctx, target.provider, *objects[i], options)
 			time.Sleep(100 * time.Millisecond)
 		}
 		for i, target := range destroyer.Targets {

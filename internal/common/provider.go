@@ -14,6 +14,10 @@ type Provider interface {
 	Types() []ObjectType
 	AuthTest(ctx context.Context) error
 	ReadObjects(ctx context.Context, typeName string) ([]Object, error)
-	DeleteObjects(ctx context.Context, typeName string, objects []Object)
+	DeleteObjects(ctx context.Context, typeName string, objects []Object, options DeleteOptions)
 	StringObject(object string, typeName string) string
+}
+
+type DeleteOptions struct {
+	BypassDeletionProtection bool
 }

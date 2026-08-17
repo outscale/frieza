@@ -221,10 +221,10 @@ func (provider *OutscaleOAPI) ReadObjects(ctx context.Context, typeName string) 
 	return []Object{}, nil
 }
 
-func (provider *OutscaleOAPI) DeleteObjects(ctx context.Context, typeName string, objects []Object) {
+func (provider *OutscaleOAPI) DeleteObjects(ctx context.Context, typeName string, objects []Object, options DeleteOptions) {
 	switch typeName {
 	case typeVm:
-		provider.deleteVms(ctx, objects)
+		provider.deleteVms(ctx, objects, options)
 	case typeLoadBalancer:
 		provider.deleteLoadBalancers(ctx, objects)
 	case typeNatService:
@@ -352,10 +352,22 @@ func (provider *OutscaleOAPI) forceShutdownVms(ctx context.Context, vms []Object
 	log.Println("OK")
 }
 
-func (provider *OutscaleOAPI) deleteVms(ctx context.Context, vms []Object) {
+func (provider *OutscaleOAPI) deleteVms(ctx context.Context, vms []Object, options DeleteOptions) {
 	if len(vms) == 0 {
 		return
 	}
+	if options.BypassDeletionProtection {
+		for _, vm := range vms {
+			_, err := provider.client.UpdateVm(ctx, osc.UpdateVmRequest{
+				VmId:               vm,
+				DeletionProtection: new(false),
+			})
+			if err != nil {
+				log.Printf("Error while disabling deletion protection for vm %s: %v\n", vm, getErrorInfo(err))
+			}
+		}
+	}
+
 	provider.forceShutdownVms(ctx, vms)
 	log.Printf("Deleting virtual machines: %s ... ", vms)
 	deletionOpts := osc.DeleteVmsRequest{VmIds: vms}

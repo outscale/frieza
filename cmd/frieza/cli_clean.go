@@ -19,22 +19,24 @@ func cliClean() cli.Command {
 		WithArg(cli.NewArg("snapshot_name", "snapshot")).
 		WithOption(cliConfigPath()).
 		WithOption(cliDebug()).
+		WithOption(cli.NewOption("bypass-deletion-protection", "Disable API deletion protection before deleting supported resources").WithType(cli.TypeBool)).
 		WithAction(func(args []string, options map[string]string) int {
 			setupDebug(options)
 			plan := options["plan"] == "true"
 			autoApprove := options["auto-approve"] == "true"
 			jsonOutput := options["json"] == "true"
+			bypassDeletionProtection := options["bypass-deletion-protection"] == "true"
 			timeout := "10m"
 			if len(options["timeout"]) > 0 {
 				timeout = options["timeout"]
 			}
 
-			clean(options["config"], &args[0], plan, autoApprove, jsonOutput, timeout)
+			clean(options["config"], &args[0], plan, autoApprove, jsonOutput, bypassDeletionProtection, timeout)
 			return 0
 		})
 }
 
-func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove bool, jsonOutput bool, timeout string) {
+func clean(customConfigPath string, snapshotName *string, plan, autoApprove, jsonOutput, bypassDeletionProtection bool, timeout string) {
 	var configPath *string
 	if jsonOutput && !autoApprove {
 		cliFatalf(true, "Cannot use --json option without --auto-approve")
@@ -99,6 +101,10 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 		log.Fatal("Clean canceled")
 	}
 
+	options := DeleteOptions{
+		BypassDeletionProtection: bypassDeletionProtection,
+	}
+
 	tout, err := time.ParseDuration(timeout)
 	if err != nil {
 		log.Fatal("Could not parse timeout: %w", err)
@@ -106,5 +112,5 @@ func clean(customConfigPath string, snapshotName *string, plan bool, autoApprove
 	ctx, cancel := context.WithTimeout(ctx, tout)
 	defer cancel()
 
-	destroyer.run(ctx)
+	destroyer.run(ctx, options)
 }

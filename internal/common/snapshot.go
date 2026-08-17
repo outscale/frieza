@@ -68,13 +68,13 @@ func ReadNonEmptyObjects(ctx context.Context, provider *Provider, nonEmpy Object
 	return objects, nil
 }
 
-func DeleteObjects(ctx context.Context, provider *Provider, objects Objects) {
+func DeleteObjects(ctx context.Context, provider *Provider, objects Objects, options DeleteOptions) {
 	for _, typeName := range (*provider).Types() {
 		objectList := objects[typeName]
 		if len(objectList) == 0 {
 			continue
 		}
-		(*provider).DeleteObjects(ctx, typeName, objectList)
+		(*provider).DeleteObjects(ctx, typeName, objectList, options)
 	}
 }
 
