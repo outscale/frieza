@@ -128,10 +128,10 @@ func (provider *OutscaleOKS) readProject(ctx context.Context) ([]Object, error) 
 	return projectcs, nil
 }
 
-func (provider *OutscaleOKS) DeleteObjects(ctx context.Context, typeName string, objects []Object) {
+func (provider *OutscaleOKS) DeleteObjects(ctx context.Context, typeName string, objects []Object, options DeleteOptions) {
 	switch typeName {
 	case typeProject:
-		provider.deleteProject(ctx, objects)
+		provider.deleteProject(ctx, objects, options)
 	case typeCluster:
 		provider.deleteCluster(ctx, objects)
 	}
@@ -154,13 +154,22 @@ func (provider *OutscaleOKS) deleteCluster(ctx context.Context, objects []Object
 	}
 }
 
-func (provider *OutscaleOKS) deleteProject(ctx context.Context, objects []Object) {
+func (provider *OutscaleOKS) deleteProject(ctx context.Context, objects []Object, options DeleteOptions) {
 	if len(objects) == 0 {
 		return
 	}
 
 	for _, projectID := range objects {
 		log.Printf("Deleting project %s... ", projectID)
+
+		if options.BypassDeletionProtection {
+			_, err := provider.client.UpdateProject(ctx, projectID, oks.ProjectUpdate{
+				DisableApiTermination: new(false),
+			})
+			if err != nil {
+				log.Printf("Error while disabling project deletion protection: %v\n", err)
+			}
+		}
 
 		_, err := provider.client.DeleteProject(ctx, projectID)
 		if err != nil {

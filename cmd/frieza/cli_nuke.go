@@ -104,6 +104,10 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 		log.Fatal("Nuke canceled")
 	}
 
+	options := DeleteOptions{
+		BypassDeletionProtection: true,
+	}
+
 	tout, err := time.ParseDuration(timeout)
 	if err != nil {
 		log.Fatal("Could not parse timeout: %w", err)
@@ -111,5 +115,5 @@ func nuke(customConfigPath string, profiles []string, plan bool, autoApprove boo
 	ctx, cancel := context.WithTimeout(ctx, tout)
 	defer cancel()
 
-	destroyer.run(ctx)
+	destroyer.run(ctx, options)
 }

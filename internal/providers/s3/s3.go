@@ -114,7 +114,7 @@ func (provider *S3) ReadObjects(ctx context.Context, typeName string) ([]Object,
 	return []Object{}, nil
 }
 
-func (provider *S3) DeleteObjects(ctx context.Context, typeName string, objects []Object) {
+func (provider *S3) DeleteObjects(ctx context.Context, typeName string, objects []Object, options DeleteOptions) {
 	switch typeName {
 	case typeBucketObject:
 		provider.deleteBucketObjects(ctx, objects)

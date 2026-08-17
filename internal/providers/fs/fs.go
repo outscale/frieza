@@ -75,7 +75,7 @@ func (provider *FileSystem) ReadObjects(ctx context.Context, typeName string) ([
 	return []Object{}, nil
 }
 
-func (provider *FileSystem) DeleteObjects(ctx context.Context, typeName string, objects []Object) {
+func (provider *FileSystem) DeleteObjects(ctx context.Context, typeName string, objects []Object, options DeleteOptions) {
 	switch typeName {
 	case typeFile:
 		provider.deleteFiles(ctx, objects)

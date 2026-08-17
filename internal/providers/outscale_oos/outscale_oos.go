@@ -111,7 +111,7 @@ func (provider *OutscaleOOS) ReadObjects(ctx context.Context, typeName string) (
 	return []Object{}, nil
 }
 
-func (provider *OutscaleOOS) DeleteObjects(ctx context.Context, typeName string, objects []Object) {
+func (provider *OutscaleOOS) DeleteObjects(ctx context.Context, typeName string, objects []Object, options DeleteOptions) {
 	switch typeName {
 	case typeBucketObject:
 		provider.deleteBucketObjects(ctx, objects)
