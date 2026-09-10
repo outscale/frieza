@@ -20,6 +20,6 @@ jobs:
     - name: 📦 Build
       run: make build
     - name: 🔎 Lint
-      uses: outscale/goutils/.github/actions/lint@main
+      uses: outscale/goutils/.github/actions/lint@b0e21af2e13e3bd34afab3a2cf05c8ce9d558245 # main
     - name: 👮 Reuse
       run: make test-reuse
