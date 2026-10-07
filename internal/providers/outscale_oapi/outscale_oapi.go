@@ -67,6 +67,7 @@ type apiCache struct {
 	securityGroups   map[Object]*osc.SecurityGroup
 	flexibleGpus     map[Object]*osc.FlexibleGpu
 	virtualGateways  map[Object]*osc.VirtualGateway
+	userGroups       map[Object]*osc.ReadUserGroupResponse
 }
 
 func New(config ProviderConfig, debug bool) (*OutscaleOAPI, error) {
@@ -306,6 +307,7 @@ func newAPICache() apiCache {
 		securityGroups:   make(map[string]*osc.SecurityGroup),
 		flexibleGpus:     make(map[string]*osc.FlexibleGpu),
 		virtualGateways:  make(map[string]*osc.VirtualGateway),
+		userGroups:       make(map[string]*osc.ReadUserGroupResponse),
 	}
 }
 
@@ -1341,9 +1343,47 @@ func (provider *OutscaleOAPI) readUserGroups(ctx context.Context) ([]Object, err
 		return nil, fmt.Errorf("read user groups: %w", getErrorInfo(err))
 	}
 	for _, userGroup := range *read.UserGroups {
+		group, err := provider.client.ReadUserGroup(ctx, osc.ReadUserGroupRequest{
+			Path:          userGroup.Path,
+			UserGroupName: *userGroup.Name,
+		})
+		if err != nil {
+			return nil, fmt.Errorf("read user group %s: %w", *userGroup.Name, getErrorInfo(err))
+		}
 		userGroups = append(userGroups, *userGroup.Name)
+		provider.cache.userGroups[*userGroup.Name] = group
 	}
 	return userGroups, nil
+}
+
+func (provider *OutscaleOAPI) removeUsersFromUserGroup(ctx context.Context, userGroupName Object) bool {
+	group := provider.cache.userGroups[userGroupName]
+
+	ok := true
+	for _, user := range *group.Users {
+		if user.UserName == nil {
+			continue
+		}
+
+		log.Printf("Removing user %s from user group %s... ", *user.UserName, userGroupName)
+		removeOpts := osc.RemoveUserFromUserGroupRequest{
+			UserGroupName: userGroupName,
+			UserName:      *user.UserName,
+			UserPath:      user.Path,
+		}
+		if group.UserGroup != nil {
+			removeOpts.UserGroupPath = group.UserGroup.Path
+		}
+		_, err := provider.client.RemoveUserFromUserGroup(ctx, removeOpts)
+		if err != nil {
+			log.Printf("Error while removing user from user group: %v\n", getErrorInfo(err))
+			ok = false
+		} else {
+			log.Println("OK")
+		}
+	}
+
+	return ok
 }
 
 func (provider *OutscaleOAPI) deleteUserGroups(ctx context.Context, userGroups []Object) {
@@ -1351,6 +1391,9 @@ func (provider *OutscaleOAPI) deleteUserGroups(ctx context.Context, userGroups [
 		return
 	}
 	for _, userGroup := range userGroups {
+		if !provider.removeUsersFromUserGroup(ctx, userGroup) {
+			continue
+		}
 		log.Printf("Deleting user group %s... ", userGroup)
 		deleteOpts := osc.DeleteUserGroupRequest{UserGroupName: userGroup}
 		_, err := provider.client.DeleteUserGroup(ctx, deleteOpts)
