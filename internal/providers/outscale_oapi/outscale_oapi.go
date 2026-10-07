@@ -49,6 +49,7 @@ const (
 	typeCa                = "ca"
 	typeServerCertificate = "server_certificate"
 	typeDhcpOption        = "dhcp_option"
+	typeApiAccessRule     = "api_access_rule"
 )
 
 type OutscaleOAPI struct {
@@ -128,6 +129,7 @@ func Types() []ObjectType {
 		typePolicy,
 		typePolicyVersion,
 		typeFlexibleGpu,
+		typeApiAccessRule,
 		typeCa,
 		typeServerCertificate,
 		typeDhcpOption,
@@ -211,6 +213,8 @@ func (provider *OutscaleOAPI) ReadObjects(ctx context.Context, typeName string) 
 		return provider.readPolicyVersions(ctx)
 	case typeFlexibleGpu:
 		return provider.readFlexibleGpus(ctx)
+	case typeApiAccessRule:
+		return provider.readApiAccessRules(ctx)
 	case typeCa:
 		return provider.readCas(ctx)
 	case typeServerCertificate:
@@ -277,6 +281,8 @@ func (provider *OutscaleOAPI) DeleteObjects(ctx context.Context, typeName string
 		provider.deletePolicyVersions(ctx, objects)
 	case typeFlexibleGpu:
 		provider.deleteFlexibleGpus(ctx, objects)
+	case typeApiAccessRule:
+		provider.deleteApiAccessRules(ctx, objects)
 	case typeCa:
 		provider.deleteCas(ctx, objects)
 	case typeServerCertificate:
@@ -1621,6 +1627,33 @@ func (provider *OutscaleOAPI) deleteFlexibleGpus(ctx context.Context, flexibleGp
 		_, err := provider.client.DeleteFlexibleGpu(ctx, deleteOpts)
 		if err != nil {
 			log.Print("Error while deleting flexible gpu: %w", err)
+		} else {
+			log.Println("OK")
+		}
+	}
+}
+
+func (provider *OutscaleOAPI) readApiAccessRules(ctx context.Context) ([]Object, error) {
+	apiAccessRules := make([]Object, 0)
+
+	read, err := provider.client.ReadApiAccessRules(ctx, osc.ReadApiAccessRulesRequest{})
+	if err != nil {
+		return nil, fmt.Errorf("read api access rules: %w", getErrorInfo(err))
+	}
+	for _, rule := range *read.ApiAccessRules {
+		apiAccessRules = append(apiAccessRules, *rule.ApiAccessRuleId)
+	}
+
+	return apiAccessRules, nil
+}
+
+func (provider *OutscaleOAPI) deleteApiAccessRules(ctx context.Context, apiAccessRules []Object) {
+	for _, rule := range apiAccessRules {
+		log.Printf("Deleting api access rule %s... ", rule)
+		deleteOpts := osc.DeleteApiAccessRuleRequest{ApiAccessRuleId: rule}
+		_, err := provider.client.DeleteApiAccessRule(ctx, deleteOpts)
+		if err != nil {
+			log.Printf("Error while deleting api access rule: %v\n", getErrorInfo(err))
 		} else {
 			log.Println("OK")
 		}
