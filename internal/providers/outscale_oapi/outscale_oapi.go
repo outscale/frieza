@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"os"
+	"slices"
 	"strings"
 	"time"
 
@@ -1684,6 +1685,9 @@ func (provider *OutscaleOAPI) readApiAccessRules(ctx context.Context) ([]Object,
 		return nil, fmt.Errorf("read api access rules: %w", getErrorInfo(err))
 	}
 	for _, rule := range *read.ApiAccessRules {
+		if len(ptr.From(rule.IpRanges)) == 1 && slices.Contains(*rule.IpRanges, "0.0.0.0/0") {
+			continue
+		}
 		apiAccessRules = append(apiAccessRules, *rule.ApiAccessRuleId)
 	}
 
