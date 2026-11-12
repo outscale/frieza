@@ -43,6 +43,8 @@ github.com/aws/aws-sdk-go-v2/service/sts v1.41.0 h1:JoO/STlEltv5nSbzbg709MLNW0/B
 github.com/aws/aws-sdk-go-v2/service/sts v1.41.0/go.mod h1:E19xDjpzPZC7LS2knI9E6BaRFDK43Eul7vd6rSq2HWk=
 github.com/aws/smithy-go v1.25.1 h1:J8ERsGSU7d+aCmdQur5Txg6bVoYelvQJgtZehD12GkI=
 github.com/aws/smithy-go v1.25.1/go.mod h1:YE2RhdIuDbA5E5bTdciG9KrW3+TiEONeUWCqxX9i1Fc=
+github.com/aws/smithy-go v1.28.1 h1:R/nXH00c8qcfCzQVELtRw+eLQWtzv+VAIEFJ1/xxXlQ=
+github.com/aws/smithy-go v1.28.1/go.mod h1:YE2RhdIuDbA5E5bTdciG9KrW3+TiEONeUWCqxX9i1Fc=
 github.com/aws/smithy-go/aws-http-auth v1.1.2 h1:GxlpOPjxAtktWUGK3QPoIiIa+qq5WNiqpewt3s/+pVo=
 github.com/aws/smithy-go/aws-http-auth v1.1.2/go.mod h1:KL46VTjVK9De3jurMqDLBkXCP9vrAvD03zQrmyzyrQ0=
 github.com/aws/smithy-go/aws-http-auth v1.2.1 h1:uRP2q0BGnhpE1/8iriH3yHVMCg6nhFNaVCDvKYPQVmQ=
@@ -88,6 +90,8 @@ github.com/outscale/osc-sdk-go/v3 v3.0.0-rc.4.0.20260812115131-5bd85d018450 h1:S
 github.com/outscale/osc-sdk-go/v3 v3.0.0-rc.4.0.20260812115131-5bd85d018450/go.mod h1:3lfuRe10qyX65byo8dmnnGAUhsThw8H14enH8d34yiI=
 github.com/outscale/osc-sdk-go/v3 v3.0.0-rc.5 h1:XP6smAeoacHJT/mTeNBMc9Y2Dqvw0fSgLOyazQN6gIY=
 github.com/outscale/osc-sdk-go/v3 v3.0.0-rc.5/go.mod h1:wtvvgi27yvHluLy4X575C1wQQORNpi8FTYcxxvCPi7M=
+github.com/outscale/osc-sdk-go/v3 v3.0.0-rc.6 h1:JK9OB5OonPbHCQD+S9O6MMOO1JqXzMKgqScRt2XEkwA=
+github.com/outscale/osc-sdk-go/v3 v3.0.0-rc.6/go.mod h1:7JsbCkpWIa7+MlvxyAv2HZf+CaJcZDyKekBuiDF4BIY=
 github.com/pmezard/go-difflib v1.0.0/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2 h1:Jamvg5psRIccs7FGNTlIRMkT8wgtp5eCXdBlqhYGL6U=
 github.com/pmezard/go-difflib v1.0.1-0.20181226105442-5d4384ee4fb2/go.mod h1:iKH77koFhYxTK1pcRnkKkqfTogsbg7gZNVY4sRDYZ/4=
